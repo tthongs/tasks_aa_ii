@@ -1,3 +1,0 @@
-This is a sample file for practicing SED.
-SED is a powerful stream editor.
-Let's see how SED works.
