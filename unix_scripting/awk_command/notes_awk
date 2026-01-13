@@ -1,0 +1,48 @@
+### `awk` Scripting Fundamentals:
+
+*   **Interpreter and Execution:**
+    *   `awk` scripts are interpreted by the `awk` command, typically located at `/usr/bin/awk`.
+    *   You can create standalone executable scripts by adding `#!/usr/bin/awk` as the first line and making the file executable with `chmod +x <filename>`.
+    *   Scripts can be run in two main ways:
+        1.  `awk -f script_file.awk input_file.txt`
+        2.  `./script_file.awk input_file.txt` (if it's executable)
+
+*   **Program Structure:** An `awk` program is organized into three main blocks:
+    *   `BEGIN`: This block runs **once** before any lines from the input file are read. It is ideal for setting up initial variables like `FS` (Field Separator) or printing headers.
+    *   `MAIN` (no keyword): This is the core of the script, containing a set of commands enclosed in curly braces `{}`. These commands are executed for **each record** (by default, each line) of the input file.
+    *   `END`: This block runs **once** after all lines from the input file have been processed. It is useful for performing final calculations and printing summaries or footers.
+
+### Records, Fields, and Separators:
+
+*   **Records:** By default, `awk` treats each line of an input file as a **record**.
+    *   `RS` (Record Separator): The character that separates records. The default is a newline (`\n`).
+*   **Fields:** Each record is split into **fields**.
+    *   `FS` (Field Separator): The character or pattern that separates fields. The default is whitespace (one or more spaces or tabs). This can be changed using the `-F` command-line option or by setting the `FS` variable, usually in the `BEGIN` block.
+*   **Accessing Data:**
+    *   `$0`: Represents the entire current record (the whole line).
+    *   `$1`, `$2`, etc.: Refer to the 1st, 2nd, and subsequent fields.
+    *   `$NF`: A special variable that holds the value of the **last field**. `$(NF-1)` would be the second-to-last.
+
+### Important Built-in Variables:
+
+*   `NR` (Number of Records): The cumulative count of records processed so far.
+*   `NF` (Number of Fields): The number of fields in the *current* record.
+*   `OFS` (Output Field Separator): The character used to separate fields in the output of the `print` command. Default is a single space.
+*   `ORS` (Output Record Separator): The character printed at the end of every `print` command. Default is a newline (`\n`).
+*   `FILENAME`: The name of the current input file being processed.
+
+### Pattern Matching and Control Flow:
+
+*   **Pattern Matching:** `awk` can execute actions on only those lines that match a specified pattern.
+    *   The `~` operator is used for matching a field against a regular expression (e.g., `$1 ~ /^[0-9]/`).
+    *   You can use regular expressions like `/^start/` to match the beginning of a line or `/end$/` to match the end.
+*   **Conditional Logic:** Standard `if-else` statements can be used within the action blocks for more complex logic.
+*   **`exit` Command:** Can be used to terminate the script prematurely.
+
+### Built-in Functions:
+
+*   **String Functions:**
+    *   `length(s)`: Returns the number of characters in a string.
+    *   `index(string, substr)`: Returns the starting position of a substring within a string.
+    *   `substr(string, start, len)`: Extracts a substring of a specific length from a string.
+*   **Numeric Functions:** `sqrt()`, `int()`, `log()`, `exp()`.
