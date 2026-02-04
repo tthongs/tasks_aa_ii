@@ -1,0 +1,11 @@
+1. adc , dac , digital up converter , digital down converter.
+2. analog : spectrum and general eqn. (AM,FM,PM)
+3. signal and system : LTI systems , fourier series and transform , z transform , dft , fft 
+4. sampling (nyquist) 
+5. filters : digital fir , iir
+6. digital : ask fsk psk qpsk dm 
+7. qunatization and sampling fhss dsss
+8. dsp: digital communication , fir filter , fft , convolution
+9. window methods : hanning , hamming , blackman , kaiser , stability , linear phase
+10.correlation , auto correlation.
+
