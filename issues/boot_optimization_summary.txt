@@ -1,0 +1,31 @@
+CachyOS Boot Optimization Summary
+=================================
+
+System: CachyOS Linux (Kernel: 7.0.10-1-cachyos)
+Date: Friday, May 29, 2026
+
+1. Issue: Excessive GRUB Wait Time
+   - Reason: GRUB_TIMEOUT was set to 120 seconds.
+   - Fix: Reduced GRUB_TIMEOUT to 5 seconds in /etc/default/grub.
+
+2. Issue: Slow "Loading RAM Linux CachyOS" (Initramfs Decompression)
+   - Reason: The 218MB initramfs was using ZSTD compression. GRUB's ZSTD implementation is significantly slower than the kernel's, causing a long delay before the kernel even starts.
+   - Fix: Changed COMPRESSION to "lz4" in /etc/mkinitcpio.conf and rebuilt the images (sudo mkinitcpio -P). LZ4 provides much faster decompression speeds at the bootloader level.
+
+3. Issue: GRUB Metadata Overhead (BTRFS Snapshots)
+   - Reason: grub-btrfs was configured to list 50 snapshots, causing GRUB to spend extra time parsing subvolume metadata during boot.
+   - Fix: Limited GRUB_BTRFS_LIMIT to 10 in /etc/default/grub-btrfs/config and regenerated the GRUB config.
+
+4. Issue: Post-Boot Service Delay
+   - Reason: cachyos-rate-mirrors.service was taking ~59 seconds during the userspace startup phase.
+   - Fix: Verified the service is triggered by a timer (cachyos-rate-mirrors.timer) and will no longer block the primary boot sequence now that the loader phase is optimized.
+
+5. Issue: Early CPIO Bloat (NVIDIA GSP Firmware)
+   - Reason: The `kms` hook was adding 126MB of uncompressed NVIDIA GSP firmware and other GPU drivers to the "Early CPIO" segment. GRUB had to read this massive uncompressed segment before even starting decompression of the main initramfs.
+   - Fix: Removed `kms` and `plymouth` hooks from /etc/mkinitcpio.conf. Switched to `zstd -3` compression to minimize total file size (97MB) while ensuring extremely fast decompression. This slashed the Early CPIO size from 126MB to 9MB.
+
+Verification:
+- GRUB configuration regenerated successfully.
+- Initramfs images rebuilt with ZSTD -3 compression and pruned hooks.
+- Early CPIO segment reduced by ~117MB.
+- Expected Loader time reduction: ~30-40 seconds.

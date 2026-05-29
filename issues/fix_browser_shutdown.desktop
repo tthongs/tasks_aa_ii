@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Exec=/home/tthongs/builds_tthongs/tasks_aa_ii/issues/fix_browser_shutdown.sh
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+Name=Fix Browser Shutdown
+Comment=Resets Chrome/Brave crash flags on login

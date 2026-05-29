@@ -17,6 +17,11 @@ The broader repository contains several specialized sub-projects:
 *   **unix_scripting/**: Practice scripts for `awk` and `sed`.
 *   **project_report/**: Finalized project documentation and reports.
 
+## Current Issues & Tasks
+*   **ISSUE_002**: Browsers (Chrome/Brave) show "did not shut down properly". [RESOLVED]
+*   **ISSUE_003**: Further Boot Optimization: Service Level Bottlenecks. [RESOLVED]
+*   **ISSUE_004**: Further Boot Optimization: Loader Phase Bottleneck. [RESOLVED]
+
 ## Usage
 To maintain consistency, please follow these guidelines when creating or
 managing issues:
