@@ -21,6 +21,8 @@ The broader repository contains several specialized sub-projects:
 *   **ISSUE_002**: Browsers (Chrome/Brave) show "did not shut down properly". [RESOLVED]
 *   **ISSUE_003**: Further Boot Optimization: Service Level Bottlenecks. [RESOLVED]
 *   **ISSUE_004**: Further Boot Optimization: Loader Phase Bottleneck. [RESOLVED]
+*   **ISSUE_005**: System Maintenance and Upgrade. [RESOLVED]
+*   **ISSUE_006**: AUR Malware Audit (June 2026). [RESOLVED]
 
 ## Usage
 To maintain consistency, please follow these guidelines when creating or
