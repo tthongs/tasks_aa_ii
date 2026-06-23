@@ -23,6 +23,7 @@ The broader repository contains several specialized sub-projects:
 *   **ISSUE_004**: Further Boot Optimization: Loader Phase Bottleneck. [RESOLVED]
 *   **ISSUE_005**: System Maintenance and Upgrade. [RESOLVED]
 *   **ISSUE_006**: AUR Malware Audit (June 2026). [RESOLVED]
+*   **ISSUE_007**: SSD Mount Issues and Intermittent Disconnections. [IN PROGRESS]
 
 ## Usage
 To maintain consistency, please follow these guidelines when creating or
