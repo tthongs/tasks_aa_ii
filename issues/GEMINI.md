@@ -26,6 +26,7 @@ The broader repository contains several specialized sub-projects:
 *   **ISSUE_007**: SSD Mount Issues and Intermittent Disconnections. [IN PROGRESS]
 *   **ISSUE_008**: RQuickShare Discovery Failure on Android Devices. [IN PROGRESS]
 *   **ISSUE_009**: Bluetooth Firmware Loading Failure (MT7922). [RESOLVED]
+*   **ISSUE_010**: Fix Tekken 8 Lag on Hybrid Graphics Laptop. [RESOLVED]
 
 ## Usage
 To maintain consistency, please follow these guidelines when creating or
