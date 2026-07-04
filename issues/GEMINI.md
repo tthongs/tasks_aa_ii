@@ -24,7 +24,7 @@ The broader repository contains several specialized sub-projects:
 *   **ISSUE_005**: System Maintenance and Upgrade. [RESOLVED]
 *   **ISSUE_006**: AUR Malware Audit (June 2026). [RESOLVED]
 *   **ISSUE_007**: SSD Mount Issues and Intermittent Disconnections. [IN PROGRESS]
-*   **ISSUE_008**: RQuickShare Discovery Failure on Android Devices. [IN PROGRESS]
+*   **ISSUE_008**: RQuickShare Discovery Failure on Android Devices. [RESOLVED]
 *   **ISSUE_009**: Bluetooth Firmware Loading Failure (MT7922). [RESOLVED]
 *   **ISSUE_010**: Fix Tekken 8 Lag on Hybrid Graphics Laptop. [RESOLVED]
 
