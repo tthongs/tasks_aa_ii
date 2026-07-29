@@ -1,0 +1,77 @@
+================================================================================
+NTFS AUTOMOUNT & PACKAGE INSTALLATION REPORT
+File: ntfs_f.txt
+Date: 2026-07-25
+================================================================================
+
+1. SYSTEM & ENVIRONMENT DETAILS
+--------------------------------------------------------------------------------
+- Operating System: CachyOS Linux (Arch Linux based)
+- Kernel Version: 7.1.4-1-cachyos
+- Current User: tthh0ngs (UID: 1000, GID: 1000)
+
+2. IDENTIFIED NTFS PARTITIONS
+--------------------------------------------------------------------------------
+- OS Drive (Target for Automount):
+    * Device Path : /dev/nvme0n1p3
+    * Label       : OS
+    * Filesystem  : ntfs
+    * UUID        : D494677F9467634A
+    * Mount Point : /mnt/OS
+
+- Secondary NTFS Drives Detected & Tested:
+    * /dev/sdb1      (Label: IntelSSD, UUID: 26DA54F26E91D133)
+    * /dev/nvme0n1p4 (Label: Recovery, UUID: 163668083667E6E9)
+
+3. ISSUES IDENTIFIED
+--------------------------------------------------------------------------------
+- Missing Userspace NTFS Packages: `ntfs-3g` and `ntfsprogs` were not installed
+  on the system, limiting standalone FUSE NTFS utility support.
+- Boot Safety Risk: Editing /etc/fstab for NTFS drives on dual-boot systems can
+  cause Linux boot failure or hang in emergency mode if Windows leaves the partition
+  dirty (Fast Startup / Hibernation) or if mount flags lack fail-safe protections.
+
+4. ACTIONS TAKEN
+--------------------------------------------------------------------------------
+Step 1: Package Installation
+  Executed `sudo pacman -Sy --noconfirm ntfs-3g ntfsprogs`.
+  Successfully installed:
+    - ntfs-3g 2026.7.7-1.1
+    - ntfsprogs 2026.7.7-1.1
+    - libntfs-3g 2026.7.7-1.1
+    - fuse2 2.9.9-5
+
+Step 2: Partition Verification
+  Tested mounting all three NTFS partitions in read-only mode to ensure filesystem
+  integrity and driver compatibility. All partitions mounted without error.
+
+Step 3: Mount Point Creation
+  Created mount directory `/mnt/OS` with appropriate permissions for non-root user.
+
+Step 4: Safe /etc/fstab Configuration
+  - Created a backup of original fstab at `/etc/fstab.bak`.
+  - Appended the following entry to `/etc/fstab`:
+
+    UUID=D494677F9467634A /mnt/OS ntfs-3g defaults,uid=1000,gid=1000,dmask=022,fmask=133,nofail,x-systemd.device-timeout=10s,windows_names 0 0
+
+  Key Option Explanation:
+    * UUID=D494677F9467634A : Ensures persistent device matching regardless of disk order.
+    * ntfs-3g               : Uses full userspace NTFS driver.
+    * uid=1000,gid=1000     : Grants full read/write ownership to user `tthh0ngs`.
+    * dmask=022,fmask=133   : Sets safe default permissions (directories: 755, files: 644).
+    * nofail                : CRITICAL: Prevents system boot failure/hang if disk fails to mount.
+    * x-systemd.device-timeout=10s : Limits mount wait duration during boot to 10 seconds.
+    * windows_names         : Prevents creating file names illegal in Windows NTFS.
+
+Step 5: Empirical Verification & Testing
+  - Executed `sudo systemctl daemon-reload` to update systemd unit generators.
+  - Executed `sudo mount -a` to test automatic mounting from fstab.
+  - Verified active mount status via `findmnt /mnt/OS`.
+  - Tested file creation (`touch /mnt/OS/test_write_check.tmp`) and deletion as user `tthh0ngs`.
+
+5. CONCLUSION
+--------------------------------------------------------------------------------
+The NTFS packages have been installed and the OS partition is configured to automount
+at `/mnt/OS` on boot with full fail-safe protections (`nofail`). The system is verified
+ready and safe for rebooting.
+================================================================================

@@ -27,6 +27,7 @@ The broader repository contains several specialized sub-projects:
 *   **ISSUE_008**: RQuickShare Discovery Failure on Android Devices. [RESOLVED]
 *   **ISSUE_009**: Bluetooth Firmware Loading Failure (MT7922). [RESOLVED]
 *   **ISSUE_010**: Fix Tekken 8 Lag on Hybrid Graphics Laptop. [RESOLVED]
+*   **ISSUE_011**: Fix Microphone Static Noise & Audio Driver Calibration. [RESOLVED]
 
 ## Usage
 To maintain consistency, please follow these guidelines when creating or
@@ -71,3 +72,7 @@ Any additional context or references to external documentation (e.g., UG470).
     high-impact changes to the relevant sub-directories.
 *   **Verification**: All resolved issues should include a brief note on how
     the fix was verified (e.g., "Ran `uart_rx.v` through testbench").
+*   **Mandatory Issue & Command Logging Directive**: Every time any system modification, bug fix, or task is executed:
+    1. Create/update a dedicated issue log (`ISSUE_XXX_description.md` or `REPORT_XXX_description.md`) in `issues/`.
+    2. Append any new or updated Unix commands (with context, breakdown, and rationale) to `unix_issues_cmds.txt`.
+    3. Update `GEMINI.md` to reflect the new issue status.

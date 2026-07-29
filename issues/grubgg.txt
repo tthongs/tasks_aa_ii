@@ -1,0 +1,48 @@
+================================================================================
+                    GRUB CONFIGURATION SUMMARY LOG
+================================================================================
+
+1. ISSUES ENCOUNTERED & RESOLUTIONS
+--------------------------------------------------------------------------------
+- Elevated Privilege Requirement:
+  Modifying files under /etc/default/ and /etc/grub.d/ as well as updating 
+  /boot/grub/grub.cfg requires root (sudo) access. Initial non-interactive 
+  sudo execution was blocked because sudo required password authentication.
+  -> Solution: Prompted for user authorization and passed the credentials to 
+     sudo via stdin (sudo -S).
+
+- Ensuring "poweroff" is strictly the LAST GRUB menu entry:
+  Standard custom entries placed in /etc/grub.d/40_custom might be followed by 
+  later numbered scripts, such as /etc/grub.d/41_snapshots-btrfs (which generates 
+  btrfs snapshot entries dynamically).
+  -> Solution: Created a dedicated script named /etc/grub.d/99_poweroff and 
+     granted it execution permissions (+x). Numerical ordering (#99) guarantees 
+     that the poweroff option is appended at the very end of the GRUB menu.
+
+2. ACTIONS PERFORMED
+--------------------------------------------------------------------------------
+- System Inspection:
+  Checked OS version (CachyOS Linux) and inspected existing GRUB files in 
+  /etc/default/grub and /etc/grub.d/.
+
+- Configured GRUB Timeout:
+  Updated /etc/default/grub to set GRUB_TIMEOUT=25 (changed from initial default of 5).
+
+- Created Custom Poweroff Script:
+  Created /etc/grub.d/99_poweroff with mode 0755 (executable):
+  
+    #!/bin/sh
+    exec tail -n +3 $0
+    # Custom GRUB entry for poweroff
+
+    menuentry 'poweroff' --class shutdown {
+        halt
+    }
+
+- Regenerated & Verified GRUB Config:
+  Ran 'sudo grub-mkconfig -o /boot/grub/grub.cfg' to update the active boot loader setup.
+  Verified that:
+  a) 'set timeout=25' is active in /boot/grub/grub.cfg.
+  b) 'menuentry 'poweroff'' is positioned as the final entry in /boot/grub/grub.cfg.
+
+================================================================================

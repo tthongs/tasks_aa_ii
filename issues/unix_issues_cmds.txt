@@ -1,0 +1,375 @@
+===============================================================================
+UNIX COMMANDS MASTER LOG: REPOSITORY ISSUES & SYSTEM MAINTENANCE
+===============================================================================
+This file documents all Unix shell commands used across the resolution of 
+issues recorded in the issues/ directory. Commands are segregated by technical 
+domain, explaining context, rationale, and breaking down flags for easy 
+understanding.
+
+===============================================================================
+1. SYSTEM DIAGNOSTICS & HARDWARE INSPECTION
+===============================================================================
+
+-------------------------------------------------------------------------------
+1.1 uname - Kernel Information
+-------------------------------------------------------------------------------
+Command:
+  uname -a
+
+Context & Purpose:
+  Used in ISSUE_011 / REPORT_003 to identify the operating system, hostname, 
+  kernel release version, and machine architecture before performing hardware 
+  driver checks.
+
+Command Breakdown:
+  -a : Print all system information (kernel name, nodename, release, version, 
+       machine, processor, hardware platform, and OS).
+
+-------------------------------------------------------------------------------
+1.2 lspci - PCI Bus & Hardware Device Inspection
+-------------------------------------------------------------------------------
+Command:
+  lspci -nnk | grep -A 3 -i audio
+
+Context & Purpose:
+  Used to identify all PCI audio hardware, vendor/device IDs, and currently 
+  loaded kernel drivers (e.g., Intel Raptor Lake cAVS and NVIDIA GPU Audio).
+
+Command Breakdown:
+  lspci     : List all PCI devices connected to the motherboard.
+  -nn       : Display both vendor/device names and hexadecimal IDs [8086:51ca].
+  -k        : Show kernel drivers handling each device and kernel modules.
+  grep -A 3 : Search for "audio" (case-insensitive) and print 3 lines after match.
+
+-------------------------------------------------------------------------------
+1.3 lsusb & lsblk & blkid - USB, Block Devices, and UUID Identification
+-------------------------------------------------------------------------------
+Commands:
+  lsusb
+  lsblk -f
+  blkid /dev/sda1
+
+Context & Purpose:
+  Used in ISSUE_007 (SSD Mount) and ISSUE_011 (Hardware Audit) to discover USB 
+  peripherals and locate drive UUIDs for stable mount point configurations.
+
+Command Breakdown:
+  lsusb    : List USB buses and attached devices (e.g., RTL9210 NVMe Enclosure).
+  lsblk -f : List block devices in a tree structure with filesystem types and UUIDs.
+  blkid    : Print block device attributes (UUID, LABEL, TYPE) for fstab entries.
+
+-------------------------------------------------------------------------------
+1.4 journalctl & dmesg - System Log & Kernel Buffer Inspection
+-------------------------------------------------------------------------------
+Commands:
+  journalctl -b -k | grep -iE 'sof|dmic|audio|hda'
+  journalctl -p 3 -b 0 --no-pager
+  journalctl --vacuum-time=2d
+
+Context & Purpose:
+  Used across ISSUE_003 (Boot Bottlenecks), ISSUE_007 (SSD disconnects), and 
+  ISSUE_009 (Bluetooth Firmware) to inspect system errors and clean up log bloat.
+
+Command Breakdown:
+  -b / -b 0  : Filter logs to current boot session.
+  -k         : Filter to kernel log messages only (dmesg equivalent).
+  -p 3       : Filter by priority level 3 (ERRORS) up to 0 (EMERGENCY).
+  --no-pager : Output directly to terminal without piping to less/cat.
+  --vacuum-time=2d : Delete journal log files older than 2 days to free disk space.
+
+===============================================================================
+2. AUDIO & MICROPHONE DRIVER CALIBRATION
+===============================================================================
+
+-------------------------------------------------------------------------------
+2.1 amixer - ALSA Hardware Mixer Controls
+-------------------------------------------------------------------------------
+Commands:
+  amixer -c 0 scontrols
+  amixer -c 0 sset 'Internal Mic Boost' 1
+  amixer -c 0 sset 'Capture' 65%
+
+Context & Purpose:
+  Used in ISSUE_011 / REPORT_003 to fix severe microphone static noise caused by 
+  preamp gain overload (+60dB combined gain).
+
+Command Breakdown:
+  -c 0    : Select ALSA sound card 0 (Realtek ALC256).
+  scontrols : List all simple mixer controls available on the sound card.
+  sset    : Set a simple mixer control level.
+  'Internal Mic Boost' 1 : Lower hardware mic boost from +30dB (Level 3) to +10dB (Level 1).
+  'Capture' 65%          : Set capture gain to 65% (+13.50dB).
+
+-------------------------------------------------------------------------------
+2.2 arecord - Sound Recording Diagnostic
+-------------------------------------------------------------------------------
+Command:
+  arecord -d 2 -f S16_LE -r 44100 /tmp/test_mic.wav
+
+Context & Purpose:
+  Used in ISSUE_011 to record raw audio samples from card 0 for waveform amplitude 
+  analysis using Python.
+
+Command Breakdown:
+  -d 2      : Record duration of 2 seconds.
+  -f S16_LE : Format: Signed 16-bit Little Endian PCM.
+  -r 44100  : Sample rate: 44.1 kHz (CD quality).
+
+-------------------------------------------------------------------------------
+2.3 alsactl - ALSA Driver State Persistence
+-------------------------------------------------------------------------------
+Command:
+  sudo alsactl store
+
+Context & Purpose:
+  Saves the calibrated hardware mixer controls to `/var/lib/alsa/asound.state` 
+  so audio settings persist automatically across system reboots.
+
+Command Breakdown:
+  store : Read current driver mixer levels and save them to state file.
+
+===============================================================================
+3. SYSTEMD SERVICE & BOOT OPTIMIZATION
+===============================================================================
+
+-------------------------------------------------------------------------------
+3.1 systemd-analyze - Boot Performance Profiling
+-------------------------------------------------------------------------------
+Commands:
+  systemd-analyze
+  systemd-analyze blame
+
+Context & Purpose:
+  Used in ISSUE_003 and ISSUE_004 to profile system startup times and pinpoint 
+  slow boot services blocking system initialization.
+
+Command Breakdown:
+  systemd-analyze       : Output total boot duration split by Kernel, Initrd, and Userspace.
+  systemd-analyze blame : List all active services sorted by startup time taken.
+
+-------------------------------------------------------------------------------
+3.2 systemctl - Service Management & Overrides
+-------------------------------------------------------------------------------
+Commands:
+  sudo systemctl disable NetworkManager-wait-online.service
+  sudo systemctl mask cachyos-rate-mirrors.service
+  sudo systemctl daemon-reload
+
+Context & Purpose:
+  Used in ISSUE_003 to remove non-essential boot blocking services and delay 
+  background tasks.
+
+Command Breakdown:
+  disable       : Remove auto-start symlinks for service from target boot dependency.
+  mask          : Symlink service to /dev/null so it cannot be started manually or by dependencies.
+  daemon-reload : Reload systemd manager configuration to recognize new/updated unit files.
+
+-------------------------------------------------------------------------------
+3.3 grub-mkconfig - Bootloader Configuration Generator
+-------------------------------------------------------------------------------
+Command:
+  sudo grub-mkconfig -o /boot/grub/grub.cfg
+
+Context & Purpose:
+  Used in ISSUE_004 to re-generate GRUB bootloader configuration after tuning 
+  boot timeout and kernel parameter flags.
+
+Command Breakdown:
+  -o <file> : Specify output filepath for generated GRUB config file.
+
+===============================================================================
+4. STORAGE, MOUNTING & UDEV RULES
+===============================================================================
+
+-------------------------------------------------------------------------------
+4.1 umount - Unmounting Stale Drives
+-------------------------------------------------------------------------------
+Command:
+  sudo umount -l /mnt/IntelSSD
+
+Context & Purpose:
+  Used in ISSUE_007 to clear stale, dangling mount points caused by external USB 
+  SSD disconnections without freezing system processes.
+
+Command Breakdown:
+  -l : Lazy unmount. Detach filesystem immediately from directory hierarchy 
+       and clean up references when device becomes idle.
+
+-------------------------------------------------------------------------------
+4.2 udevadm - Dynamic Device Manager Control
+-------------------------------------------------------------------------------
+Command:
+  sudo udevadm control --reload && sudo udevadm trigger
+
+Context & Purpose:
+  Used in ISSUE_007 to reload custom udev rules (`/etc/udev/rules.d/`) for 
+  disabling USB autosuspend on Realtek RTL9210 NVMe adapters.
+
+Command Breakdown:
+  control --reload : Reload udev rule files from disk.
+  trigger          : Re-trigger device events for matching active hardware devices.
+
+-------------------------------------------------------------------------------
+4.3 find & sed - Automated File Search and In-Place Editing
+-------------------------------------------------------------------------------
+Commands:
+  find ~/.config/google-chrome/ -name "Preferences" -exec sed -i 's/"exit_type":"Crashed"/"exit_type":"Normal"/g' {} +
+  find ~/.config/google-chrome/ -name "SingletonLock" -delete
+
+Context & Purpose:
+  Used in ISSUE_002 to fix Chrome/Brave "didn't shut down properly" restore prompts 
+  by resetting crash flags and deleting stale lock files.
+
+Command Breakdown:
+  find <dir>    : Search directory recursively.
+  -name <pattern>: Match files by filename pattern.
+  -exec ... {} + : Execute command on matching files in batch mode.
+  sed -i        : In-place text editing (search and replace matching strings).
+  -delete       : Delete matching files directly.
+
+===============================================================================
+5. NETWORK, FIREWALL & BLUETOOTH MANAGEMENT
+===============================================================================
+
+-------------------------------------------------------------------------------
+5.1 ufw - Uncomplicated Firewall Management
+-------------------------------------------------------------------------------
+Commands:
+  sudo ufw allow 42428/tcp
+  sudo ufw allow 42428/udp
+  sudo ufw allow 5353/udp
+
+Context & Purpose:
+  Used in ISSUE_008 to open static ports and mDNS multicast discovery for 
+  Android Quick Share / RQuickShare file transfers.
+
+Command Breakdown:
+  allow <port>/<protocol> : Permit incoming network traffic on specified port and protocol.
+
+-------------------------------------------------------------------------------
+5.2 rfkill & modprobe - Wireless Subsystem & Kernel Module Control
+-------------------------------------------------------------------------------
+Commands:
+  sudo rfkill unblock bluetooth
+  sudo modprobe -r btusb
+  sudo modprobe btusb
+  zstd -d /lib/firmware/mediatek/BT_RAM_CODE_MT7922_1_1_hdr.bin.zst
+
+Context & Purpose:
+  Used in ISSUE_009 to decompress missing MediaTek MT7922 Bluetooth RAM patch 
+  firmware files and reload driver modules.
+
+Command Breakdown:
+  rfkill unblock : Unblock radio transmitter devices (Bluetooth / Wi-Fi).
+  modprobe -r    : Unload (remove) a kernel module.
+  modprobe       : Load a kernel module.
+  zstd -d        : Decompress Zstandard (.zst) compressed file to plain binary.
+
+===============================================================================
+6. GRAPHICS, GAMING OFFLOADING & PROCESS CONTROL
+===============================================================================
+
+-------------------------------------------------------------------------------
+6.1 pkill - Process Signal Termination
+-------------------------------------------------------------------------------
+Command:
+  pkill -9 steam
+
+Context & Purpose:
+  Used in ISSUE_010 (Tekken 8 Lag) to terminate Steam forcefully before modifying 
+  Steam's `localconfig.vdf` file to prevent configuration overwrites.
+
+Command Breakdown:
+  -9 : Send SIGKILL signal (immediate uncatchable process termination).
+
+-------------------------------------------------------------------------------
+6.2 NVIDIA Vulkan Optimus Environment Variables
+-------------------------------------------------------------------------------
+Command / Variable Block:
+  __NV_PRIME_RENDER_OFFLOAD=1 __VK_LAYER_NV_optimus=NVIDIA_only __GLX_VENDOR_LIBRARY_NAME=nvidia gamemoderun %command%
+
+Context & Purpose:
+  Used in ISSUE_010 to force DX12/VKD3D games (Tekken 8) on hybrid laptops to run 
+  on the dedicated NVIDIA dGPU instead of the integrated Intel GPU.
+
+Variable Breakdown:
+  __NV_PRIME_RENDER_OFFLOAD=1       : Enable PRIME GPU offloading.
+  __VK_LAYER_NV_optimus=NVIDIA_only : Direct Vulkan application layer to select NVIDIA dGPU.
+  __GLX_VENDOR_LIBRARY_NAME=nvidia  : Direct OpenGL/GLX applications to NVIDIA driver stack.
+  gamemoderun                       : Engage Feral GameMode (CPU governor & thread priority optimizer).
+
+===============================================================================
+7. PACKAGE MANAGEMENT & SECURITY AUDITING
+===============================================================================
+
+-------------------------------------------------------------------------------
+7.1 pacman & sha256sum - Arch Linux Package & Hash Auditing
+-------------------------------------------------------------------------------
+Commands:
+  pacman -Qm
+  sha256sum /usr/bin/target_binary
+
+Context & Purpose:
+  Used in ISSUE_006 to audit foreign Arch User Repository (AUR) packages for 
+  malware, verify package integrity, and check cryptographic file checksums.
+
+Command Breakdown:
+  pacman -Qm : Query foreign/installed packages not found in official repositories.
+  sha256sum  : Compute SHA-256 hash digest of a file to verify authenticity.
+
+===============================================================================
+8. GIT CREDENTIAL MANAGEMENT & SSH SETUP
+===============================================================================
+
+-------------------------------------------------------------------------------
+8.1 git config - Git Global Configuration
+-------------------------------------------------------------------------------
+Commands:
+  git config --global credential.helper store
+  git config --global user.name "tthongs"
+  git config --global user.email "sanskarsinghss123@gmail.com"
+  git config --global -l
+
+Context & Purpose:
+  Used to set up system-wide Git credential caching and user author identity 
+  across all repositories on the machine.
+
+Command Breakdown:
+  --global      : Write configuration to user-level ~/.gitconfig (applies to all repos).
+  credential.helper store : Persist HTTPS credentials to ~/.git-credentials on first push.
+  user.name / email       : Set default author name and email for commits.
+  -l / --list   : List all active Git configuration key-value pairs.
+
+-------------------------------------------------------------------------------
+8.2 ssh-keygen - Cryptographic SSH Key Pair Generation
+-------------------------------------------------------------------------------
+Command:
+  ssh-keygen -t ed25519 -C "git-auto-auth" -N "" -f ~/.ssh/id_ed25519
+
+Context & Purpose:
+  Generates an Ed25519 SSH keypair for passwordless SSH Git operations on GitHub.
+
+Command Breakdown:
+  -t ed25519 : Algorithm type: Ed25519 (high-security elliptic curve signature schema).
+  -C <comment>: Append identifying comment to key public file.
+  -N ""       : Set empty passphrase for automated non-interactive key usage.
+  -f <path>   : Specify target key filepath.
+
+-------------------------------------------------------------------------------
+8.3 github-cli (gh) - Official GitHub Command Line Tool
+-------------------------------------------------------------------------------
+Commands:
+  sudo pacman -S --noconfirm github-cli
+  gh auth login
+
+Context & Purpose:
+  Installs `github-cli` for 1-click web OAuth authentication, automatically 
+  linking SSH keys and Git credential helpers across all repositories.
+
+Command Breakdown:
+  pacman -S --noconfirm : Install package without manual prompt confirmations.
+  gh auth login         : Launch interactive web OAuth login process for GitHub.
+
+===============================================================================
+END OF FILE: unix_issues_cmds.txt
+===============================================================================
