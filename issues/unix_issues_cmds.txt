@@ -464,8 +464,37 @@ Command Breakdown:
   grep "set timeout=" ...           : Verifies active timeout setting in compiled config.
 
 ===============================================================================
+SECTION 12: CUSTOM GRUB MENU ENTRIES (POWER OFF)
+===============================================================================
+
+-------------------------------------------------------------------------------
+12.1 /etc/grub.d/99_poweroff - Adding Power Off Option to GRUB Menu
+-------------------------------------------------------------------------------
+Commands:
+  sudo cat << "EOF" > /etc/grub.d/99_poweroff
+  #!/bin/sh
+  exec tail -n +3 $0
+  menuentry 'Power Off' --class shutdown {
+      halt
+  }
+  EOF
+  sudo chmod +x /etc/grub.d/99_poweroff
+  sudo grub-mkconfig -o /boot/grub/grub.cfg
+  sudo grep -A 5 "menuentry 'Power Off'" /boot/grub/grub.cfg
+
+Context & Purpose:
+  Creates an executable custom GRUB entry script numbered `99_poweroff` so that
+  the 'Power Off' menu entry appears cleanly at the end of the GRUB menu.
+
+Command Breakdown:
+  /etc/grub.d/99_poweroff : Script file path (#99 guarantees bottom position in GRUB list).
+  chmod +x                : Marks script executable so `grub-mkconfig` processes it.
+  halt                    : Built-in GRUB shell command that powers off hardware immediately.
+
+===============================================================================
 END OF FILE: unix_issues_cmds.txt
 ===============================================================================
+
 
 
 

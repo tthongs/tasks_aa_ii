@@ -31,6 +31,7 @@ The broader repository contains several specialized sub-projects:
 *   **ISSUE_012**: KDE Connect Availability & UFW Firewall Configuration. [RESOLVED]
 *   **ISSUE_013**: Automatic Git Repository Push on Logged Issue. [RESOLVED]
 *   **ISSUE_014**: Update GRUB Bootloader Timeout to 50 Seconds. [RESOLVED]
+*   **ISSUE_015**: Add Custom Power Off Entry to GRUB Menu. [RESOLVED]
 
 ## Usage
 To maintain consistency, please follow these guidelines when creating or
