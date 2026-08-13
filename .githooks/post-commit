@@ -1,0 +1,27 @@
+#!/bin/bash
+# Git Post-Commit Hook: Automatically pushes commits to the remote repository.
+
+BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+if [ -z "$BRANCH" ]; then
+    BRANCH="master"
+fi
+
+REMOTE=$(git config --get branch."$BRANCH".remote 2>/dev/null)
+if [ -z "$REMOTE" ]; then
+    REMOTE="origin"
+fi
+
+echo "=================================================="
+echo " [Git Post-Commit Hook] Auto-pushing commit to $REMOTE/$BRANCH..."
+echo "=================================================="
+
+git push "$REMOTE" "$BRANCH"
+PUSH_STATUS=$?
+
+if [ $PUSH_STATUS -eq 0 ]; then
+    echo "[Git Post-Commit Hook] Successfully pushed commit to $REMOTE/$BRANCH"
+else
+    echo "[Git Post-Commit Hook] Warning: Failed to push commit to $REMOTE/$BRANCH (Exit code: $PUSH_STATUS)"
+fi
+
+exit 0

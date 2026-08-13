@@ -371,5 +371,78 @@ Command Breakdown:
   gh auth login         : Launch interactive web OAuth login process for GitHub.
 
 ===============================================================================
+SECTION 9: SYSTEM & NETWORK ADMINISTRATION (KDE CONNECT & FIREWALL)
+===============================================================================
+
+-------------------------------------------------------------------------------
+9.1 ufw - Uncomplicated Firewall Configuration for KDE Connect
+-------------------------------------------------------------------------------
+Commands:
+  sudo ufw status verbose
+  sudo ufw app list
+  sudo ufw allow "KDE Connect"
+  sudo ufw reload
+
+Context & Purpose:
+  Configures the UFW packet filter to permit incoming UDP/TCP traffic on ports
+  1714-1764 required by KDE Connect for local network device discovery, pairing,
+  file transfers, and media control.
+
+Command Breakdown:
+  status verbose      : Displays active firewall status, default policies, and rules.
+  app list            : Lists predefined application firewall profiles.
+  allow "KDE Connect" : Opens TCP and UDP port range 1714:1764 for incoming traffic.
+  reload              : Reloads firewall rule tables to apply changes immediately.
+
+-------------------------------------------------------------------------------
+9.2 kdeconnect-cli - KDE Connect Device Management & Discovery
+-------------------------------------------------------------------------------
+Commands:
+  kdeconnect-cli --refresh
+  kdeconnect-cli -l
+
+Context & Purpose:
+  Manages KDE Connect paired and reachable devices from the terminal.
+
+Command Breakdown:
+  --refresh : Sends UDP broadcast ping to refresh local network device discovery.
+  -l        : Lists all detected and paired devices along with IP address and status.
+
+===============================================================================
+SECTION 10: GIT HOOKS & AUTOMATED REPOSITORY SYNCHRONIZATION
+===============================================================================
+
+-------------------------------------------------------------------------------
+10.1 git config core.hooksPath - Repository Git Hooks Path Configuration
+-------------------------------------------------------------------------------
+Commands:
+  git config core.hooksPath .githooks
+  chmod +x .githooks/post-commit
+
+Context & Purpose:
+  Directs Git to execute custom hooks from `.githooks/` inside the repository.
+  Ensures post-commit actions (such as auto-pushing) are tracked and enforced.
+
+Command Breakdown:
+  core.hooksPath .githooks : Sets the active hooks directory relative to the working tree.
+  chmod +x                 : Grants execute permission to the post-commit script.
+
+-------------------------------------------------------------------------------
+10.2 issues/auto_push_issue.sh - Automated Issue Staging, Commit & Push
+-------------------------------------------------------------------------------
+Commands:
+  ./issues/auto_push_issue.sh "issues/ISSUE_013_auto_push_on_logged_issue.md" "docs(issues): log ISSUE_013 and enable auto push"
+
+Context & Purpose:
+  Automation script to stage issue files, commit with descriptive message,
+  and trigger post-commit auto-push to GitHub.
+
+Command Breakdown:
+  $1 : Target issue file path.
+  $2 : Custom commit message string.
+
+===============================================================================
 END OF FILE: unix_issues_cmds.txt
 ===============================================================================
+
+

@@ -28,6 +28,8 @@ The broader repository contains several specialized sub-projects:
 *   **ISSUE_009**: Bluetooth Firmware Loading Failure (MT7922). [RESOLVED]
 *   **ISSUE_010**: Fix Tekken 8 Lag on Hybrid Graphics Laptop. [RESOLVED]
 *   **ISSUE_011**: Fix Microphone Static Noise & Audio Driver Calibration. [RESOLVED]
+*   **ISSUE_012**: KDE Connect Availability & UFW Firewall Configuration. [RESOLVED]
+*   **ISSUE_013**: Automatic Git Repository Push on Logged Issue. [RESOLVED]
 
 ## Usage
 To maintain consistency, please follow these guidelines when creating or
@@ -76,3 +78,4 @@ Any additional context or references to external documentation (e.g., UG470).
     1. Create/update a dedicated issue log (`ISSUE_XXX_description.md` or `REPORT_XXX_description.md`) in `issues/`.
     2. Append any new or updated Unix commands (with context, breakdown, and rationale) to `unix_issues_cmds.txt`.
     3. Update `GEMINI.md` to reflect the new issue status.
+    4. Commit changes and push to remote repository (`git commit` automatically triggers `.githooks/post-commit` auto-push).
