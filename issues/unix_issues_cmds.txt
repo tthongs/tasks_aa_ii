@@ -442,7 +442,30 @@ Command Breakdown:
   $2 : Custom commit message string.
 
 ===============================================================================
+SECTION 11: BOOTLOADER CONFIGURATION (GRUB TIMEOUT)
+===============================================================================
+
+-------------------------------------------------------------------------------
+11.1 GRUB Timeout Adjustment & Config Regeneration
+-------------------------------------------------------------------------------
+Commands:
+  sudo sed -i "s/GRUB_TIMEOUT='.*'/GRUB_TIMEOUT='50'/" /etc/default/grub
+  sudo grub-mkconfig -o /boot/grub/grub.cfg
+  grep "GRUB_TIMEOUT=" /etc/default/grub
+  sudo grep "set timeout=" /boot/grub/grub.cfg
+
+Context & Purpose:
+  Modifies the default GRUB menu timeout to 50 seconds and regenerates the active
+  `/boot/grub/grub.cfg` configuration file.
+
+Command Breakdown:
+  sed -i "s/..." /etc/default/grub : Replaces GRUB_TIMEOUT value in-place in defaults file.
+  grub-mkconfig -o /boot/grub/grub.cfg : Scans system and compiles new GRUB menu configuration.
+  grep "set timeout=" ...           : Verifies active timeout setting in compiled config.
+
+===============================================================================
 END OF FILE: unix_issues_cmds.txt
 ===============================================================================
+
 
 

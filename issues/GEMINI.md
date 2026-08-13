@@ -30,6 +30,7 @@ The broader repository contains several specialized sub-projects:
 *   **ISSUE_011**: Fix Microphone Static Noise & Audio Driver Calibration. [RESOLVED]
 *   **ISSUE_012**: KDE Connect Availability & UFW Firewall Configuration. [RESOLVED]
 *   **ISSUE_013**: Automatic Git Repository Push on Logged Issue. [RESOLVED]
+*   **ISSUE_014**: Update GRUB Bootloader Timeout to 50 Seconds. [RESOLVED]
 
 ## Usage
 To maintain consistency, please follow these guidelines when creating or
