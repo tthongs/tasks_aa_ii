@@ -584,6 +584,74 @@ Command Breakdown:
   locale -a            : Lists available compiled locales to verify en_IN.utf8 availability.
 
 ===============================================================================
+SECTION 15: KERNEL MODULE BOOT STALL & SERVICE TIMEOUT RESOLUTION
+===============================================================================
+
+-------------------------------------------------------------------------------
+15.1 Masking Redundant Early Userspace Module Loads
+-------------------------------------------------------------------------------
+Commands:
+  sudo ln -sf /dev/null /etc/modules-load.d/nvidia-utils.conf
+
+Context & Purpose:
+  Masks the distribution-shipped `/usr/lib/modules-load.d/nvidia-utils.conf` file.
+  Prevents `systemd-modules-load.service` from attempting to parallel-load `nvidia-uvm`
+  at early boot while `systemd-udevd` and ACPI NVPCF handlers are initializing GPU DRM,
+  eliminating the rw-semaphore lock contention race condition.
+
+Command Breakdown:
+  ln -sf /dev/null ... : Creates a masking symlink in /etc overriding /usr/lib configuration.
+
+-------------------------------------------------------------------------------
+15.2 Systemd Modules Load Timeout Clamp Drop-In
+-------------------------------------------------------------------------------
+Commands:
+  sudo mkdir -p /etc/systemd/system/systemd-modules-load.service.d
+  sudo tee /etc/systemd/system/systemd-modules-load.service.d/10-timeout.conf << 'EOF'
+  [Service]
+  TimeoutStartSec=10s
+  EOF
+  sudo systemctl daemon-reload
+
+Context & Purpose:
+  Overrides systemd's default 90-second service timeout for `systemd-modules-load.service`.
+  Ensures that if any individual kernel module probe stalls, the service aborts after
+  10 seconds instead of blocking the entire bootloader and userspace startup for 1.5 minutes.
+
+Command Breakdown:
+  mkdir -p ...           : Creates systemd service drop-in configuration directory.
+  tee ...                : Writes TimeoutStartSec=10s unit override.
+  systemctl daemon-reload: Signals systemd manager to reload unit files and apply new limits.
+
+-------------------------------------------------------------------------------
+15.3 Deterministic Early KMS & Modprobe Parameter Provisioning
+-------------------------------------------------------------------------------
+Commands:
+  sudo mkdir -p /etc/mkinitcpio.conf.d
+  sudo tee /etc/mkinitcpio.conf.d/10-nvidia.conf << 'EOF'
+  MODULES+=(nvidia nvidia_modeset nvidia_uvm nvidia_drm)
+  EOF
+  sudo tee /etc/modprobe.d/nvidia.conf << 'EOF'
+  options nvidia NVreg_InitializeSystemMemoryAllocations=0 NVreg_DynamicPowerManagement=0x02
+  options nvidia-drm modeset=1 fbdev=1
+  blacklist nouveau
+  blacklist nova_core
+  blacklist nova_drm
+  EOF
+  sudo mkinitcpio -P
+
+Context & Purpose:
+  Configures deterministic sequential kernel mode setting (KMS) driver inclusion
+  in early initramfs images, setting optimal runtime dynamic power management (RTD3)
+  and framebuffer device integration before userspace graphical targets start.
+
+Command Breakdown:
+  MODULES+=(...) : Appends NVIDIA driver modules to early initramfs image module list.
+  modeset=1      : Enables Direct Rendering Manager (DRM) kernel mode setting.
+  fbdev=1        : Enables generic DRM framebuffer emulation device (/dev/fb0).
+  mkinitcpio -P  : Recompiles initramfs images for all installed kernel presets.
+
+===============================================================================
 END OF FILE: unix_issues_cmds.txt
 ===============================================================================
 

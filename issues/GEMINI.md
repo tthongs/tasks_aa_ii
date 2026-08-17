@@ -34,6 +34,7 @@ The broader repository contains several specialized sub-projects:
 *   **ISSUE_015**: Add Custom Power Off Entry to GRUB Menu. [RESOLVED]
 *   **ISSUE_016**: NVIDIA Open Driver Deadlock & Boot Crash Recovery. [RESOLVED]
 *   **ISSUE_017**: Fix Locale Encoding & XKB Compose Table Warning. [RESOLVED]
+*   **ISSUE_018**: Systemd Modules Load Stall & Early Boot Start Job Hang. [RESOLVED]
 
 ## Usage
 To maintain consistency, please follow these guidelines when creating or
