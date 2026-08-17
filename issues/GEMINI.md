@@ -33,6 +33,7 @@ The broader repository contains several specialized sub-projects:
 *   **ISSUE_014**: Update GRUB Bootloader Timeout to 50 Seconds. [RESOLVED]
 *   **ISSUE_015**: Add Custom Power Off Entry to GRUB Menu. [RESOLVED]
 *   **ISSUE_016**: NVIDIA Open Driver Deadlock & Boot Crash Recovery. [RESOLVED]
+*   **ISSUE_017**: Fix Locale Encoding & XKB Compose Table Warning. [RESOLVED]
 
 ## Usage
 To maintain consistency, please follow these guidelines when creating or

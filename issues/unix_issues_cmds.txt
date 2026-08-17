@@ -550,6 +550,40 @@ Command Breakdown:
   journalctl -b 0 -p 3  : Confirms no critical kernel errors or driver deadlocks in current session.
 
 ===============================================================================
+SECTION 14: LOCALE ENCODING & XKB COMPOSE TABLE RESOLUTION
+===============================================================================
+
+-------------------------------------------------------------------------------
+14.1 /etc/locale.conf - Setting Explicit UTF-8 Suffix
+-------------------------------------------------------------------------------
+Commands:
+  sudo tee /etc/locale.conf << 'EOF'
+  LANG=en_IN.UTF-8
+  LC_ADDRESS=en_IN.UTF-8
+  LC_IDENTIFICATION=en_IN.UTF-8
+  LC_MEASUREMENT=en_IN.UTF-8
+  LC_MONETARY=en_IN.UTF-8
+  LC_NAME=en_IN.UTF-8
+  LC_NUMERIC=en_IN.UTF-8
+  LC_PAPER=en_IN.UTF-8
+  LC_TELEPHONE=en_IN.UTF-8
+  LC_TIME=en_IN.UTF-8
+  EOF
+  sudo locale-gen
+  locale -a
+  cat /etc/locale.conf
+
+Context & Purpose:
+  Ensures the system-wide locale explicitly declares `.UTF-8` encoding. This prevents
+  XKB and Qt from misidentifying the locale as legacy `ISO8859-1`, which caused
+  missing Compose table warnings in KWin Wayland and Konsole.
+
+Command Breakdown:
+  tee /etc/locale.conf : Overwrites system locale configuration file with standard UTF-8 parameters.
+  locale-gen           : Compiles all enabled locale definitions from /etc/locale.gen.
+  locale -a            : Lists available compiled locales to verify en_IN.utf8 availability.
+
+===============================================================================
 END OF FILE: unix_issues_cmds.txt
 ===============================================================================
 
