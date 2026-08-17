@@ -492,6 +492,64 @@ Command Breakdown:
   halt                    : Built-in GRUB shell command that powers off hardware immediately.
 
 ===============================================================================
+SECTION 13: NVIDIA OPEN KERNEL MODULE DEADLOCK & DKMS REBUILD
+===============================================================================
+
+-------------------------------------------------------------------------------
+13.1 Diagnostics & Post-Mortem Journal Analysis (Kernel Deadlock Tracing)
+-------------------------------------------------------------------------------
+Commands:
+  journalctl -b -3 -p 3 --no-pager
+  journalctl -b -3 -k --no-pager | grep -iE "blocked for more than|rw-semaphore|udev-worker|nvidia|kworker"
+  journalctl -u nvidia-powerd.service -b -3 --no-pager
+
+Context & Purpose:
+  Extracts kernel deadlock call stack traces where kworker ACPI NVPCF callbacks
+  collided with systemd-udevd worker GPU DRM device initialization, causing rw-semaphore
+  deadlocks and shutdown timeouts.
+
+Command Breakdown:
+  journalctl -b -3 -p 3 : Filters past boot (-3) logs by error priority level 3 (err/crit/alert/emerg).
+  journalctl -b -3 -k   : Inspects kernel ring buffer logs for the specific failed boot.
+  grep -iE "..."        : Isolates blocked task call stacks, semaphore ownership, and udev worker terminations.
+
+-------------------------------------------------------------------------------
+13.2 DKMS Migration & Dynamic Module Compilation
+-------------------------------------------------------------------------------
+Commands:
+  sudo pacman -S --needed linux-cachyos-headers linux-cachyos-lts-headers nvidia-open-dkms dkms
+  dkms status
+  sudo mkinitcpio -P
+
+Context & Purpose:
+  Replaces static precompiled kernel module binaries with locally compiled DKMS
+  modules tailored to host kernel headers, preventing symbol mismatch deadlocks.
+
+Command Breakdown:
+  pacman -S --needed ...: Installs kernel headers, dkms toolchain, and nvidia-open-dkms source.
+  dkms status           : Verifies successful build and installation across all installed kernels.
+  mkinitcpio -P         : Regenerates early initramfs images for all installed kernel presets.
+
+-------------------------------------------------------------------------------
+13.3 GPU Driver & Wayland Verification
+-------------------------------------------------------------------------------
+Commands:
+  uname -r
+  nvidia-smi
+  lsmod | grep -iE "nvidia|drm"
+  journalctl -b 0 -p 3 --no-pager
+
+Context & Purpose:
+  Verifies that the NVIDIA kernel modules load cleanly, CUDA/NVML communication
+  is established, and DRM/KMS initializes without kernel errors on the current boot.
+
+Command Breakdown:
+  uname -r              : Displays active kernel release version.
+  nvidia-smi            : Checks GPU power state, driver/VBIOS version, and running Wayland processes.
+  lsmod                 : Confirms active reference counts for nvidia, nvidia_modeset, nvidia_uvm, and nvidia_drm.
+  journalctl -b 0 -p 3  : Confirms no critical kernel errors or driver deadlocks in current session.
+
+===============================================================================
 END OF FILE: unix_issues_cmds.txt
 ===============================================================================
 

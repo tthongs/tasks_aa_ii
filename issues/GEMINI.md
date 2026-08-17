@@ -32,6 +32,7 @@ The broader repository contains several specialized sub-projects:
 *   **ISSUE_013**: Automatic Git Repository Push on Logged Issue. [RESOLVED]
 *   **ISSUE_014**: Update GRUB Bootloader Timeout to 50 Seconds. [RESOLVED]
 *   **ISSUE_015**: Add Custom Power Off Entry to GRUB Menu. [RESOLVED]
+*   **ISSUE_016**: NVIDIA Open Driver Deadlock & Boot Crash Recovery. [RESOLVED]
 
 ## Usage
 To maintain consistency, please follow these guidelines when creating or
