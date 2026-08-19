@@ -652,6 +652,72 @@ Command Breakdown:
   mkinitcpio -P  : Recompiles initramfs images for all installed kernel presets.
 
 ===============================================================================
+16. NTFS PARTITION AUTOMOUNT & /ETC/FSTAB CONFIGURATION
+===============================================================================
+-------------------------------------------------------------------------------
+16.1 Target Block Device Identification & Mount Point Provisioning
+-------------------------------------------------------------------------------
+Commands:
+  lsblk -f
+  sudo mkdir -p /mnt/OS
+  sudo chown 1000:1000 /mnt/OS
+  sudo chmod 755 /mnt/OS
+
+Context & Purpose:
+  Identifies the UUID and filesystem type for the OS partition (`/dev/nvme0n1p3`,
+  UUID `D494677F9467634A`) and provisions the target mount directory `/mnt/OS`
+  with standard permissions for the non-root user `tthhongs` (UID 1000, GID 1000).
+
+Command Breakdown:
+  lsblk -f          : Lists block devices, filesystem types, labels, and UUIDs.
+  mkdir -p /mnt/OS  : Creates mount directory.
+  chown 1000:1000   : Assigns ownership of the mount directory to user/group 1000.
+  chmod 755 /mnt/OS : Sets read/execute directory permissions for all users.
+
+-------------------------------------------------------------------------------
+16.2 Safe /etc/fstab Entry Provisioning with Fail-Safe Options
+-------------------------------------------------------------------------------
+Commands:
+  sudo cp /etc/fstab /etc/fstab.bak.$(date +%Y%m%d%H%M%S)
+  echo "UUID=D494677F9467634A  /mnt/OS  ntfs3  defaults,uid=1000,gid=1000,dmask=022,fmask=133,iocharset=utf8,windows_names,nofail,x-systemd.device-timeout=10s  0  0" | sudo tee -a /etc/fstab
+
+Context & Purpose:
+  Adds a persistent, UUID-based mount configuration entry to `/etc/fstab` using
+  the high-performance in-tree `ntfs3` kernel driver. Applies `nofail` and a 10s
+  device timeout to prevent boot hangs if the partition has a dirty bit or Windows
+  hibernation lock.
+
+Command Breakdown:
+  UUID=D494677F9467634A        : Persistent unique identifier preventing drive letter shifts.
+  /mnt/OS                      : Mount point path.
+  ntfs3                        : High-performance Linux in-tree NTFS driver.
+  defaults                     : Standard mount flags (rw, suid, dev, exec, auto, nouser, async).
+  uid=1000,gid=1000            : Maps file ownership to user tthhongs.
+  dmask=022,fmask=133          : Sets safe permissions (755 directory, 644 file).
+  iocharset=utf8               : Enforces UTF-8 character encoding.
+  windows_names                : Prevents creating filenames illegal on Windows NTFS.
+  nofail                       : Prevents system boot failure/emergency mode if mount fails.
+  x-systemd.device-timeout=10s : Limits systemd boot-time device wait timeout to 10 seconds.
+  0 0                          : Disables dump backup and fsck order for NTFS partition.
+
+-------------------------------------------------------------------------------
+16.3 Systemd Daemon Reload and Mount Verification
+-------------------------------------------------------------------------------
+Commands:
+  sudo systemctl daemon-reload
+  sudo mount /mnt/OS
+  findmnt /mnt/OS
+
+Context & Purpose:
+  Reloads systemd configuration generators to regenerate `.mount` units from
+  `/etc/fstab`, mounts the partition, and verifies active mount status.
+
+Command Breakdown:
+  systemctl daemon-reload : Signals systemd to parse the updated /etc/fstab.
+  mount /mnt/OS           : Mounts the configured target directory.
+  findmnt /mnt/OS         : Verifies active mount status, filesystem type, and options.
+
+===============================================================================
 END OF FILE: unix_issues_cmds.txt
 ===============================================================================
 
