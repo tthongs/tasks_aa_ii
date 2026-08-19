@@ -718,6 +718,57 @@ Command Breakdown:
   findmnt /mnt/OS         : Verifies active mount status, filesystem type, and options.
 
 ===============================================================================
+17. BASH-INSULTER & SHELL ERROR HANDLER CONFIGURATION
+===============================================================================
+-------------------------------------------------------------------------------
+17.1 Handler Modification for 100% Trigger Rate
+-------------------------------------------------------------------------------
+Commands:
+  sed -i '/if \[\[ \$((\${RANDOM} % 2)) -lt 1 \]\]; then/,/fi/c\    message=${messages[${RANDOM} % ${#messages[@]}]}\n    printf "\\\\n  %s\\\\n\\\\n" "$(tput bold)$(tput setaf 1)${message}$(tput sgr0)" >&2' /home/tthhongs/build_tthongs/bash-insulter/src/bash.command-not-found
+
+Context & Purpose:
+  Removes the default 50% random frequency filter (`if [[ $((${RANDOM} % 2)) -lt 1 ]]`)
+  in `bash.command-not-found` so that every invalid command error unconditionally
+  triggers a randomized insult before delegating to the fallback handler.
+
+Command Breakdown:
+  RANDOM=$(od ...)    : Cryptographically seeds Bash RANDOM variable from /dev/urandom.
+  message=${messages} : Selects a random index from the insult string array.
+  printf "%s" ... >&2 : Formats message in bold red text to standard error (fd 2).
+
+-------------------------------------------------------------------------------
+17.2 Multi-Shell Sourcing Integration (~/.bashrc & ~/.zshrc)
+-------------------------------------------------------------------------------
+Commands:
+  # Bash sourcing
+  if [ -f $HOME/build_tthongs/bash-insulter/src/bash.command-not-found ]; then
+    source $HOME/build_tthongs/bash-insulter/src/bash.command-not-found
+  fi
+
+  # Zsh sourcing
+  echo -e '\nif [ -f $HOME/build_tthongs/bash-insulter/src/bash.command-not-found ]; then\n  source $HOME/build_tthongs/bash-insulter/src/bash.command-not-found\nfi' >> ~/.zshrc
+
+Context & Purpose:
+  Ensures that whenever interactive Bash or Zsh sessions are spawned, the custom
+  command-not-found handler is hooked into `command_not_found_handle` (Bash) or
+  `command_not_found_handler` (Zsh).
+
+Command Breakdown:
+  if [ -f ... ]; then : Checks existence of the insulter handler script before sourcing.
+  source ...          : Evaluates script functions into the current active shell environment.
+
+-------------------------------------------------------------------------------
+17.3 Shell Handler Verification
+-------------------------------------------------------------------------------
+Commands:
+  bash -c 'source /home/tthhongs/build_tthongs/bash-insulter/src/bash.command-not-found; non_existent_cmd_123'
+  zsh -c 'source /home/tthhongs/build_tthongs/bash-insulter/src/bash.command-not-found; non_existent_cmd_123'
+
+Context & Purpose:
+  Verifies that invalid command strings return status code 127, output the insult in
+  bold red text, and follow with standard command-not-found error messaging in both shells.
+
+===============================================================================
 END OF FILE: unix_issues_cmds.txt
 ===============================================================================
 

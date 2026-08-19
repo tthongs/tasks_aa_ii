@@ -36,6 +36,7 @@ The broader repository contains several specialized sub-projects:
 *   **ISSUE_017**: Fix Locale Encoding & XKB Compose Table Warning. [RESOLVED]
 *   **ISSUE_018**: Systemd Modules Load Stall & Early Boot Start Job Hang. [RESOLVED]
 *   **ISSUE_019**: Configure /etc/fstab for OS-Labelled NTFS Partition Automount. [RESOLVED]
+*   **ISSUE_020**: Configure Bash-Insulter to Insult on Every Command Not Found Error. [RESOLVED]
 
 ## Usage
 To maintain consistency, please follow these guidelines when creating or
