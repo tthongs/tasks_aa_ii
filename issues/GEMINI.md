@@ -37,6 +37,7 @@ The broader repository contains several specialized sub-projects:
 *   **ISSUE_018**: Systemd Modules Load Stall & Early Boot Start Job Hang. [RESOLVED]
 *   **ISSUE_019**: Configure /etc/fstab for OS-Labelled NTFS Partition Automount. [RESOLVED]
 *   **ISSUE_020**: Configure Bash-Insulter to Insult on Every Command Not Found Error. [RESOLVED]
+*   **ISSUE_021**: Rename GRUB Boot Entry from Windows Boot Manager to Windows 11. [RESOLVED]
 
 ## Usage
 To maintain consistency, please follow these guidelines when creating or

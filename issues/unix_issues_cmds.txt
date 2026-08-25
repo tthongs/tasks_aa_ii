@@ -769,8 +769,95 @@ Context & Purpose:
   bold red text, and follow with standard command-not-found error messaging in both shells.
 
 ===============================================================================
+18. GRUB BOOTLOADER: WINDOWS BOOT MANAGER ENTRY RENAMING
+===============================================================================
+
+-------------------------------------------------------------------------------
+18.1 Inspecting GRUB & os-prober Configuration
+-------------------------------------------------------------------------------
+Commands:
+  # Check os-prober output and scripts
+  find /usr/lib/os-probes/ -type f
+  cat /usr/lib/os-probes/mounted/efi/20microsoft
+  cat /etc/grub.d/30_os-prober
+  lsblk -f
+
+Context & Purpose:
+  UEFI systems identify Windows bootloaders via \EFI\Microsoft\Boot\bootmgfw.efi.
+  The os-prober EFI detection probe hardcodes 'Windows Boot Manager' as the long
+  name string, which GRUB's 30_os-prober helper uses as the menuentry title.
+
+Command Breakdown:
+  find /usr/lib/os-probes/ : Locates all active os-prober filesystem and EFI probes.
+  cat .../20microsoft      : Displays probe logic for Microsoft EFI bootloaders.
+  cat /etc/grub.d/30_os-prober : Displays GRUB os-prober template and entry generation code.
+  lsblk -f                 : Lists block devices, partitions, filesystem types, and mountpoints.
+
+-------------------------------------------------------------------------------
+18.2 Patching /etc/grub.d/30_os-prober & os-prober EFI Definitions
+-------------------------------------------------------------------------------
+Commands:
+  # Backup existing os-prober GRUB helper
+  sudo cp /etc/grub.d/30_os-prober /etc/grub.d/30_os-prober.bak.$(date +%Y%m%d%H%M%S)
+
+  # Patch /etc/grub.d/30_os-prober to remap 'Windows Boot Manager' to 'Windows 11'
+  sudo python3 -c '
+file_path = "/etc/grub.d/30_os-prober"
+with open(file_path, "r") as f:
+    content = f.read()
+
+target = """  if [ -z "${LONGNAME}" ] ; then
+    LONGNAME="${LABEL}"
+  fi"""
+
+replacement = """  if [ -z "${LONGNAME}" ] ; then
+    LONGNAME="${LABEL}"
+  fi
+
+  if [ "${LONGNAME}" = "Windows Boot Manager" ]; then
+    LONGNAME="Windows 11"
+  fi"""
+
+if target in content:
+    new_content = content.replace(target, replacement, 1)
+    with open(file_path, "w") as f:
+        f.write(new_content)
+'
+
+  # Update /usr/lib/os-probes/mounted/efi/20microsoft default naming
+  sudo sed -i 's/long="Windows Boot Manager"/long="Windows 11"/' /usr/lib/os-probes/mounted/efi/20microsoft
+
+Context & Purpose:
+  Modifies GRUB's entry generator script to intercept 'Windows Boot Manager' and replace
+  it with 'Windows 11'. Also updates the underlying os-prober EFI probe definition.
+
+Command Breakdown:
+  cp ... .bak.* : Creates a timestamped safety backup before making modifications.
+  python3 -c    : Performs safe, exact multiline string replacement in /etc/grub.d/30_os-prober.
+  sed -i        : In-place text replacement in /usr/lib/os-probes/mounted/efi/20microsoft.
+
+-------------------------------------------------------------------------------
+18.3 Regenerating GRUB Configuration & Verification
+-------------------------------------------------------------------------------
+Commands:
+  # Regenerate grub.cfg
+  sudo grub-mkconfig -o /boot/grub/grub.cfg
+
+  # Verify generated boot entry
+  sudo grep -n -C 2 -i "menuentry.*Windows 11" /boot/grub/grub.cfg
+
+Context & Purpose:
+  Executes grub-mkconfig to scan all installed operating systems, invoke the patched
+  os-prober script, and compile the final /boot/grub/grub.cfg with 'Windows 11'.
+
+Command Breakdown:
+  grub-mkconfig -o /boot/grub/grub.cfg : Compiles all /etc/grub.d/ scripts and /etc/default/grub into grub.cfg.
+  grep -n -C 2 -i ...                 : Confirms presence and format of the Windows 11 menuentry.
+
+===============================================================================
 END OF FILE: unix_issues_cmds.txt
 ===============================================================================
+
 
 
 
