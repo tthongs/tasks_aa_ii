@@ -65,4 +65,17 @@ Configure OpenSSH server daemon (`sshd`), firewall rules, and Tailscale mesh VPN
    - Configured via Cloudflare Access Self-Hosted Application with **Browser rendering** set to `SSH`.
    - Access from Windows 11 Pro requires **zero client software**: open Chrome/Edge, navigate to the public hostname, authenticate with email OTP, and execute commands in the web terminal.
 
-
+## Ngrok TCP Tunnel Deployment (Zero Install on Windows 11)
+1. **Binary Installation & Configuration**:
+   - Deployed `ngrok` v3.39.11 to `/usr/local/bin/ngrok`.
+   - Added user authtoken to `~/.config/ngrok/ngrok.yml` and configured TCP endpoint for port 22.
+2. **Persistent Background Service**:
+   - Created systemd user service `~/.config/systemd/user/ngrok.service`.
+   - Enabled systemd lingering (`loginctl enable-linger tthhongs`) so the tunnel persists without active graphical sessions.
+3. **Verified Connection Endpoint**:
+   - Active endpoint: `tcp://0.tcp.in.ngrok.io:21523`
+   - Verified via direct loopback SSH: `ssh -p 21523 tthhongs@0.tcp.in.ngrok.io whoami` returned `tthhongs`.
+4. **Windows 11 Client Command**:
+   ```powershell
+   ssh -p 21523 tthhongs@0.tcp.in.ngrok.io
+   ```

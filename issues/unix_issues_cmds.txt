@@ -982,6 +982,28 @@ Command Breakdown:
   systemctl status cloudflared: Confirms active background process state.
   journalctl -u cloudflared   : Verifies QUIC connection registration to edge locations.
 
+-------------------------------------------------------------------------------
+19.7 Ngrok TCP Tunneling for Zero-Install Remote SSH Access
+-------------------------------------------------------------------------------
+Commands:
+  ngrok config add-authtoken <AUTHTOKEN>
+  systemctl --user daemon-reload
+  systemctl --user enable --now ngrok.service
+  sudo loginctl enable-linger tthhongs
+  curl -s http://127.0.0.1:4040/api/tunnels | jq -r '.tunnels[0].public_url'
+  ssh -p <PORT> tthhongs@<HOST>
+
+Context & Purpose:
+  Exposes the local SSH daemon (port 22) through a persistent outbound TCP tunnel
+  to Ngrok India edge nodes (0.tcp.in.ngrok.io). Bypasses home CGNAT, router firewalls,
+  and avoids the need for client-side VPN/proxy software on Windows 11.
+
+Command Breakdown:
+  ngrok config add-authtoken  : Stores user authentication token in ~/.config/ngrok/ngrok.yml.
+  systemctl --user enable     : Runs ngrok as a persistent user service without root requirements.
+  loginctl enable-linger      : Keeps the user service running continuously across reboots/logout.
+  curl .../api/tunnels        : Queries the local ngrok daemon API to retrieve assigned TCP host & port.
+
 ===============================================================================
 END OF FILE: unix_issues_cmds.txt
 ===============================================================================
