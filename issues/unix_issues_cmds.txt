@@ -855,6 +855,114 @@ Command Breakdown:
   grep -n -C 2 -i ...                 : Confirms presence and format of the Windows 11 menuentry.
 
 ===============================================================================
+19. OPENSSH SERVER & REMOTE SSH ACCESS CONFIGURATION
+===============================================================================
+
+-------------------------------------------------------------------------------
+19.1 Inspecting OpenSSH Daemon, Host Keys, and UFW Firewall
+-------------------------------------------------------------------------------
+Commands:
+  systemctl status sshd
+  ls -la /etc/ssh/
+  sudo ufw status verbose
+
+Context & Purpose:
+  Identifies current status of the OpenSSH service, determines if cryptographic
+  host keys are missing, and checks the local UFW firewall incoming rules.
+
+Command Breakdown:
+  systemctl status sshd : Displays current unit state (disabled/dead).
+  ls -la /etc/ssh/      : Confirms if host private/public keypairs are generated.
+  ufw status verbose    : Displays active firewall status and incoming port policies.
+
+-------------------------------------------------------------------------------
+19.2 SSH Host Key Generation & Drop-in Configuration
+-------------------------------------------------------------------------------
+Commands:
+  sudo ssh-keygen -A
+  sudo mkdir -p /etc/ssh/sshd_config.d
+  cat << 'EOF' | sudo tee /etc/ssh/sshd_config.d/10-remote-access.conf
+  Port 22
+  ListenAddress 0.0.0.0
+  ListenAddress ::
+  PermitRootLogin prohibit-password
+  PubkeyAuthentication yes
+  PasswordAuthentication yes
+  KbdInteractiveAuthentication yes
+  UsePAM yes
+  X11Forwarding yes
+  TCPKeepAlive yes
+  ClientAliveInterval 60
+  ClientAliveCountMax 3
+  PrintMotd no
+  AcceptEnv LANG LC_*
+  Subsystem sftp /usr/lib/ssh/sftp-server
+  EOF
+  sudo sshd -t
+
+Context & Purpose:
+  Generates missing host keys for all supported cipher types (RSA, ECDSA, Ed25519)
+  and establishes drop-in daemon settings that allow both public-key and password
+  authentication while binding to all IPv4 and IPv6 interfaces. Validates syntax.
+
+Command Breakdown:
+  ssh-keygen -A : Generates host keys of all default key types if missing.
+  sshd -t       : Tests sshd configuration file syntax and sanity before launching.
+
+-------------------------------------------------------------------------------
+19.3 Firewall Rule Allowance & Service Enablement
+-------------------------------------------------------------------------------
+Commands:
+  sudo ufw allow 22/tcp comment 'OpenSSH Server Remote Access'
+  sudo ufw reload
+  sudo systemctl daemon-reload
+  sudo systemctl enable --now sshd.service
+
+Context & Purpose:
+  Permits incoming TCP connections on port 22 through UFW, reloads the firewall,
+  and enables the sshd service persistently across system boots.
+
+Command Breakdown:
+  ufw allow 22/tcp ...     : Allows inbound TCP traffic on port 22 with descriptive comment.
+  ufw reload               : Reloads firewall rules in-flight.
+  systemctl enable --now   : Enables systemd service at boot and starts it immediately.
+
+-------------------------------------------------------------------------------
+19.4 Local Public Key Setup & Verification
+-------------------------------------------------------------------------------
+Commands:
+  mkdir -p ~/.ssh && chmod 700 ~/.ssh
+  touch ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys
+  grep -qF "$(cat ~/.ssh/id_ed25519.pub)" ~/.ssh/authorized_keys || cat ~/.ssh/id_ed25519.pub >> ~/.ssh/authorized_keys
+  ssh localhost
+
+Context & Purpose:
+  Installs the user's public key into authorized_keys to enable instant passwordless
+  logins from the local machine or loopback.
+
+Command Breakdown:
+  chmod 700 ~/.ssh            : Strict directory permissions required by OpenSSH.
+  chmod 600 ~/.ssh/auth...    : Read/write only for user; prevents sshd permission rejection.
+  ssh localhost               : Initiates loopback SSH session to verify full stack.
+
+-------------------------------------------------------------------------------
+19.5 Remote Internet Access Setup via Tailscale (Optional)
+-------------------------------------------------------------------------------
+Commands:
+  sudo pacman -S --needed --noconfirm tailscale
+  sudo systemctl enable --now tailscaled.service
+  sudo tailscale up --ssh
+
+Context & Purpose:
+  Provides encrypted, zero-configuration WireGuard mesh networking to connect
+  to the machine from outside the local network (cellular, remote office, internet)
+  without port forwarding or ISP CGNAT restrictions.
+
+Command Breakdown:
+  tailscaled.service   : Background daemon managing WireGuard mesh tunnels.
+  tailscale up --ssh   : Authenticates node and enables Tailscale SSH management.
+
+===============================================================================
 END OF FILE: unix_issues_cmds.txt
 ===============================================================================
 
