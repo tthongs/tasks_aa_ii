@@ -2,7 +2,7 @@
 
 **Repository Location**: `/home/tthh0ngs/build_tthongs/tasks_aa_ii`  
 **Current Branch**: `master`  
-**Last Updated**: July 30, 2026  
+**Last Updated**: September 6, 2026  
 **Primary Maintainer**: `tthongs` (<sanskarsinghss123@gmail.com>)  
 
 ---
@@ -159,6 +159,17 @@ The repository actively tracks system issues encountered across Linux installati
 | **ISSUE_009** | MediaTek MT7922 Bluetooth Firmware Loading Failure | **Resolved** | `fix_bluetooth_firmware.sh`, `ISSUE_009_bluetooth_firmware_failure.md` |
 | **ISSUE_010** | Tekken 8 Stutter/Lag on Hybrid NVIDIA/Intel Laptop | **Resolved** | `ISSUE_010_fix_tekken_8_lag.md` (VKD3D & DXVK cache fixes) |
 | **ISSUE_011** | Microphone Static Noise & Audio Gain Calibration | **Resolved** | `ISSUE_011_microphone_driver_and_gain_fix.md` (PipeWire/WirePlumber gain filter) |
+| **ISSUE_012** | KDE Connect Availability & UFW Firewall Configuration | **Resolved** | `fix_kdeconnect.sh`, `ISSUE_012_kde_connect_firewall_enable.md` |
+| **ISSUE_013** | Automatic Git Repository Push on Logged Issue | **Resolved** | `auto_push_issue.sh`, `.githooks/post-commit`, `ISSUE_013_auto_push_on_logged_issue.md` |
+| **ISSUE_014** | Update GRUB Bootloader Timeout to 50 Seconds | **Resolved** | `/etc/default/grub` updated, `ISSUE_014_update_grub_timeout_to_50s.md` |
+| **ISSUE_015** | Add Custom Power Off Entry to GRUB Menu | **Resolved** | `/etc/grub.d/40_custom`, `ISSUE_015_add_grub_poweroff_entry.md` |
+| **ISSUE_016** | NVIDIA Open Driver Deadlock & Boot Crash Recovery | **Resolved** | `nvidia-open-dkms` rebuild, `REPORT_004_nvidia_driver_and_system_audit.md` |
+| **ISSUE_017** | Fix Locale Encoding & XKB Compose Table Warning | **Resolved** | `fix_locale_utf8.sh`, `ISSUE_017_fix_locale_utf8_compose_table.md` |
+| **ISSUE_018** | Systemd Modules Load Stall & Early Boot Start Job Hang | **Resolved** | `fix_kernel_modules_boot.sh`, `REPORT_005_kernel_module_boot_stalls_fix.md` |
+| **ISSUE_019** | Configure /etc/fstab for OS NTFS Partition Automount | **Resolved** | `fix_os_ntfs_automount.sh`, `ISSUE_019_configure_ntfs_os_fstab_automount.md` |
+| **ISSUE_020** | Configure Bash-Insulter on Every Command Not Found | **Resolved** | `/etc/bash.bashrc` hook, `ISSUE_020_configure_bash_insulter_every_command.md` |
+| **ISSUE_021** | Rename GRUB Windows Boot Manager to Windows 11 | **Resolved** | `fix_grub_windows_entry.sh`, `ISSUE_021_rename_grub_windows_boot_manager.md` |
+| **ISSUE_022** | Configure OpenSSH Server, UFW Firewall, and Remote Access | **Resolved** | `setup_remote_ssh.sh`, `REPORT_006_openssh_remote_access_setup.md` |
 
 ---
 
@@ -224,12 +235,35 @@ Below is the chronological history of git commits performed within this reposito
 | `issues/ISSUE_009_bluetooth_firmware_failure.md` | `issues/` | Markdown (`.md`) | MT7922 Bluetooth kernel firmware fix |
 | `issues/ISSUE_010_fix_tekken_8_lag.md` | `issues/` | Markdown (`.md`) | Tekken 8 VKD3D shader cache & hybrid GPU fix |
 | `issues/ISSUE_011_microphone_driver_and_gain_fix.md` | `issues/` | Markdown (`.md`) | PipeWire microphone noise filter configuration |
+| `issues/ISSUE_012_kde_connect_firewall_enable.md` | `issues/` | Markdown (`.md`) | KDE Connect UFW port rules log |
+| `issues/ISSUE_013_auto_push_on_logged_issue.md` | `issues/` | Markdown (`.md`) | Git post-commit hook auto-push setup |
+| `issues/ISSUE_014_update_grub_timeout_to_50s.md` | `issues/` | Markdown (`.md`) | GRUB timeout reconfiguration to 50s |
+| `issues/ISSUE_015_add_grub_poweroff_entry.md` | `issues/` | Markdown (`.md`) | GRUB poweroff menuentry creation |
+| `issues/ISSUE_016_nvidia_driver_deadlock_and_boot_crash.md` | `issues/` | Markdown (`.md`) | NVIDIA driver deadlock diagnosis and DKMS fix |
+| `issues/ISSUE_017_fix_locale_utf8_compose_table.md` | `issues/` | Markdown (`.md`) | Locale UTF-8 calibration and XKB compose table fix |
+| `issues/ISSUE_018_fix_start_job_kernel_modules_hang.md` | `issues/` | Markdown (`.md`) | Early boot kernel module race condition fix |
+| `issues/ISSUE_019_configure_ntfs_os_fstab_automount.md` | `issues/` | Markdown (`.md`) | NTFS OS partition fstab automount configuration |
+| `issues/ISSUE_020_configure_bash_insulter_every_command.md` | `issues/` | Markdown (`.md`) | Bash-Insulter configuration on command-not-found |
+| `issues/ISSUE_021_rename_grub_windows_boot_manager.md` | `issues/` | Markdown (`.md`) | Rename GRUB Windows Boot Manager to Windows 11 |
+| `issues/ISSUE_022_setup_openssh_remote_access.md` | `issues/` | Markdown (`.md`) | OpenSSH server, UFW firewall, and Tailscale setup |
+| `issues/REPORT_002_browser_restore_fix.md` | `issues/` | Markdown (`.md`) | Browser shutdown crash recovery report |
+| `issues/REPORT_003_system_driver_and_git_config_log.md` | `issues/` | Markdown (`.md`) | Audio driver calibration & global git config report |
+| `issues/REPORT_004_nvidia_driver_and_system_audit.md` | `issues/` | Markdown (`.md`) | NVIDIA driver recovery & system audit report |
+| `issues/REPORT_005_kernel_module_boot_stalls_fix.md` | `issues/` | Markdown (`.md`) | Boot kernel module stalls resolution report |
+| `issues/REPORT_006_openssh_remote_access_setup.md` | `issues/` | Markdown (`.md`) | OpenSSH remote access & Windows 11 client report |
+| `issues/auto_push_issue.sh` | `issues/` | Shell (`.sh`) | Automated git commit and push wrapper |
 | `issues/fix_bluetooth_firmware.sh` | `issues/` | Shell (`.sh`) | Automated MT7922 bluetooth firmware update script |
 | `issues/fix_browser_shutdown.desktop` | `issues/` | Desktop (`.desktop`) | Systemd shutdown trigger desktop launcher |
 | `issues/fix_browser_shutdown.sh` | `issues/` | Shell (`.sh`) | Clean browser termination bash script |
+| `issues/fix_grub_windows_entry.sh` | `issues/` | Shell (`.sh`) | Script to rename GRUB Windows entry to Windows 11 |
+| `issues/fix_kdeconnect.sh` | `issues/` | Shell (`.sh`) | Script to configure KDE Connect firewall ports |
+| `issues/fix_kernel_modules_boot.sh` | `issues/` | Shell (`.sh`) | Early boot kernel module deadlock fix script |
+| `issues/fix_locale_utf8.sh` | `issues/` | Shell (`.sh`) | System locale UTF-8 calibration script |
+| `issues/fix_os_ntfs_automount.sh` | `issues/` | Shell (`.sh`) | Script to configure NTFS OS partition fstab automount |
 | `issues/fix_rquickshare.sh` | `issues/` | Shell (`.sh`) | Script to fix BLE advertising for QuickShare |
 | `issues/fix_ssd_mount.sh` | `issues/` | Shell (`.sh`) | NTFS repair & automount script |
 | `issues/optimize_boot_services.sh` | `issues/` | Shell (`.sh`) | Systemd service disablement script |
+| `issues/setup_remote_ssh.sh` | `issues/` | Shell (`.sh`) | OpenSSH server & Tailscale remote access setup script |
 | `issues/unix_issues_cmds.txt` | `issues/` | Text (`.txt`) | Central command line execution log |
 | `project_report/project_repo_ff_v5.docx` | `project_report/` | Word (`.docx`) | Finalized project report document |
 | `secure_boot_keys_help/GEMINI.md` | `secure_boot_keys_help/` | Markdown (`.md`) | Linux Secure Boot & sbctl setup manual |
