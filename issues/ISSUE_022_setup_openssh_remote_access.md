@@ -33,3 +33,22 @@ Configure OpenSSH server daemon (`sshd`), firewall rules, and Tailscale mesh VPN
 - Verified UFW status: port 22/tcp is allowed for IPv4 and IPv6.
 - Tailscale authentication URL generated and ready for node activation: `https://login.tailscale.com/a/598b4750119c2`.
 
+## Windows 11 Pro Client Setup & Usage
+1. **Via Tailscale (Anywhere on the Internet)**:
+   - Install via PowerShell (Windows Terminal): `winget install tailscale.tailscale` (or download from `tailscale.com/download/windows`).
+   - Sign into Tailscale using the same account as `aspire79g`.
+   - Open PowerShell or Windows Terminal and run:
+     ```powershell
+     ssh tthhongs@aspire79g
+     ```
+2. **Via Local Wi-Fi (Same Network)**:
+   - Open PowerShell or Windows Terminal and run:
+     ```powershell
+     ssh tthhongs@aspire79g.local
+     # Or directly via IP:
+     ssh tthhongs@192.168.1.12
+     ```
+3. **VS Code Remote - SSH**:
+   - Install the `Remote - SSH` extension on Windows 11.
+   - Connect to `tthhongs@aspire79g` to develop directly on this Linux machine.
+
