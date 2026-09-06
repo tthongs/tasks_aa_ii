@@ -79,3 +79,8 @@ Configure OpenSSH server daemon (`sshd`), firewall rules, and Tailscale mesh VPN
    ```powershell
    ssh -p 21523 tthhongs@0.tcp.in.ngrok.io
    ```
+5. **CLI Helper Utility**:
+   - Installed [`/usr/local/bin/get-ssh-link`](file:///usr/local/bin/get-ssh-link) to query the active port anytime:
+     ```bash
+     get-ssh-link
+     ```
