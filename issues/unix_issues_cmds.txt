@@ -962,6 +962,26 @@ Command Breakdown:
   tailscaled.service   : Background daemon managing WireGuard mesh tunnels.
   tailscale up --ssh   : Authenticates node and enables Tailscale SSH management.
 
+-------------------------------------------------------------------------------
+19.6 Cloudflare Zero Trust Tunnel Service Deployment
+-------------------------------------------------------------------------------
+Commands:
+  sudo pacman -S --needed --noconfirm cloudflared
+  sudo cloudflared service install <CLOUDFLARE_TUNNEL_TOKEN>
+  sudo systemctl status cloudflared
+  journalctl -u cloudflared -n 20 --no-pager
+
+Context & Purpose:
+  Deploys the Cloudflare Tunnel daemon as a systemd service connecting outbound
+  to Cloudflare edge nodes over QUIC/HTTP2. Exposes port 22 locally without opening
+  firewall ports or configuring home router NAT, enabling zero-install browser-based
+  SSH access on any client computer.
+
+Command Breakdown:
+  cloudflared service install : Registers and activates the cloudflared systemd unit.
+  systemctl status cloudflared: Confirms active background process state.
+  journalctl -u cloudflared   : Verifies QUIC connection registration to edge locations.
+
 ===============================================================================
 END OF FILE: unix_issues_cmds.txt
 ===============================================================================

@@ -52,3 +52,17 @@ Configure OpenSSH server daemon (`sshd`), firewall rules, and Tailscale mesh VPN
    - Install the `Remote - SSH` extension on Windows 11.
    - Connect to `tthhongs@aspire79g` to develop directly on this Linux machine.
 
+## Cloudflare Zero Trust Tunnel Setup
+1. **Connector Installation**:
+   - Installed `cloudflared` package via pacman on CachyOS.
+   - Initialized persistent systemd service (`cloudflared.service`) using the user's remote tunnel token.
+   - Active Quic edge connection established to Cloudflare New Delhi edge nodes (`del01`, `del04`).
+2. **Public Hostname Mapping**:
+   - In Cloudflare Zero Trust Tunnel configuration:
+     - Type: `SSH`
+     - URL: `localhost:22`
+3. **Zero-Install Client Connection (Browser-Based SSH)**:
+   - Configured via Cloudflare Access Self-Hosted Application with **Browser rendering** set to `SSH`.
+   - Access from Windows 11 Pro requires **zero client software**: open Chrome/Edge, navigate to the public hostname, authenticate with email OTP, and execute commands in the web terminal.
+
+
