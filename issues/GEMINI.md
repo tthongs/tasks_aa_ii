@@ -38,7 +38,8 @@ The broader repository contains several specialized sub-projects:
 *   **ISSUE_019**: Configure /etc/fstab for OS-Labelled NTFS Partition Automount. [RESOLVED]
 *   **ISSUE_020**: Configure Bash-Insulter to Insult on Every Command Not Found Error. [RESOLVED]
 *   **ISSUE_021**: Rename GRUB Boot Entry from Windows Boot Manager to Windows 11. [RESOLVED]
-*   **ISSUE_022**: Configure OpenSSH Server, UFW Firewall, and Remote Access. [IN PROGRESS]
+*   **ISSUE_022**: Configure OpenSSH Server, UFW Firewall, and Remote Access. [RESOLVED]
+
 
 
 ## Usage
