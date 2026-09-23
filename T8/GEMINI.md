@@ -11,7 +11,11 @@ and professionally styled Excel spreadsheet.
 T8/
 ├── scr/                                 # Directory containing screenshots
 │   └── Screenshot_20260629_*.jpg        # 56 video screenshots of combos
-├── Fahkumram_Tekken_8_Combos.xlsx       # Styled Excel spreadsheet of combos
+├── Fahkumram_Tekken_8_Combos.xlsx       # Styled Excel spreadsheet of Fahkumram combos
+├── Marshall_Law_Tekken_8_Combos.xlsx    # Styled Excel spreadsheet of Marshall Law combos
+├── Marshall_Law_Tekken_8_Guide.md       # Comprehensive guide for Marshall Law
+├── Victor_Chevalier_Tekken_8_Combos.xlsx # Styled Excel spreadsheet of Victor Chevalier combos
+├── Victor_Chevalier_Tekken_8_Guide.md   # Comprehensive guide for Victor Chevalier
 └── GEMINI.md                            # Project documentation (this file)
 ```
 

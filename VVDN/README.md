@@ -1,0 +1,80 @@
+# VVDN Engineering Hub & Protocol Knowledge Base
+
+Welcome to your central tracking workspace for embedded systems, hardware protocols, device bring-up, and issue resolution at VVDN.
+
+---
+
+## Workspace Structure
+
+```text
+.
+├── README.md                          # Central dashboard and quick links
+├── templates/
+│   ├── issue-template.md              # Standard bug/issue logging format
+│   └── device-bringup-checklist.md    # Bring-up checklist for serial interfaces
+├── tools/
+│   ├── baud_calc.py                   # CLI tool to calculate UART baud rate divisors & error %
+│   └── md_to_docx.py                  # CLI generator to synchronize .md guides into styled .docx files
+├── protocols/
+│   ├── uart/
+│   │   ├── uart-guide.md (.docx)      # Complete guide on UART architecture & debugging
+│   │   └── baud-rate-calculations.md  # Detailed baud rate theory, BRG formulas & error analysis
+│   ├── i2c/                           # (Planned: I2C protocols & device address maps)
+│   ├── spi/                           # (Planned: SPI modes, clock polarity/phase)
+│   └── can/                           # (Planned: CAN bus framing & bitrates)
+├── standards/
+│   ├── README.md (.docx)              # Standards hub, lifecycle mapping & comparison matrix
+│   ├── rohs/
+│   │   └── rohs-guide.md (.docx)      # RoHS 1/2/3 directives, restricted substances, SAC305, exemptions
+│   ├── reach/
+│   │   └── reach-guide.md (.docx)     # REACH, SVHC Candidate List, O5A rule, SCIP reporting
+│   ├── aec/
+│   │   └── aec-guide.md (.docx)       # Automotive Electronics Council (AEC-Q100/101/200, grades)
+│   └── msl/
+│       └── msl-guide.md (.docx)       # Moisture Sensitivity Levels (J-STD-020/033, popcorning, bake)
+├── active/                            # In-progress investigations & open device issues
+└── resolved/                          # Documented fixes, post-mortems, and RCA
+```
+
+---
+
+## Tools & Utilities
+
+- **[tools/baud_calc.py](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/tools/baud_calc.py)**: Quickly calculate hardware divisor registers (integer & fractional) and error percentage for any MCU clock:
+  ```bash
+  python3 tools/baud_calc.py --clock 16MHz --baud 115200
+  ```
+- **[tools/md_to_docx.py](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/tools/md_to_docx.py)**: Automatically convert/update Markdown documents to styled Microsoft Word (`.docx`) files for mentor sharing and executive reviews:
+  ```bash
+  python3 tools/md_to_docx.py                 # Syncs all standards/ guides
+  python3 tools/md_to_docx.py <path/to/file>  # Converts a specific .md file
+  ```
+
+---
+
+## Protocol Guides & Quick Links
+
+- [UART Complete Guide](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/protocols/uart/uart-guide.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/protocols/uart/uart-guide.docx)): Complete architecture, Linux subsystem, C/Python code, and failure modes.
+- [UART Baud Rate Calculations](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/protocols/uart/baud-rate-calculations.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/protocols/uart/baud-rate-calculations.docx)): In-depth look at baud vs bit rate, hardware BRG divisor formulas, 16x oversampling, error margins, and oscilloscope measurement.
+  - Hardware troubleshooting checklist
+
+---
+
+## Hardware Compliance & Reliability Standards
+
+All guides are maintained simultaneously in **Markdown (`.md`)** for repository tracking and **Microsoft Word (`.docx`)** for sharing with mentors and stakeholders:
+
+- [Standards Knowledge Base Index](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/standards/README.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/standards/README.docx)): Master hub comparing RoHS, REACH, AEC, and MSL across the hardware lifecycle.
+- [RoHS Complete Guide](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/standards/rohs/rohs-guide.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/standards/rohs/rohs-guide.docx)): 10 restricted substances, homogeneous materials, Annex III exemptions (6c, 7a, 7c-I), lead-free soldering (SAC305), tin whiskers, and CE DoC.
+- [REACH Complete Guide](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/standards/reach/reach-guide.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/standards/reach/reach-guide.docx)): Regulation (EC) No 1907/2006, SVHC Candidate List, Article 33 communication, O5A ("Once an Article, Always an Article") rule, Annex XVII restrictions, and SCIP database.
+- [AEC Qualification Guide](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/standards/aec/aec-guide.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/standards/aec/aec-guide.docx)): Automotive Electronics Council standards (AEC-Q100/101/102/103/104/200), temperature grades (0 to 4), stress test groups A–G, zero-defect ($c=0$), and PPAP integration.
+- [MSL Handling Guide](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/standards/msl/msl-guide.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/standards/msl/msl-guide.docx)): Moisture Sensitivity Levels 1–6 (IPC/JEDEC J-STD-020/033), steam popcorning physics, dry packs, HIC cards, dry cabinet pausing, and baking matrix.
+
+---
+
+## Bringing Up a New Device
+
+When you receive a new board or serial peripheral:
+1. Follow the [Device Bring-Up Checklist](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/templates/device-bringup-checklist.md).
+2. If communication fails or unexpected behavior occurs, copy [templates/issue-template.md](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/templates/issue-template.md) into `active/<issue-name>.md` to track and troubleshoot.
+3. Once solved, move the file to `resolved/` with the Root Cause Analysis (RCA) and verified fix.
