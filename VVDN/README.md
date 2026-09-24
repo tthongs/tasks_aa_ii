@@ -14,13 +14,17 @@ Welcome to your central tracking workspace for embedded systems, hardware protoc
 │   └── device-bringup-checklist.md    # Bring-up checklist for serial interfaces
 ├── tools/
 │   ├── baud_calc.py                   # CLI tool to calculate UART baud rate divisors & error %
+│   ├── spi_calc.py                    # CLI tool for SPI timing budgets, round-trip delays & throughput
 │   └── md_to_docx.py                  # CLI generator to synchronize .md guides into styled .docx files
 ├── protocols/
 │   ├── uart/
 │   │   ├── uart-guide.md (.docx)      # Complete guide on UART architecture & debugging
 │   │   └── baud-rate-calculations.md  # Detailed baud rate theory, BRG formulas & error analysis
+│   ├── spi/
+│   │   ├── spi-guide.md (.docx)       # Complete guide on SPI architecture, CPOL/CPHA, Linux spidev & debugging
+│   │   ├── spi-timing-and-modes.md    # Detailed SPI modes, AC timing budgets & propagation delay analysis
+│   │   └── spi-frame-analysis.md      # Detailed SPI data frames, packet structures, archetypes & CRC
 │   ├── i2c/                           # (Planned: I2C protocols & device address maps)
-│   ├── spi/                           # (Planned: SPI modes, clock polarity/phase)
 │   └── can/                           # (Planned: CAN bus framing & bitrates)
 ├── standards/
 │   ├── README.md (.docx)              # Standards hub, lifecycle mapping & comparison matrix
@@ -44,9 +48,13 @@ Welcome to your central tracking workspace for embedded systems, hardware protoc
   ```bash
   python3 tools/baud_calc.py --clock 16MHz --baud 115200
   ```
+- **[tools/spi_calc.py](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/tools/spi_calc.py)**: Calculate SPI round-trip propagation delays, safe maximum read clock frequencies, and throughput:
+  ```bash
+  python3 tools/spi_calc.py --clock 50MHz --trace-cm 5 --tco 7 --tsu 3
+  ```
 - **[tools/md_to_docx.py](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/tools/md_to_docx.py)**: Automatically convert/update Markdown documents to styled Microsoft Word (`.docx`) files for mentor sharing and executive reviews:
   ```bash
-  python3 tools/md_to_docx.py                 # Syncs all standards/ guides
+  python3 tools/md_to_docx.py                 # Syncs all standards/ and protocols/ guides
   python3 tools/md_to_docx.py <path/to/file>  # Converts a specific .md file
   ```
 
@@ -56,7 +64,10 @@ Welcome to your central tracking workspace for embedded systems, hardware protoc
 
 - [UART Complete Guide](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/protocols/uart/uart-guide.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/protocols/uart/uart-guide.docx)): Complete architecture, Linux subsystem, C/Python code, and failure modes.
 - [UART Baud Rate Calculations](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/protocols/uart/baud-rate-calculations.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/protocols/uart/baud-rate-calculations.docx)): In-depth look at baud vs bit rate, hardware BRG divisor formulas, 16x oversampling, error margins, and oscilloscope measurement.
-  - Hardware troubleshooting checklist
+- [SPI Complete Guide](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/protocols/spi/spi-guide.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/protocols/spi/spi-guide.docx)): Complete architecture, CPOL/CPHA modes, QSPI/OSPI variants, Linux spidev, C/Python code, and failure modes.
+- [SPI Timing & Modes Guide](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/protocols/spi/spi-timing-and-modes.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/protocols/spi/spi-timing-and-modes.docx)): In-depth look at CPOL/CPHA edge transitions, shift register mechanics, round-trip delay calculations, high-speed signal integrity, and logic analyzer debugging.
+- [SPI Data Frame Analysis](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/protocols/spi/spi-frame-analysis.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/protocols/spi/spi-frame-analysis.docx)): Deep dive on physical vs logical framing, command/address/dummy phases, Flash/IMU/ADC/Safe-SPI archetypes, CRC-8, and multi-segment Linux transfers.
+
 
 ---
 

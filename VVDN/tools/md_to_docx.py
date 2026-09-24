@@ -429,7 +429,7 @@ def main():
             return
     else:
         # Default: scan standards/ and protocols/
-        md_files = list((base_dir / "standards").rglob("*.md"))
+        md_files = sorted(list((base_dir / "standards").rglob("*.md")) + list((base_dir / "protocols").rglob("*.md")))
 
     print(f"Found {len(md_files)} Markdown files to process.")
     for md_file in md_files:
