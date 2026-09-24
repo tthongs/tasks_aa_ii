@@ -15,6 +15,7 @@ Welcome to your central tracking workspace for embedded systems, hardware protoc
 ├── tools/
 │   ├── baud_calc.py                   # CLI tool to calculate UART baud rate divisors & error %
 │   ├── spi_calc.py                    # CLI tool for SPI timing budgets, round-trip delays & throughput
+│   ├── nfc_calc.py                    # CLI tool for antenna inductance, matching network, Q & NDEF
 │   └── md_to_docx.py                  # CLI generator to synchronize .md guides into styled .docx files
 ├── protocols/
 │   ├── uart/
@@ -24,6 +25,13 @@ Welcome to your central tracking workspace for embedded systems, hardware protoc
 │   │   ├── spi-guide.md (.docx)       # Complete guide on SPI architecture, CPOL/CPHA, Linux spidev & debugging
 │   │   ├── spi-timing-and-modes.md    # Detailed SPI modes, AC timing budgets & propagation delay analysis
 │   │   └── spi-frame-analysis.md      # Detailed SPI data frames, packet structures, archetypes & CRC
+│   ├── nfc/
+│   │   ├── README.md (.docx)          # NFC master hub, standards overview & transceiver comparison
+│   │   ├── nfc-rf-and-physical-layer.md (.docx) # 13.56 MHz RF physics, ASK modulations, antenna & matching
+│   │   ├── spi-rfid-transceiver-interface.md (.docx) # SPI bridge, pinout, register vs packet, LSB trap & FIFO
+│   │   ├── iso14443-framing-and-anticollision.md (.docx) # 7-bit REQA, cascade anti-collision walk & T=CL APDUs
+│   │   ├── ndef-and-card-emulation.md (.docx) # NFC Forum Types 1-5, NDEF framing, RTD types & HCE
+│   │   └── nfc-firmware-and-driver-guide.md (.docx) # Modular C driver, Linux subsystem, bring-up & RCA
 │   ├── i2c/                           # (Planned: I2C protocols & device address maps)
 │   └── can/                           # (Planned: CAN bus framing & bitrates)
 ├── standards/
@@ -52,6 +60,12 @@ Welcome to your central tracking workspace for embedded systems, hardware protoc
   ```bash
   python3 tools/spi_calc.py --clock 50MHz --trace-cm 5 --tco 7 --tsu 3
   ```
+- **[tools/nfc_calc.py](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/tools/nfc_calc.py)**: Calculate PCB antenna inductance, resonance capacitors, $Q$-factor, matching network, and NDEF record encodings:
+  ```bash
+  python3 tools/nfc_calc.py --antenna --width-mm 45 --height-mm 35 --turns 4 --track-mm 0.5
+  python3 tools/nfc_calc.py --matching --inductance-uh 1.85 --r-ant 1.1 --q-target 25 --r-load 50
+  python3 tools/nfc_calc.py --ndef-uri "https://vvdntech.com"
+  ```
 - **[tools/md_to_docx.py](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/tools/md_to_docx.py)**: Automatically convert/update Markdown documents to styled Microsoft Word (`.docx`) files for mentor sharing and executive reviews:
   ```bash
   python3 tools/md_to_docx.py                 # Syncs all standards/ and protocols/ guides
@@ -67,6 +81,13 @@ Welcome to your central tracking workspace for embedded systems, hardware protoc
 - [SPI Complete Guide](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/protocols/spi/spi-guide.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/protocols/spi/spi-guide.docx)): Complete architecture, CPOL/CPHA modes, QSPI/OSPI variants, Linux spidev, C/Python code, and failure modes.
 - [SPI Timing & Modes Guide](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/protocols/spi/spi-timing-and-modes.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/protocols/spi/spi-timing-and-modes.docx)): In-depth look at CPOL/CPHA edge transitions, shift register mechanics, round-trip delay calculations, high-speed signal integrity, and logic analyzer debugging.
 - [SPI Data Frame Analysis](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/protocols/spi/spi-frame-analysis.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/protocols/spi/spi-frame-analysis.docx)): Deep dive on physical vs logical framing, command/address/dummy phases, Flash/IMU/ADC/Safe-SPI archetypes, CRC-8, and multi-segment Linux transfers.
+- [NFC Knowledge Base Index](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/protocols/nfc/README.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/protocols/nfc/README.docx)): Master hub for NFC protocols, ISO/IEC standards map, transceiver comparison (PN532, MFRC522, ST25R3916, TRF7970A), and glossary.
+- [NFC & SPI Interaction Guide (Mentor Briefing)](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/protocols/nfc/spi-rfid-nfc-interaction-guide.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/protocols/nfc/spi-rfid-nfc-interaction-guide.docx)): Conceptual explainer on how SPI and RFID frontends interact to create NFC, step-by-step transaction walkthrough, why SPI over I2C, and mentor defense Q&A.
+- [NFC RF & Physical Layer Guide](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/protocols/nfc/nfc-rf-and-physical-layer.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/protocols/nfc/nfc-rf-and-physical-layer.docx)): Near-field inductive coupling physics, Biot-Savart, 100% vs 10% ASK, 848 kHz subcarrier load modulation, antenna $Q$-factor, EMC filters, and ferrite shielding against metal surfaces.
+- [NFC SPI Transceiver Interface Guide](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/protocols/nfc/spi-rfid-transceiver-interface.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/protocols/nfc/spi-rfid-transceiver-interface.docx)): 4-wire SPI + sideband GPIOs (CS#, IRQ, RSTPD), Register-driven vs Packet-driven frontends, the critical LSB-first bit order trap, FIFO watermark interrupts, and AC timing budgets.
+- [ISO/IEC 14443 Protocol & Anti-Collision Guide](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/protocols/nfc/iso14443-framing-and-anticollision.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/protocols/nfc/iso14443-framing-and-anticollision.docx)): State machine, 5.0 ms guard delay, 7-bit unaligned REQA/WUPA short frames, ATQA decoding, Cascade Levels 1/2/3 bit-oriented collision walk, SAK resolution, and ISO 14443-4 T=CL APDU transport.
+- [NFC NDEF & Card Emulation Guide](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/protocols/nfc/ndef-and-card-emulation.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/protocols/nfc/ndef-and-card-emulation.docx)): NFC Forum Tag Types 1–5, Capability Containers (CC), NDEF message framing, Record headers (TNF, RTD URI/Text/MIME), Peer-to-Peer (LLCP/SNEP), and Host Card Emulation (HCE) via SPI.
+- [NFC Firmware, Driver & Debugging Guide](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/protocols/nfc/nfc-firmware-and-driver-guide.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/VVDN/protocols/nfc/nfc-firmware-and-driver-guide.docx)): Production-grade modular C driver, Linux kernel NFC subsystem (`drivers/nfc`, Device Tree, `spidev`), 4-step oscilloscope/logic analyzer bring-up, and RCA troubleshooting matrix.
 
 
 ---
