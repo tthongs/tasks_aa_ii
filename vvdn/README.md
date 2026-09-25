@@ -38,6 +38,11 @@ Welcome to your central tracking workspace for embedded systems, hardware protoc
 │   │   ├── i2c-frame-and-protocol-analysis.md (.docx)     # Frame formats, 7/10-bit addressing, packet archetypes & logic decoding
 │   │   └── i2c-timing-calculations-and-hardware.md (.docx)# AC timing specs, pull-up sizing math, bus capacitance & PCB design
 │   └── can/                           # (Planned: CAN bus framing & bitrates)
+├── evse/
+│   ├── README.md (.docx)                              # EVSE master hub, system architecture & standards index
+│   ├── evse-low-voltage-controller-working.md (.docx) # LV controller board working, CP/PP, safety, metering & contactor
+│   ├── evse-iot-and-communication-subsystem.md (.docx)# IoT gateway, 4G/Wi-Fi/Ethernet, OCPP 1.6J/2.0.1 & DLM
+│   └── evse-hardware-schematic-and-interfacing.md (.docx) # Schematics, BOM selection, galvanic isolation & bring-up
 ├── standards/
 │   ├── README.md (.docx)              # Standards hub, lifecycle mapping & comparison matrix
 │   ├── rohs/
@@ -74,6 +79,10 @@ Welcome to your central tracking workspace for embedded systems, hardware protoc
   ```bash
   python3 tools/i2c_calc.py --mode full --vdd 3.3 --cap 180 --rp 2.2k --speed fast --address 0x68
   ```
+- **[tools/evse_calc.py](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/tools/evse_calc.py)**: Calculate EVSE Control Pilot PWM duty cycles, allowable charging currents, grid power, and RCM response times:
+  ```bash
+  python3 tools/evse_calc.py --mode full --current 32 --phase 3 --voltage-grid 400
+  ```
 - **[tools/md_to_docx.py](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/tools/md_to_docx.py)**: Automatically convert/update Markdown documents to styled Microsoft Word (`.docx`) files for mentor sharing and executive reviews:
   ```bash
   python3 tools/md_to_docx.py                 # Syncs all standards/ and protocols/ guides
@@ -100,6 +109,10 @@ Welcome to your central tracking workspace for embedded systems, hardware protoc
 - [I2C Working Mechanism & Architecture](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/i2c/i2c-working-and-architecture.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/i2c/i2c-working-and-architecture.docx)): Physical open-drain layer, wired-AND logic, bidirectional MOSFET level shifters, clock synchronization, clock stretching, multi-master arbitration, spike filters, and stuck SDA bus recovery.
 - [I2C Frame & Protocol Analysis](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/i2c/i2c-frame-and-protocol-analysis.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/i2c/i2c-frame-and-protocol-analysis.docx)): Bit-level frame anatomy (START, STOP, Repeated START), 9-bit byte units, ACK/NACK signaling, 7-bit vs 8-bit addressing traps, 10-bit addressing frames, reserved addresses, 5 transaction archetypes, and logic analyzer frame decoding.
 - [I2C AC Timing, Pull-Up Calculations & Hardware](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/i2c/i2c-timing-calculations-and-hardware.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/i2c/i2c-timing-calculations-and-hardware.docx)): AC timing parameter matrix, mathematical derivation of $R_{p(min)}$ and $R_{p(max)}$, bus capacitance budgeting ($C_b$), active bus accelerators, PCB layout & crosstalk shielding, and bench RCA troubleshooting matrix.
+- [EVSE Knowledge Base & Systems Hub](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/evse/README.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/evse/README.docx)): Master hub for EV charging equipment architecture, high-voltage vs low-voltage domain separation, and international standards.
+- [EVSE Low Voltage Controller Working & Architecture](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/evse/evse-low-voltage-controller-working.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/evse/evse-low-voltage-controller-working.docx)): Complete working of the LV controller board, ±12V CP PWM bipolar generation, vehicle state machine (A..F), diode safety check, PP cable rating detection, 6mA DC / 30mA AC RCM leakage trip, welded contactor detection, precision energy metering, and coil economizer.
+- [EVSE IoT Gateway & Communication Subsystem](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/evse/evse-iot-and-communication-subsystem.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/evse/evse-iot-and-communication-subsystem.docx)): Dual-processor safety architecture, 4G LTE Cat-1 / Wi-Fi / BLE / Ethernet connectivity, complete OCPP 1.6-J / 2.0.1 transaction message flows, RS-485 Modbus Dynamic Load Management (DLM), RFID authentication, and A/B dual-bank secure OTA.
+- [EVSE Hardware Schematics & Bring-Up Guide](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/evse/evse-hardware-schematic-and-interfacing.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/evse/evse-hardware-schematic-and-interfacing.docx)): Component-level schematics (CP op-amp buffer, PP divider, contactor driver, H-bridge lock), reinforced creepage/clearance (>= 6-8mm), GDT/MOV surge protection, and bench RCA troubleshooting matrix.
 
 
 ---

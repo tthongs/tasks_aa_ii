@@ -428,8 +428,14 @@ def main():
             print(f"Invalid target: {target}")
             return
     else:
-        # Default: scan standards/ and protocols/
-        md_files = sorted(list((base_dir / "standards").rglob("*.md")) + list((base_dir / "protocols").rglob("*.md")))
+        # Default: scan standards/, protocols/, and evse/
+        scan_dirs = ["standards", "protocols", "evse"]
+        md_files = []
+        for d in scan_dirs:
+            p = base_dir / d
+            if p.exists():
+                md_files.extend(p.rglob("*.md"))
+        md_files = sorted(md_files)
 
     print(f"Found {len(md_files)} Markdown files to process.")
     for md_file in md_files:
