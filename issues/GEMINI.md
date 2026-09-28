@@ -40,6 +40,7 @@ The broader repository contains several specialized sub-projects:
 *   **ISSUE_021**: Rename GRUB Boot Entry from Windows Boot Manager to Windows 11. [RESOLVED]
 *   **ISSUE_022**: Configure OpenSSH Server, UFW Firewall, and Remote Access. [RESOLVED]
 *   **REPORT_006**: OpenSSH Server Deployment, UFW Firewall Integration, Tailscale Mesh Tunnel, and Cross-Platform Client Access. [COMPLETED]
+*   **ISSUE_023**: Disable Automatic EFI BootNext Entries in GRUB Menu. [RESOLVED]
 
 
 

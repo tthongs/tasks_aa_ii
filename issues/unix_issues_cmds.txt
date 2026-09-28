@@ -1005,6 +1005,61 @@ Command Breakdown:
   curl .../api/tunnels        : Queries the local ngrok daemon API to retrieve assigned TCP host & port.
 
 ===============================================================================
+20. GRUB BOOTLOADER: DISABLING AUTOMATIC EFI BOOTNEXT ENTRIES
+===============================================================================
+
+-------------------------------------------------------------------------------
+20.1 Root Cause & Package Upgrade Analysis (GRUB 2.16 /etc/grub.d/31_efi_bootnext)
+-------------------------------------------------------------------------------
+Commands:
+  pacman -Qo /etc/grub.d/31_efi_bootnext
+  head -n 45 /etc/grub.d/31_efi_bootnext
+  grep -n "GRUB_DISABLE_BOOTNEXT" /usr/bin/grub-mkconfig /etc/grub.d/*
+  efibootmgr -v
+
+Context & Purpose:
+  When CachyOS/Arch Linux upgraded GRUB to version 2:2.16-1.1, upstream added a
+  new script /etc/grub.d/31_efi_bootnext. This script enumerates all UEFI NVRAM boot
+  targets using efibootmgr and creates unwanted '(EFI BootNext)' entries directly
+  under 'UEFI Firmware Settings'.
+
+Command Breakdown:
+  pacman -Qo               : Identifies which package installed the new boot script.
+  grep -n GRUB_DISABLE_... : Confirms the built-in environment variable used to disable the feature.
+  efibootmgr -v            : Displays raw UEFI NVRAM boot variables queried by 31_efi_bootnext.
+
+-------------------------------------------------------------------------------
+20.2 Disabling EFI BootNext via /etc/default/grub Configuration & Script Permissions
+-------------------------------------------------------------------------------
+Commands:
+  echo "GRUB_DISABLE_BOOTNEXT=true" | sudo tee -a /etc/default/grub
+  sudo chmod -x /etc/grub.d/31_efi_bootnext
+  sudo grub-mkconfig -o /boot/grub/grub.cfg
+
+Context & Purpose:
+  Permanently suppresses EFI BootNext entries across future kernel/GRUB updates
+  by declaring GRUB_DISABLE_BOOTNEXT=true in /etc/default/grub, revoking execute
+  permissions from the generator script as a fallback, and compiling a clean
+  grub.cfg boot configuration.
+
+Command Breakdown:
+  tee -a /etc/default/grub : Appends configuration directive to GRUB defaults.
+  chmod -x                 : Disables execute bit to prevent script execution if invoked directly.
+  grub-mkconfig -o ...     : Rebuilds /boot/grub/grub.cfg with updated settings.
+
+-------------------------------------------------------------------------------
+20.3 Automated Fix Script Execution
+-------------------------------------------------------------------------------
+Commands:
+  chmod +x issues/fix_grub_efi_bootnext.sh
+  sudo issues/fix_grub_efi_bootnext.sh
+
+Context & Purpose:
+  Runs the end-to-end automation script that creates timestamped backups of
+  /etc/default/grub, injects GRUB_DISABLE_BOOTNEXT=true, de-executes 31_efi_bootnext,
+  re-patches Windows 11 naming if needed, rebuilds grub.cfg, and verifies removal.
+
+===============================================================================
 END OF FILE: unix_issues_cmds.txt
 ===============================================================================
 
