@@ -80,6 +80,7 @@ protocols/can/
 ├── README.md (.docx)                              # Master Hub, standard comparison, roadmap & quick links
 ├── can-working-and-architecture.md (.docx)        # Physical layer, differential voltages, arbitration, fault confinement
 ├── can-frame-and-protocol-analysis.md (.docx)     # Frame formats (2.0A/B, FD), bit stuffing, J1939, CANopen, UDS
+├── can-circuit-and-hardware-connections.md (.docx)# Schematics: Transceiver VIO, split termination, CMC, TVS, ISO1042
 └── can-timing-bitrates-and-hardware.md (.docx)    # Bit timing budgets, Time Quanta, SJW, TDC, termination & RCA matrix
 ```
 
@@ -103,7 +104,14 @@ protocols/can/
 - Logic analyzer and oscilloscope decoded trace walk-through with bit annotations.
 - Linux SocketCAN ecosystem: `candump`, `cansend`, `cangen`, `vcan`, and C socket programming.
 
-### [3. Timing Calculations, Bitrates & Hardware Engineering](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/can/can-timing-bitrates-and-hardware.md)
+### [3. Hardware Connections & Circuit Schematics](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/can/can-circuit-and-hardware-connections.md)
+- High-speed CAN / CAN FD transceiver (TJA1051/TCAN1042) with $V_{IO}$ logic translation pin (3.3V MCU directly to 5V bus).
+- Split termination network ($60.4\,\Omega + 60.4\,\Omega$ + $4.7\,\text{nF}$ center filter) for common-mode noise suppression.
+- High-reliability automotive EMC & surge protection: Common Mode Choke ($51\,\mu\text{H}$) and TVS diode array (PESD2CAN/NUP2105L).
+- Galvanically isolated CAN node architecture (TI ISO1042 / ADI ADM3053) for 400V/800V EV traction and BMS.
+- Linear multi-node bus wiring topology and stub length constraints ($< 0.3\,\text{m}$).
+
+### [4. Timing Calculations, Bitrates & Hardware Engineering](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/can/can-timing-bitrates-and-hardware.md)
 - Bit timing theory: Nominal Bit Time ($NBT$), Time Quanta ($t_q$), $Sync\_Seg$, $Prop\_Seg$, $Phase\_Seg1$, $Phase\_Seg2$.
 - Sample point optimization formulas ($75\% - 87.5\%$ per CiA recommendations) and clock divisor integer math.
 - Resynchronization Jump Width ($SJW$), hard synchronization, resynchronization rules, and oscillator tolerance ($\Delta f$).

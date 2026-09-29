@@ -70,6 +70,7 @@ protocols/lin/
 ├── README.md (.docx)                              # Master Hub, standard comparison, roadmap & quick links
 ├── lin-working-and-architecture.md (.docx)        # Single-wire physical layer, 12V signaling, master-slave scheduling
 ├── lin-frame-and-protocol-analysis.md (.docx)     # Frame format (Break, Sync, PID, Data, Checksum), Classic vs Enhanced
+├── lin-circuit-and-hardware-connections.md (.docx)# Schematics: Master/Slave nodes, ISO 7637-2 surge protection, harness wiring
 └── lin-timing-synchronization-and-hardware.md (.docx) # Auto-baud math, RC sync, slot sizing, circuitry & RCA matrix
 ```
 
@@ -90,7 +91,13 @@ protocols/lin/
 - LIN Transport Layer (LIN TP / ISO 17987-2): Single Frame (SF) and Multi-Frame (FF, CF) message flows.
 - Logic analyzer and oscilloscope decoded trace walk-through.
 
-### [3. Timing Calculations, Synchronization & Hardware Engineering](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/lin/lin-timing-synchronization-and-hardware.md)
+### [3. Hardware Connections & Circuit Schematics](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/lin/lin-circuit-and-hardware-connections.md)
+- Complete schematic for Automotive Master Node with $1\,\text{k}\Omega$ pull-up, reverse blocking diode, and EMC filter.
+- Automotive Slave Node schematic with internal $30\,\text{k}\Omega$ pull-up and $220\,\text{pF}$ filter.
+- Automotive transient surge protection network (ISO 7637-2 pulse 1, 2a, 3a/3b) using TVS diodes (PESD1LIN).
+- Full vehicle body harness cluster wiring topology for up to 16 nodes.
+
+### [4. Timing Calculations, Synchronization & Hardware Engineering](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/lin/lin-timing-synchronization-and-hardware.md)
 - Bit timing theory ($T_{bit}$) across standard baud rates ($19200$, $9600$, $2400\,\text{bps}$).
 - Nominal frame duration and maximum slot sizing formula ($T_{frame\_max} = 1.4 \times T_{frame\_nom}$).
 - Slave auto-baud clock synchronization mathematics: 5 falling edges of `0x55` spanning 8 bit times ($8 \times T_{bit}$).

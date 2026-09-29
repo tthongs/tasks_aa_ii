@@ -80,6 +80,7 @@ protocols/i2c/
 ├── README.md (.docx)                              # Master Hub, executive overview & protocol comparison
 ├── i2c-working-and-architecture.md (.docx)        # Physical layer, open-drain, arbitration, clock stretching
 ├── i2c-frame-and-protocol-analysis.md (.docx)     # Frame format, bit timing, 7/10-bit addressing, packet sequences
+├── i2c-circuit-and-hardware-connections.md (.docx)# Schematics: Master/Slaves, MOSFET level-shifter, TCA9548A, P82B715
 └── i2c-timing-calculations-and-hardware.md (.docx)# AC timing specs, pull-up math, PCB design, RCA troubleshooting
 ```
 
@@ -103,7 +104,13 @@ protocols/i2c/
 - Standard transaction archetypes: Single write, sequential burst write, direct read, random register read.
 - Logic analyzer protocol decoding walkthrough with waveform annotations.
 
-### [3. Timing Calculations & Hardware Engineering](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/i2c/i2c-timing-calculations-and-hardware.md)
+### [3. Hardware Connections & Circuit Schematics](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/i2c/i2c-circuit-and-hardware-connections.md)
+- Complete schematic for Multi-Target bus with Master MCU, EEPROM, and sensor.
+- 3.3V to 5V bidirectional MOSFET level shifter (BSS138/2N7002) circuit analysis.
+- TCA9548A / PCA9548A 8-channel I2C multiplexer circuit for address conflict resolution.
+- P82B715 / P82B96 high-drive buffer circuit for long-distance cables up to 50 meters.
+
+### [4. Timing Calculations & Hardware Engineering](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/i2c/i2c-timing-calculations-and-hardware.md)
 - Official AC timing specifications across Standard, Fast, and Fast-mode Plus speeds.
 - Mathematical derivation and calculation of $R_{p(min)}$ and $R_{p(max)}$ based on bus capacitance ($C_b$), supply voltage ($V_{DD}$), rise time ($t_r$), and sink current ($I_{OL}$).
 - PCB routing guidelines, track-to-track crosstalk isolation, series damping resistors ($R_s$), and bus capacitance budgeting.
