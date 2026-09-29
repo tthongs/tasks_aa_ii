@@ -101,6 +101,25 @@ Welcome to your central tracking workspace for embedded systems, hardware protoc
 │   │   └── aec-guide.md (.docx)       # Automotive Electronics Council (AEC-Q100/101/200, grades)
 │   └── msl/
 │       └── msl-guide.md (.docx)       # Moisture Sensitivity Levels (J-STD-020/033, popcorning, bake)
+├── converters/                        # Power Electronics Converters Knowledge Base (DC-DC, AC-AC, DC-AC, AC-DC)
+│   ├── README.md (.docx)              # Master hub, 4-quadrant conversion matrix & selection benchmark
+│   ├── dc-dc/                         # DC-to-DC Voltage Conversion (Isolated & Non-Isolated Topologies)
+│   │   ├── README.md (.docx)          # DC-DC master hub, taxonomy & 13-topology comparison
+│   │   ├── isolated/                  # Forward, Flyback, DAB, Full-Bridge, Half-Bridge, Push-Pull, Resonant (LLC)
+│   │   └── non-isolated/              # Buck, Boost, Buck-Boost, Cuk, SEPIC, Zeta
+│   ├── ac-ac/                         # AC-to-AC Frequency & Voltage Conversion
+│   │   ├── README.md (.docx)          # AC-AC master hub & direct conversion taxonomy
+│   │   ├── cycloconverters.md (.docx) # Line-commutated cycloconverters (P/N banks, sub-fundamental drives)
+│   │   └── ac-voltage-controllers.md (.docx) # Phase angle & integral cycle control (TRIAC/SCR, soft-starters)
+│   ├── dc-ac/                         # DC-to-AC Inversion (Single-Phase & Three-Phase Inverters)
+│   │   ├── README.md (.docx)          # DC-AC master hub & modulation comparison
+│   │   ├── single-phase-inverters.md (.docx) # Half/Full-Bridge, Bipolar/Unipolar SPWM, LC filter design
+│   │   └── three-phase-inverters.md (.docx) # 6-Switch VSI, 180°/120°, THIPWM & Space Vector PWM (SVPWM)
+│   └── ac-dc/                         # AC-to-DC Rectification & Power Quality
+│       ├── README.md (.docx)          # AC-DC master hub, power quality metrics & standards (IEC 61000-3-2)
+│       ├── uncontrolled-rectifiers.md (.docx) # 1-Phase & 3-Phase diode bridges, conduction angle & capacitor ripple
+│       ├── controlled-rectifiers.md (.docx) # Phase-controlled SCR rectifiers (Semi/Full, Quadrant IV inversion)
+│       └── active-pfc-rectifiers.md (.docx) # Active Boost PFC, Bridgeless Totem-Pole GaN & Vienna Rectifier
 ├── active/                            # In-progress investigations & open device issues
 └── resolved/                          # Documented fixes, post-mortems, and RCA
 ```
@@ -248,6 +267,25 @@ Welcome to your central tracking workspace for embedded systems, hardware protoc
 - [Efficiency Monitoring, Data Logging & Telemetry](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/smart_programmable_power_supply/efficiency-monitoring-and-telemetry.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/smart_programmable_power_supply/efficiency-monitoring-and-telemetry.docx)): Dual-domain power metering (isolated primary AC $\Delta\Sigma$ modulator AMC1311/CT and secondary DC INA226 I2C monitor), real-time efficiency engine ($\eta = P_{DC} / P_{AC}$ at 10Hz), non-blocking FreeRTOS MicroSD FAT32 CSV logger, 1.3" OLED display, and USB-C SCPI command parser.
 - [System Schematics, Safety & PCB Design](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/smart_programmable_power_supply/system-schematics-and-pcb-design.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/smart_programmable_power_supply/system-schematics-and-pcb-design.docx)): Complete end-to-end system interconnect schematic, reinforced isolation barrier rules ($\ge 6.4\,\text{mm}$ creepage, 2.0mm PCB isolation slot, Y1 safety cap), 4-layer PCB stackup and layout guidelines, Bill of Materials (BOM), bring-up checklist, and RCA troubleshooting matrix.
 
+---
+
+## Power Electronics Converters Knowledge Base
+
+- [Power Converters Master Hub](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/converters/README.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/converters/README.docx)): Master hub for 4-quadrant power electronic converters (DC-DC, AC-AC, DC-AC, AC-DC) with taxonomy, 13-topology benchmark matrix, and component stress formulas.
+- [DC-DC Converters Hub](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/converters/dc-dc/README.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/converters/dc-dc/README.docx)): Master hub covering 7 Isolated topologies (Forward, Flyback, DAB, Full-Bridge, Half-Bridge, Push-Pull, Resonant) and 6 Non-Isolated topologies (Buck, Boost, Buck-Boost, Cuk, SEPIC, Zeta).
+  - [Isolated Resonant Converters (SRC, PRC, LLC) [IMP]](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/converters/dc-dc/isolated/resonant-converters.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/converters/dc-dc/isolated/resonant-converters.docx)): Deep dive into Series, Parallel, and LLC Resonant Half-Bridge converters, FHA gain curves $M(f_n, Q, L_n)$, and complete ZVS/ZCS design procedures.
+  - [Phase-Shifted Full-Bridge (PSFB)](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/converters/dc-dc/isolated/full-bridge-converter.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/converters/dc-dc/isolated/full-bridge-converter.docx)): Soft-switching ZVS mechanisms, leading/lagging leg transitions, duty-cycle loss ($\Delta D$), and secondary ringing suppression.
+  - [Dual Active Bridge (DAB)](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/converters/dc-dc/isolated/dual-active-bridge.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/converters/dc-dc/isolated/dual-active-bridge.docx)): Bidirectional phase-shift modulation (SPS, EPS, DPS, TPS), leakage inductance power transfer, and EV battery charging design.
+- [AC-AC Converters Hub](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/converters/ac-ac/README.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/converters/ac-ac/README.docx)): Direct AC-AC frequency and voltage conversion.
+  - [Cycloconverters](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/converters/ac-ac/cycloconverters.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/converters/ac-ac/cycloconverters.docx)): Multi-pulse naturally-commutated thyristor banks (P/N groups), circulating vs. non-circulating modes, and low-frequency mega-watt drives.
+  - [AC Voltage Controllers](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/converters/ac-ac/ac-voltage-controllers.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/converters/ac-ac/ac-voltage-controllers.docx)): Phase-angle control vs. integral cycle burst firing, antiparallel SCR pairs/TRIACs, and induction motor soft-starters.
+- [DC-AC Inverters Hub](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/converters/dc-ac/README.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/converters/dc-ac/README.docx)): Stiff DC-bus inversion for grid-tied solar, UPS, and motor drives.
+  - [Single-Phase Inverters & Filter Design](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/converters/dc-ac/single-phase-inverters.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/converters/dc-ac/single-phase-inverters.docx)): Half-bridge vs Full-bridge H-bridge, Bipolar vs Unipolar SPWM ($2f_c$ harmonic cancellation), and second-order LC output low-pass filter design.
+  - [Three-Phase Inverters & Space Vector PWM (SVPWM)](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/converters/dc-ac/three-phase-inverters.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/converters/dc-ac/three-phase-inverters.docx)): 6-Switch two-level VSI, 180°/120° six-step, THIPWM saddle modulation, and Space Vector PWM (SVPWM) mathematical deep dive ($15.5\%$ higher DC utilization).
+- [AC-DC Rectifiers Hub](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/converters/ac-dc/README.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/converters/ac-dc/README.docx)): AC mains rectification, power quality metrics ($\text{PF}, \text{DPF}, \text{THD}_i$), and regulatory compliance (IEC 61000-3-2).
+  - [Uncontrolled Diode Rectifiers](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/converters/ac-dc/uncontrolled-rectifiers.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/converters/ac-dc/uncontrolled-rectifiers.docx)): 1-Phase & 3-Phase diode bridges, conduction angle $\theta_c$, crest factor, bulk capacitor sizing, and inrush surge protection.
+  - [Controlled Phase-Rectifiers & Inversion](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/converters/ac-dc/controlled-rectifiers.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/converters/ac-dc/controlled-rectifiers.docx)): Semi-converters, full-converters, firing delay $\alpha$, and Quadrant IV line-commutated inversion for DC motor regenerative braking.
+  - [Active PFC Rectifiers (Boost, Totem-Pole GaN, Vienna)](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/converters/ac-dc/active-pfc-rectifiers.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/converters/ac-dc/active-pfc-rectifiers.docx)): Active Boost PFC (inner current + outer voltage loop), Bridgeless Totem-Pole GaN ($99\%$ efficiency), 3-Phase Vienna Rectifier, and hold-up capacitor sizing.
 
 ---
 
