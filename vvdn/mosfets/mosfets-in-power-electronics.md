@@ -389,20 +389,90 @@ Packages such as **TO-247-4L**, **D2PAK-7L**, and **DFN8x8** provide a dedicated
 
 ---
 
-## 4. Comprehensive Dynamic Power Loss Breakdown & Mathematical Modeling
+## 4. Dynamic Switching Waveforms, Region Transitions & Loss Modeling
+
+### 4.1 Synchronized Time-Domain Waveforms & Region Transitions
+
+During inductive hard switching (e.g. buck converter, motor inverter leg), the MOSFET transitions through distinct physical conduction regions. Below is the complete cycle-accurate 5-channel oscilloscope waveform:
+
+```text
+                       MOSFET Hard-Switching Dynamic Time-Domain Waveforms
+               │◄─ t_d(on) ─►│◄─ t_ri ─►│◄── t_vf ──►│◄─ t_enh ─►│       │◄─ t_d(off) ─►│◄── t_vr ──►│◄─ t_fi ─►│◄─ t_off ─►│
+               │   Phase 1   │  Phase 2 │   Phase 3  │  Phase 4  │       │    Phase 5   │   Phase 6  │  Phase 7 │  Phase 8  │
+  Vgs ^        │             │          │            │           │       │              │            │          │           │
+      │        │             │          │            │  V_drive  │       │   V_drive    │            │          │           │
+ V_drv┼────────┼─────────────┼──────────┼────────────┼──.────────┼───────┼──────────────┼────────────┼──────────┼───────────┤
+      │        │             │          │Miller Plat.│ /         │       │              │Miller Plat.│          │           │
+ V_plt┼────────┼─────────────┼──────────┼────────────┴'──────────┼───────┼──────────────┼────────────┴──────────┼───────────┤
+  V_th┼────────┼─────────────┼──────────/            │           │       │              │            \          │           │
+      │        │            .┼─────────'             │           │       │              │             \         │           │
+   0V ┴────────┴───────────'─┴───────────────────────┴───────────┴───────┴──────────────┴──────────────\────────┴───────────┴──> Time
+               │             │          │            │           │       │              │               '───────.             │
+  Ig  ^        │             │          │            │           │       │              │                       │             │
+      │        │  Ig_source  │          │            │           │       │              │                       │             │
+ +I_pk┼────────┼──.──────────┼──────────┼────────────┼───────────┼───────┼──────────────┼───────────────────────┼─────────────┤
+      │        │ / \         │          │            │           │       │              │                       │             │
+   0A ┼────────┴'───\────────┴──────────┴────────────┴───.───────┼───────┼──────────────┴───────────────────────┴──.──────────┤
+      │        │     '──────────────────────────────────'        │       │                                         / \        │
+ -I_pk┼────────┼─────────────┼──────────┼────────────┼───────────┼───────┼──.─────────────────────────────────────'───\───────┤
+      │        │             │          │            │           │       │   \ Ig_sink                                 '──────┤
+      │        │             │          │            │           │       │    '                                               │
+  Vds ^        │             │          │            │           │       │              │   V_spike  │          │           │
+      │        │    V_bus    │  V_bus   │            │           │       │              │   (L*di/dt)│          │           │
+ V_bus┼────────┼─────────────┼──────────┼────────────┼───────────┼───────┼──────────────┼─────.──────┼──────────┼─────.─────┤
+      │        │             │          │\           │           │       │              │    / \     │          │    / \    │
+      │        │             │          │ \          │           │       │              │   /   '────┼──────────┼───'   \   │
+   0V ┴────────┴─────────────┴──────────┴──'─────────┴───.───────┴───────┴──────────────┴──'────────┴──────────┴────────'───┴──> Time
+               │             │          │                 Rds*Id │       │              │ Rds*Id     │          │           │
+  Id  ^        │             │          │            │           │       │              │            │          │           │
+      │        │             │  I_rr    │            │           │       │              │            │          │           │
+ I_ovr┼────────┼─────────────┼───.──────┼────────────┼───────────┼───────┼──────────────┼────────────┼──────────┼───────────┤
+      │        │             │  / \     │            │           │       │              │            │          │           │
+I_load┼────────┼─────────────┼─'───\────┼────────────┼───────────┼───────┼──────────────┼────────────┼──────────┼───────────┤
+      │        │             │/     '───┴────────────┴───────────┼───────┼──────────────┴────────────┼──────────┼───────────┤
+      │        │             /          │            │           │       │              │            │\         │           │
+   0A ┴────────┴────────────'┴──────────┴────────────┴───────────┴───────┴──────────────┴────────────┴─'────────┴───────────┴──> Time
+               │             │          │            │           │       │              │            │          │           │
+  P(t)^        │             │          │            │           │       │              │            │          │           │
+      │        │             │          │  P_sw(on)  │           │       │              │            │ P_sw(off)│           │
+ P_max┼────────┼─────────────┼──────────┼─────.──────┼───────────┼───────┼──────────────┼────────────┼─────.────┼───────────┤
+      │        │             │          │    / \     │           │       │              │            │    / \   │           │
+      │        │             │          │   /   \    │ P_cond    │       │   P_cond     │            │   /   \  │           │
+   0W ┴────────┴─────────────┴──────────┴──'─────'───┴───.───────┴───────┴───.──────────┴────────────┴──'─────'─┴───────────┴──> Time
+               │             │          │            │   Rds*Id^2│       │    Rds*Id^2  │            │          │           │
+───────────────┼─────────────┼──────────┼────────────┼───────────┼───────┼──────────────┼────────────┼──────────┼───────────┤
+OPERATING      │  1. CUTOFF  │ 2.ACTIVE │ 3.ACTIVE-> │ 4. LINEAR │       │  5. LINEAR   │ 6. ACTIVE  │ 7.ACTIVE │ 8. CUTOFF │
+REGION:        │   REGION    │(SATURAT.)│   LINEAR   │  (OHMIC)  │       │ (DESATURAT.) │ (SATURAT.) │ (SATUR.) │  REGION   │
+───────────────┴─────────────┴──────────┴────────────┴───────────┴───────┴──────────────┴────────────┴──────────┴───────────┘
+```
+
+#### Detailed Regional Transition Breakdown:
+1. **Phase 1 ($t_{d(on)}$) — Cutoff**: Gate voltage charges from $0\,\text{V}$ to $V_{TH}$. No drain current flows ($I_D = 0$), $V_{DS} = V_{BUS}$. Power loss is $0\,\text{W}$.
+2. **Phase 2 ($t_{ri}$) — Active / Saturation**: $V_{GS}$ exceeds $V_{TH}$ and rises to $V_{plateau}$. Device enters **Saturation** ($V_{DS} \ge V_{GS} - V_{TH}$). $I_D$ ramps up to load current $+ I_{rr}$ (freewheeling diode reverse recovery). $V_{DS}$ is pinned at $V_{BUS}$.
+3. **Phase 3 ($t_{vf}$) — Saturation $\rightarrow$ Triode (Miller Plateau)**: $I_D$ fully carries the load. Freewheeling diode shuts off. $V_{DS}$ collapses from $V_{BUS}$ to near zero. $V_{GS}$ is clamped at $V_{plateau}$ while gate current discharges $C_{gd}$. **Massive $P_{sw(on)}$ power loss occurs here**.
+4. **Phase 4 ($t_{enh}$) — Deep Linear (Ohmic)**: Gate charges from $V_{plateau}$ to $V_{DRIVE}$. Inversion layer thickens; $R_{DS(on)}$ drops to minimum.
+5. **Steady State ON — Ohmic Conduction**: Resistive conduction loss: $P_{cond} = I_D^2 \cdot R_{DS(on)}$.
+6. **Phase 5 ($t_{d(off)}$) — Linear Region Desaturation**: Gate current discharges $C_{iss}$ from $V_{DRIVE}$ down to $V_{plateau}$. $V_{DS}$ slightly rises.
+7. **Phase 6 ($t_{vr}$) — Linear $\rightarrow$ Saturation (Miller Plateau Turn-Off)**: Gate voltage held at $V_{plateau}$. $V_{DS}$ surges from zero to $V_{BUS} + V_{spike}$.
+8. **Phase 7 ($t_{fi}$) — Active / Saturation Current Fall**: Freewheeling diode conducts. $V_{GS}$ falls from $V_{plateau}$ to $V_{TH}$. $I_D$ drops to zero. Inductive spike $V_{spike} = L_\sigma \cdot |di/dt|$ stresses device. **Massive $P_{sw(off)}$ loss occurs here**.
+9. **Phase 8 ($t_{off}$) — Cutoff**: $V_{GS}$ falls below $V_{TH}$. Device is completely off ($I_D = 0$).
+
+---
+
+### 4.2 Mathematical Power Loss Formulations
 
 Total power dissipated by a switching power MOSFET consists of five fundamental components:
 
 $$P_{TOTAL} = P_{COND} + P_{SW(turn-on)} + P_{SW(turn-off)} + P_{COSS} + P_{GATE} + P_{DIODE}$$
 
-### 4.1 Conduction Loss ($P_{COND}$)
+#### 1. Conduction Loss ($P_{COND}$)
 Dissipated when the channel is fully inverted in the ohmic regime:
 $$P_{COND} = I_{D(rms)}^2 \times R_{DS(on)}(T_j)$$
 Accounting for junction temperature rise:
 $$R_{DS(on)}(T_j) = R_{DS(on)}(25^\circ\text{C}) \times \left(1 + \frac{\alpha}{100}(T_j - 25^\circ\text{C})\right)$$
 where $\alpha \approx 0.4\% \dots 0.8\% / ^\circ\text{C}$ for Silicon and $\approx 0.3\% \dots 0.5\% / ^\circ\text{C}$ for SiC.
 
-### 4.2 Turn-On & Turn-Off Switching Losses ($P_{SW}$)
+#### 2. Turn-On & Turn-Off Switching Losses ($P_{SW}$)
 During switching transitions, voltage and current waveforms overlap:
 $$P_{SW(turn-on)} = \frac{1}{2} V_{DS,bus} \cdot I_{D,turn-on} \cdot t_{rise} \cdot f_{sw}$$
 $$P_{SW(turn-off)} = \frac{1}{2} V_{DS,bus} \cdot I_{D,turn-off} \cdot t_{fall} \cdot f_{sw}$$
@@ -410,19 +480,19 @@ The rise time $t_{rise}$ comprises current rise ($t_{cr}$) and voltage fall ($t_
 $$t_{cr} = (R_{G,on} + R_{drv(source)} + R_{int}) \cdot C_{iss} \cdot \ln\left(\frac{V_{DRV} - V_{TH}}{V_{DRV} - V_{plateau}}\right)$$
 $$t_{vf} = \frac{Q_{gd} \cdot (R_{G,on} + R_{drv(source)} + R_{int})}{V_{DRV} - V_{plateau}}$$
 
-### 4.3 Output Capacitance Energy Loss ($P_{COSS}$)
+#### 3. Output Capacitance Energy Loss ($P_{COSS}$)
 In hard-switched converters, the electrostatic energy stored in $C_{oss}$ during the OFF state is shorted out and dissipated internally in the channel at turn-on:
 $$E_{oss} = \int_0^{V_{bus}} v \cdot C_{oss}(v) \, dv$$
 $$P_{COSS} = E_{oss} \times f_{sw}$$
 Because $C_{oss}$ is non-linear (dropping by orders of magnitude as $V_{DS}$ increases), designers must use the **energy-equivalent capacitance** ($C_{oss(er)}$) from the manufacturer's datasheet:
 $$P_{COSS} = \frac{1}{2} C_{oss(er)} \cdot V_{bus}^2 \cdot f_{sw}$$
 
-### 4.4 Gate Drive Loss ($P_{GATE}$)
+#### 4. Gate Drive Loss ($P_{GATE}$)
 Delivered by the gate drive power supply:
 $$P_{GATE} = Q_g \times V_{GS,drive} \times f_{sw}$$
 *(Note: This loss is shared between the gate driver IC and the internal/external gate resistors, not all in the MOSFET die).*
 
-### 4.5 Body Diode Conduction & Reverse Recovery ($P_{DIODE}$)
+#### 5. Body Diode Conduction & Reverse Recovery ($P_{DIODE}$)
 In half-bridge and synchronous converters during dead-time:
 $$P_{DIODE} = (V_{SD} \cdot I_{load} \cdot t_{dead,total} \cdot f_{sw}) + (Q_{rr} \cdot V_{bus} \cdot f_{sw})$$
 

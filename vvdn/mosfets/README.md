@@ -176,7 +176,340 @@ When a gate driver supplies current to turn on a MOSFET, the gate voltage wavefo
 
 ---
 
-## 6. Power Loss Breakdown & Thermal Sizing
+## 6. Comprehensive Waveforms Across MOSFET Working Regions
+
+Understanding how a MOSFET transitions through its physical conduction regions—both statically under DC bias and dynamically during microsecond/nanosecond switching transients—is paramount for power electronics, analog amplifier design, and failure avoidance.
+
+```text
+┌───────────────────────────────────────────────────────────────────────────────────┐
+│                    Summary of MOSFET Operating Conduction Regimes                 │
+├─────────────────────┬──────────────────────────┬──────────────────────────────────┤
+│ Operating Region    │ Bias Condition           │ Conduction Mechanism             │
+├─────────────────────┼──────────────────────────┼──────────────────────────────────┤
+│ **1. Cutoff**       │ Vgs < Vth                │ Subthreshold diffusion leakage   │
+│ **2. Linear/Triode**│ Vgs > Vth, Vds < Vgs-Vth │ Ohmic drift channel (Rds_on)     │
+│ **3. Pinch-Off**    │ Vds = Vgs - Vth          │ Drain inversion layer pinches off│
+│ **4. Saturation**   │ Vgs > Vth, Vds >= Vgs-Vth│ Constant-current pinch-off drift │
+│ **5. Avalanche**    │ Vds >= V_BR(DSS)         │ Impact ionization breakdown      │
+│ **6. Quadrant III** │ Vds < 0V (Reverse bias)  │ Body diode or reverse channel    │
+└─────────────────────┴──────────────────────────┴──────────────────────────────────┘
+```
+
+---
+
+### 6.1 Static Output Characteristics Waveform ($I_D$ vs. $V_{DS}$)
+
+The family of output characteristic curves illustrates the static operating states across varying gate overdrive voltages ($V_{GS}$):
+
+```text
+               Drain Current (Id) vs. Drain-to-Source Voltage (Vds)
+   Id ^
+      │                                                     Vgs = 12V (Deep Triode & Saturation)
+      │                                                .─────────────────────────── / / ───┐ Avalanche
+      │                                           .───'                                    │ Breakdown
+      │                                      .───'            Vgs = 10V                    │ (V_BR)
+      │                                 .───'            .───────────────────────── / / ───┤
+      │                            .───'            .───'                                  │
+      │                       .───'            .───'          Vgs = 8V                     │
+      │                  .───'            .───'          .───────────────────────── / / ───┤
+      │             .───'            .───'          .───'                                  │
+      │        .───'            .───'          .───'          Vgs = 6V                     │
+      │   .───'            .───'          .───'          .───────────────────────── / / ───┤
+      │  /            .───'          .───'          .───'                                  │
+      │ /        .───'          .───'          .───'          Vgs = 4V                     │
+      │/    .───'          .───'          .───'          .───────────────────────── / / ───┤
+      │ .──'          .───'          .───'          .───'                                  │
+      │/         .───'          .───'          .───'                                       │
+      │     .───'          .───'          .───'               Vgs = 2V = Vth (Weak Inversion)
+      │.───'          .───'          .───'               .───────────────────────── / / ───┤
+      │          .───'          .───'               .───'                                  │
+      │     .───'          .───'               .───'                                       │
+      ├────'──────────'───────────'───────────'─────────────── Vgs < Vth (Cutoff: Id ~ 0)──┴───────
+      │ ◄───────────► │ ◄─────────────────────────────────────────────► │ ◄──────────────────────►
+      0    Linear /      Pinch-Off Boundary          Saturation / Active          Avalanche Breakdown
+         Triode Region    Vds = Vgs - Vth                  Region                    Vds >= V_BR(DSS)
+        (Vds < Vgs-Vth)   (Channel collapsed           (Vds >= Vgs-Vth)              (Impact Ionization)
+       Rds_on = Vds/Id        at Drain)              Id = 0.5*kn*(Vgs-Vth)^2
+```
+
+#### Regional Mechanics Breakdown:
+1. **Cutoff Region ($V_{GS} < V_{TH}$)**:
+   - No surface inversion channel exists.
+   - Conduction is limited to microscopic subthreshold diffusion leakage ($I_D \approx \text{pA} \dots \text{nA}$).
+2. **Linear / Triode / Ohmic Region ($V_{GS} > V_{TH}$ and $V_{DS} < V_{GS} - V_{TH}$)**:
+   - The inversion channel connects Source directly to Drain with uniform electron depth.
+   - The device behaves as a precision, voltage-variable linear resistor ($R_{DS(on)}$).
+   - Higher $V_{GS}$ overdrive widens the channel, reducing $R_{DS(on)}$:
+     $$R_{DS(on)} = \frac{V_{DS}}{I_D} \approx \frac{1}{\mu_n C_{ox} \left(\frac{W}{L}\right)(V_{GS} - V_{TH})}$$
+3. **Pinch-Off Boundary ($V_{DS} = V_{GS} - V_{TH}$)**:
+   - The voltage drop across the oxide at the drain end reaches exactly $V_{TH}$.
+   - The inversion channel depth collapses to zero at the drain junction, forming the pinch-off point.
+4. **Saturation (Active) Region ($V_{GS} > V_{TH}$ and $V_{DS} \ge V_{GS} - V_{TH}$)**:
+   - Increasing $V_{DS}$ beyond pinch-off does not widen the channel; instead, the excess voltage drops across the drain depletion zone.
+   - Current saturates to a constant level governed by the gate overdrive square law:
+     $$I_D = \frac{1}{2} \mu_n C_{ox} \left(\frac{W}{L}\right) (V_{GS} - V_{TH})^2 (1 + \lambda V_{DS})$$
+   - The slight upward slope of the saturation curve is caused by **Channel Length Modulation ($\lambda$)**, where high $V_{DS}$ shortens the effective channel length $L_{eff}$.
+5. **Avalanche Breakdown Region ($V_{DS} \ge V_{BR(DSS)}$)**:
+   - High electric field across the reverse-biased drain-body p-n junction triggers impact ionization, multiplying carriers exponentially.
+
+---
+
+### 6.2 Transfer Characteristics Waveforms ($I_D$ vs. $V_{GS}$)
+
+Transfer curves illustrate drain current response to gate bias, plotted on both linear and logarithmic scales:
+
+```text
+       Linear Scale: Strong Inversion                   Logarithmic Scale: Subthreshold Swing
+   Id ^                                              log(Id)^
+      │                          Saturation Regime          │             Strong Inversion
+      │                          Id ~ (Vgs - Vth)^2   10^-2 ┼                (Ohmic / Saturation)
+      │                                   .─'               │                  /
+      │                                .─'            10^-4 ┼                 /
+      │                             .─'                     │                /
+      │                          .─'                  10^-6 ┼               /
+      │                       .─'                           │              /
+      │                    .─'                        10^-8 ┼             / Subthreshold Regime
+      │                 .─'                                 │            /  Id ~ exp(q*(Vgs-Vth)/(n*k*T))
+      │              .─'                                    │           /   Subthreshold Swing:
+      │           .─'                                10^-10 ┼          /    S = dVgs / d(log10 Id) ~ 70mV/dec
+      │        .─'                                          │         /
+      │     .─'    Subthreshold Exponential Leakage  10^-12 ┼────────/  <-- I_off floor (Drain-to-Source leakage)
+      └─────┴────────────────────────────────> Vgs          └────────┴─────────────────────────────> Vgs
+      0    Vth                                              0       Vth
+```
+
+- **Linear Transfer Curve**: Shows the square-law quadratic relationship ($I_D \propto (V_{GS} - V_{TH})^2$) in saturation and provides the graphical extraction point for $V_{TH}$.
+- **Logarithmic Transfer Curve**: Depicts the exponential **subthreshold region** ($V_{GS} < V_{TH}$). The slope is defined by the **Subthreshold Swing ($S$)**:
+  $$S = \ln(10) \cdot \frac{k T}{q} \cdot \left(1 + \frac{C_{dep}}{C_{ox}}\right) \approx 60\,\text{mV/decade to } 90\,\text{mV/decade at } 300\,\text{K}$$
+  This parameter governs off-state leakage power dissipation in microelectronics and battery disconnects.
+
+---
+
+### 6.3 Third-Quadrant Reverse Conduction Waveforms ($V_{DS} < 0\,\text{V}$)
+
+In inductive half-bridges, current naturally flows in reverse (Source to Drain, $V_{DS} < 0\,\text{V}$) during freewheeling dead-time. Conduction can occur through the internal body diode or through the enhanced channel (Synchronous Rectification):
+
+```text
+               Quadrant III Conduction: Body Diode vs. Synchronous Rectifier
+         -Id (Reverse Current: Source to Drain)
+         ^
+         │               Channel Enhanced (Synchronous Rectifier: Vgs = 10V)
+         │               Ohmic conduction with NO diode knee: -Vds = -Id * Rds_on
+         │             .─'
+         │           .─'
+         │         .─'
+         │       .─'
+         │     .─'       Body Diode Conduction (Vgs = 0V: Inactive Gate)
+         │   .─'         Standard p-n junction forward knee: VF ~ 0.7V - 1.2V
+         │  /            Massive dead-time power loss!
+         │ /
+         │/
+         ├───────────────────────.
+         │                        \
+         │                         \
+         │                          \
+  -Vds ◄─┴───────────────────────────┴────── 0 (Drain-to-Source Voltage)
+                                    -VF (~0.8V)
+```
+
+- **Body Diode Conduction ($V_{GS} = 0\,\text{V}$)**: Current passes through the internal p-n body diode, creating a high forward drop ($V_{SD} \approx 0.8\,\text{V} \dots 1.2\,\text{V}$). Stored minority carriers introduce severe reverse recovery loss ($Q_{rr}$).
+- **Synchronous Rectification ($V_{GS} = +10\,\text{V}$)**: When the channel is actively turned ON while current is flowing in reverse, current flows through the low-resistance majority-carrier channel. The voltage drop collapses to $-I_{D} \cdot R_{DS(on)}$ (typically $< 30\,\text{mV}$), slashing freewheeling power loss by up to $95\%$.
+
+---
+
+### 6.4 Fully-Synchronized Time-Domain Dynamic Switching Waveforms
+
+During hard switching against an inductive load (e.g., in a Buck converter or motor inverter), the MOSFET traverses all operating regions in a tightly orchestrated sequence. Below is the complete cycle-accurate 5-channel oscilloscope waveform:
+
+```text
+                       MOSFET Hard-Switching Dynamic Time-Domain Waveforms
+               │◄─ t_d(on) ─►│◄─ t_ri ─►│◄── t_vf ──►│◄─ t_enh ─►│       │◄─ t_d(off) ─►│◄── t_vr ──►│◄─ t_fi ─►│◄─ t_off ─►│
+               │   Phase 1   │  Phase 2 │   Phase 3  │  Phase 4  │       │    Phase 5   │   Phase 6  │  Phase 7 │  Phase 8  │
+  Vgs ^        │             │          │            │           │       │              │            │          │           │
+      │        │             │          │            │  V_drive  │       │   V_drive    │            │          │           │
+ V_drv┼────────┼─────────────┼──────────┼────────────┼──.────────┼───────┼──────────────┼────────────┼──────────┼───────────┤
+      │        │             │          │Miller Plat.│ /         │       │              │Miller Plat.│          │           │
+ V_plt┼────────┼─────────────┼──────────┼────────────┴'──────────┼───────┼──────────────┼────────────┴──────────┼───────────┤
+  V_th┼────────┼─────────────┼──────────/            │           │       │              │            \          │           │
+      │        │            .┼─────────'             │           │       │              │             \         │           │
+   0V ┴────────┴───────────'─┴───────────────────────┴───────────┴───────┴──────────────┴──────────────\────────┴───────────┴──> Time
+               │             │          │            │           │       │              │               '───────.             │
+  Ig  ^        │             │          │            │           │       │              │                       │             │
+      │        │  Ig_source  │          │            │           │       │              │                       │             │
+ +I_pk┼────────┼──.──────────┼──────────┼────────────┼───────────┼───────┼──────────────┼───────────────────────┼─────────────┤
+      │        │ / \         │          │            │           │       │              │                       │             │
+   0A ┼────────┴'───\────────┴──────────┴────────────┴───.───────┼───────┼──────────────┴───────────────────────┴──.──────────┤
+      │        │     '──────────────────────────────────'        │       │                                         / \        │
+ -I_pk┼────────┼─────────────┼──────────┼────────────┼───────────┼───────┼──.─────────────────────────────────────'───\───────┤
+      │        │             │          │            │           │       │   \ Ig_sink                                 '──────┤
+      │        │             │          │            │           │       │    '                                               │
+  Vds ^        │             │          │            │           │       │              │   V_spike  │          │           │
+      │        │    V_bus    │  V_bus   │            │           │       │              │   (L*di/dt)│          │           │
+ V_bus┼────────┼─────────────┼──────────┼────────────┼───────────┼───────┼──────────────┼─────.──────┼──────────┼─────.─────┤
+      │        │             │          │\           │           │       │              │    / \     │          │    / \    │
+      │        │             │          │ \          │           │       │              │   /   '────┼──────────┼───'   \   │
+   0V ┴────────┴─────────────┴──────────┴──'─────────┴───.───────┴───────┴──────────────┴──'────────┴──────────┴────────'───┴──> Time
+               │             │          │                 Rds*Id │       │              │ Rds*Id     │          │           │
+  Id  ^        │             │          │            │           │       │              │            │          │           │
+      │        │             │  I_rr    │            │           │       │              │            │          │           │
+ I_ovr┼────────┼─────────────┼───.──────┼────────────┼───────────┼───────┼──────────────┼────────────┼──────────┼───────────┤
+      │        │             │  / \     │            │           │       │              │            │          │           │
+I_load┼────────┼─────────────┼─'───\────┼────────────┼───────────┼───────┼──────────────┼────────────┼──────────┼───────────┤
+      │        │             │/     '───┴────────────┴───────────┼───────┼──────────────┴────────────┼──────────┼───────────┤
+      │        │             /          │            │           │       │              │            │\         │           │
+   0A ┴────────┴────────────'┴──────────┴────────────┴───────────┴───────┴──────────────┴────────────┴─'────────┴───────────┴──> Time
+               │             │          │            │           │       │              │            │          │           │
+  P(t)^        │             │          │            │           │       │              │            │          │           │
+      │        │             │          │  P_sw(on)  │           │       │              │            │ P_sw(off)│           │
+ P_max┼────────┼─────────────┼──────────┼─────.──────┼───────────┼───────┼──────────────┼────────────┼─────.────┼───────────┤
+      │        │             │          │    / \     │           │       │              │            │    / \   │           │
+      │        │             │          │   /   \    │ P_cond    │       │   P_cond     │            │   /   \  │           │
+   0W ┴────────┴─────────────┴──────────┴──'─────'───┴───.───────┴───────┴───.──────────┴────────────┴──'─────'─┴───────────┴──> Time
+               │             │          │            │   Rds*Id^2│       │    Rds*Id^2  │            │          │           │
+───────────────┼─────────────┼──────────┼────────────┼───────────┼───────┼──────────────┼────────────┼──────────┼───────────┤
+OPERATING      │  1. CUTOFF  │ 2.ACTIVE │ 3.ACTIVE-> │ 4. LINEAR │       │  5. LINEAR   │ 6. ACTIVE  │ 7.ACTIVE │ 8. CUTOFF │
+REGION:        │   REGION    │(SATURAT.)│   LINEAR   │  (OHMIC)  │       │ (DESATURAT.) │ (SATURAT.) │ (SATUR.) │  REGION   │
+───────────────┴─────────────┴──────────┴────────────┴───────────┴───────┴──────────────┴────────────┴──────────┴───────────┘
+```
+
+#### Detailed Phase-by-Phase Operation & Region Mapping:
+
+##### Turn-On Transient:
+- **Phase 1: Turn-On Delay ($t_{d(on)}$) — Operating Region: CUTOFF**:
+  - Gate driver applies $+V_{DRV}$. Gate current $I_G$ surges into $C_{iss}$.
+  - $V_{GS}$ charges exponentially from $0\,\text{V}$ up to $V_{TH}$.
+  - Because $V_{GS} < V_{TH}$, no channel exists: $I_D = 0$ and $V_{DS} = V_{BUS}$. Power loss is zero.
+- **Phase 2: Current Rise Time ($t_{ri}$) — Operating Region: SATURATION (ACTIVE)**:
+  - $V_{GS}$ surpasses $V_{TH}$ and rises toward $V_{plateau}$.
+  - The channel opens and operates in the **Saturation Region** ($V_{DS} \ge V_{GS} - V_{TH}$).
+  - $I_D$ ramps up rapidly from $0$ to full load current $I_{LOAD}$.
+  - If commutating against an inductive freewheeling diode, $I_D$ overshoots by $I_{rr}$ (diode reverse recovery current).
+  - $V_{DS}$ remains clamped at the full DC bus voltage ($V_{BUS}$) by the external freewheeling diode.
+- **Phase 3: Voltage Fall / Miller Plateau ($t_{vf}$) — Operating Region: SATURATION $\rightarrow$ LINEAR TRANSITION**:
+  - Once $I_D$ reaches full load current, the freewheeling diode turns OFF.
+  - The drain voltage $V_{DS}$ begins to collapse violently from $V_{BUS}$ toward zero.
+  - Due to the massive negative $\frac{dV_{DS}}{dt}$, all gate drive current is diverted into discharging the Miller capacitance $C_{gd}$:
+    $$I_G = C_{gd} \cdot \frac{dV_{DS}}{dt}$$
+  - $V_{GS}$ is clamped flat at the **Miller Plateau Voltage ($V_{plateau}$)**:
+    $$V_{plateau} = V_{TH} + \frac{I_{LOAD}}{g_m}$$
+  - The device traverses from the edge of Saturation into the Linear region.
+  - **Peak Turn-On Power Loss ($P_{sw(on)}$)** occurs here because both $V_{DS}$ and $I_D$ are simultaneously high!
+- **Phase 4: Channel Enhancement ($t_{enh}$) — Operating Region: DEEP LINEAR (OHMIC)**:
+  - $V_{DS}$ has fallen to the ohmic conduction drop ($I_D \cdot R_{DS(on)}$).
+  - Gate current resumes charging $C_{gs}$ and $C_{gd}$ from $V_{plateau}$ up to full gate drive voltage ($V_{DRIVE} = 10\,\text{V} \dots 15\,\text{V}$).
+  - The channel enters deep ohmic conduction; $R_{DS(on)}$ drops to its datasheet minimum.
+
+##### Steady-State ON:
+- Conduction loss is purely resistive: $P_{cond} = I_D^2 \cdot R_{DS(on)}$.
+
+##### Turn-Off Transient:
+- **Phase 5: Turn-Off Delay ($t_{d(off)}$) — Operating Region: LINEAR (OHMIC)**:
+  - Gate driver pulls gate to GND (or negative bias). Gate current flows in reverse ($I_{sink}$).
+  - $V_{GS}$ discharges from $V_{DRIVE}$ down to $V_{plateau}$.
+  - $V_{DS}$ remains near zero. The device is still in the ohmic linear region.
+- **Phase 6: Voltage Rise / Turn-Off Miller Plateau ($t_{vr}$) — Operating Region: LINEAR $\rightarrow$ SATURATION**:
+  - $V_{GS}$ reaches the Miller Plateau ($V_{plateau}$).
+  - $V_{DS}$ rises rapidly from near zero up to $V_{BUS} + V_{spike}$.
+  - The displacement current charging $C_{gd}$ clamps $V_{GS}$ at $V_{plateau}$.
+  - The device re-enters the **Saturation Region**.
+- **Phase 7: Current Fall Time ($t_{fi}$) — Operating Region: SATURATION (ACTIVE)**:
+  - $V_{DS}$ has reached $V_{BUS}$, allowing the external freewheeling diode to turn ON.
+  - $V_{GS}$ falls from $V_{plateau}$ down to $V_{TH}$.
+  - $I_D$ collapses from $I_{LOAD}$ down to zero.
+  - The rapid $\frac{di_D}{dt}$ across stray loop inductance ($L_\sigma$) generates a high inductive voltage spike:
+    $$V_{DS(pk)} = V_{BUS} + L_\sigma \cdot \left|\frac{di_D}{dt}\right|$$
+  - **Peak Turn-Off Power Loss ($P_{sw(off)}$)** occurs here.
+- **Phase 8: Turn-Off Settle — Operating Region: CUTOFF**:
+  - $V_{GS}$ falls below $V_{TH}$ down to $0\,\text{V}$ (or negative rail).
+  - Channel is completely closed ($I_D = 0$).
+  - Parasitic ringing between $L_\sigma$ and $C_{oss}$ dampens out to $V_{BUS}$.
+
+---
+
+### 6.5 Soft-Switching Waveforms: Zero-Voltage Switching (ZVS)
+
+In resonant topologies (LLC converters, Phase-Shifted Full-Bridge), the inductive tank current naturally discharges the output capacitance ($C_{oss}$) to zero volts **before** the gate turns ON, completely eliminating hard-switching overlap:
+
+```text
+                        Zero-Voltage Switching (ZVS) Turn-On Waveforms
+                  │◄──── Dead-Time (t_dead) ────►│
+                  │  Inductive Current Discharges│ Gate turns ON into 0V Vds
+                  │       Coss to 0V             │ (ZERO TURN-ON POWER LOSS!)
+   Vgs ^          │                              │
+       │          │                              │              V_drive
+  V_drv┼──────────┼──────────────────────────────┼──────────────.───────────
+       │          │                              │             /
+   0V  ┴──────────┴──────────────────────────────┴────────────'─────────────> Time
+                  │                              │
+   Vds ^          │                              │
+       │  V_bus   │                              │
+  V_bus┼──────────┼──.                           │
+       │          │   \  Resonant dV/dt          │
+       │          │    \ (Inductive freewheeling)│
+   0V  ┴──────────┴─────'────────────────────────┴──────────────────────────> Time
+                  │     ▲                        │
+                  │     └─ Vds hits 0V HERE!     │
+   Id  ^          │                              │
+       │          │                              │            +I_load (Forward)
+  +I_L ┼──────────┼──────────────────────────────┼────────────.─────────────
+   0A  ┼──────────┼──────────────────────────────┴───────────'──────────────
+       │          │     -I_mag (Freewheels       │
+  -I_L ┼──────────┴─────. through Body Diode)    │
+       │                 \                       │
+       │                  '──────────────────────┘
+                  │                              │
+  P(t) ^          │                              │
+       │          │                              │
+   0W  ┴──────────┴──────────────────────────────┴──────────────────────────> Time
+                  │     Zero Vds * Id Overlap    │ P_sw(on) = 0 Watts!
+```
+
+- When $V_{DS}$ reaches zero, the inductive current forces the body diode into forward conduction.
+- The gate driver then applies $+V_{DRV}$. Because $V_{DS} = 0\,\text{V}$ during channel turn-on, **turn-on switching loss is eliminated ($P_{sw(on)} = 0$)**, and high-frequency operation ($> 500\,\text{kHz}$) becomes feasible with minimal heatsinking.
+
+---
+
+### 6.6 Unclamped Inductive Switching (UIS) Avalanche Waveform
+
+When an inductive load is disconnected without a freewheeling diode, the collapsing magnetic field forces the MOSFET into reverse avalanche breakdown:
+
+```text
+               Unclamped Inductive Switching (UIS) Avalanche Waveform
+                 │◄── t_conduction ──►│◄─── t_avalanche (t_av) ───►│
+                 │ Inductor Charges   │ Inductor Discharges Stored  │
+                 │ to I_AS Peak       │ Magnetic Energy into Die    │
+    Vgs ^        │                    │                             │
+   V_drv┼────────┼────────────────────┐                             │
+        │        │                    │                             │
+     0V ┴────────┴────────────────────┴─────────────────────────────┴───────> Time
+                 │                    │                             │
+    Vds ^        │                    │      V_BR(DSS) Breakdown    │
+   V_BR ┼────────┼────────────────────┼──────┬──────────────────────┤
+        │        │                    │      │                      │
+  V_supply ──────┼────────────────────┤      │                      ├── V_supply
+        │        │ Rds_on * Id drop   │      │                      │
+     0V ┴────────┴────────────────────┴──────┴──────────────────────┴───────> Time
+                 │                    │                             │
+    Id  ^        │                    │ I_AS (Peak Avalanche)       │
+   I_AS ┼────────┼────────────────────┼─.                           │
+        │        │                    │  \                          │
+        │        │  Inductor Current  │   \  Linear Current Decay   │
+        │        │  Linear Ramp Up    │    \  di/dt = (V_BR - V_DD)/L
+        │        │  di/dt = V_DD / L  │     \                       │
+     0A ┴────────┴────────────────────┴──────'──────────────────────┴───────> Time
+                 │                    │      ▲                      │
+                 │                    │      └─ Total Energy Dissipated:
+                 │                    │         E_AS = 0.5 * L * I_AS^2 * [V_BR/(V_BR - V_DD)]
+```
+
+- At the moment $V_{GS}$ drops to $0\,\text{V}$, the inductor maintains current flow, pulling $V_{DS}$ above the supply rail until the junction enters **Avalanche Breakdown ($V_{BR(DSS)}$)**.
+- The device clamps $V_{DS}$ at $V_{BR(DSS)}$ while the inductor current ramps down to zero over interval $t_{av}$:
+  $$t_{av} = \frac{L \cdot I_{AS}}{V_{BR(DSS)} - V_{DD}}$$
+- The entire magnetic energy ($E_{AS}$) is dissipated directly as heat inside the silicon die.
+
+---
+
+## 7. Power Loss Breakdown & Thermal Sizing
 
 The total power dissipated by a MOSFET in a switching converter or power stage is given by:
 
@@ -213,7 +546,7 @@ $$T_j = T_A + P_{TOTAL} \cdot (R_{\theta JC} + R_{\theta CS} + R_{\theta SA})$$
 
 ---
 
-## 7. Comparative Benchmark Matrix: Major MOSFET Types
+## 8. Comparative Benchmark Matrix: Major MOSFET Types
 
 | Parameter / Feature | N-Channel Enhancement | P-Channel Enhancement | Power Trench MOSFET | Superjunction (CoolMOS) | SiC Power MOSFET | Logic-Level MOSFET |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -223,13 +556,13 @@ $$T_j = T_A + P_{TOTAL} \cdot (R_{\theta JC} + R_{\theta CS} + R_{\theta SA})$$
 | **Typical $V_{GS(th)}$** | $2.0\,\text{V} \dots 4.0\,\text{V}$ | $-2.0\,\text{V} \dots -4.0\,\text{V}$ | $1.5\,\text{V} \dots 3.0\,\text{V}$ | $3.0\,\text{V} \dots 4.5\,\text{V}$ | $2.0\,\text{V} \dots 3.5\,\text{V}$ | **$0.8\,\text{V} \dots 2.0\,\text{V}$** |
 | **Recommended Gate Drive Voltage** | $+10\,\text{V} \dots +12\,\text{V}$ | $-10\,\text{V} \dots -12\,\text{V}$ | $+10\,\text{V}$ | $+10\,\text{V} \dots +12\,\text{V}$ | **$+18\,\text{V} / -4\,\text{V}$** | **$+3.3\,\text{V} \dots +5.0\,\text{V}$** |
 | **Reverse Recovery Charge ($Q_{rr}$)** | High | Moderate | Moderate to High | High (Low in CFD) | **Virtually Zero** | Low to Moderate |
-| **Temperature Capability ($T_{j,max}$)** | $150^\circ\text{C} \dots 175^\circ\text{C}$ | $150^\circ\text{C}$ | $175^\circ\text{C}$ | $150^\circ\text{C}$ | **$175^\circ\text{C} \dots 200^\circ\text{C}$** | $150^\circ\text{C}$ |
+| **Temperature Capability ($T_{j,max}$)** | $150^\circ\text{C} \dots 175^\circ\text{C}$ | $150^\circ\text{C}$ | $175^\circ\text{C}$ | $150^\circ\text{C}$ | **$175^\circ\text{C} \dots 200^\circ\text{C}+$** | $150^\circ\text{C}$ |
 | **Switching Speed ($dv/dt$)** | Moderate ($10-30\,\text{V/ns}$) | Moderate | Fast | Extremely Fast ($>50\,\text{V/ns}$) | Ultra-Fast ($>100\,\text{V/ns}$) | Moderate |
 | **Key Circuit Topologies** | Low-side, H-bridge | High-side disconnect | PoL Buck, BMS | PFC, LLC, Flyback | EV Inverter, OBC, EVSE | Direct MCU switching |
 
 ---
 
-## 8. Power Electronics Applications: Converters, Gate Drivers & Protection
+## 9. Power Electronics Applications: Converters, Gate Drivers & Protection
 
 For in-depth analysis of MOSFETs in power electronic conversion, refer to the dedicated master engineering dossier:  
 👉 [**Power MOSFETs in Power Electronics: Topologies, Gate Drives, Loss Modeling & Design (`mosfets-in-power-electronics.md`)**](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/mosfets/mosfets-in-power-electronics.md)
@@ -254,7 +587,7 @@ For in-depth analysis of MOSFETs in power electronic conversion, refer to the de
 
 ---
 
-## 9. CLI Engineering Tool: `mosfet_calc.py`
+## 10. CLI Engineering Tool: `mosfet_calc.py`
 
 To assist hardware designers in calculating switching and conduction budgets, sizing gate resistors, and verifying junction thermal margins, the repository includes a dedicated CLI calculation utility located at [**`tools/mosfet_calc.py`**](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/tools/mosfet_calc.py).
 

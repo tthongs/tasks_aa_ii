@@ -40,39 +40,147 @@ An **N-Channel Enhancement-Mode MOSFET** (commonly designated **e-NMOS**) is the
 
 ---
 
-## 2. Terminal Characteristic Curves & Mathematical Models
+## 2. Detailed Characteristic Curves & Working Region Waveforms
+
+The N-channel enhancement MOSFET operates across distinct physical regimes depending on gate-source voltage ($V_{GS}$) and drain-source voltage ($V_{DS}$).
+
+### 2.1 Static Output Characteristics Waveform ($I_D$ vs. $V_{DS}$)
 
 ```text
-       Drain Current (Id) vs Drain-to-Source Voltage (Vds)
-  Id ^
-     │                              Vgs = 10V (Deep Triode & Saturation)
-     │                         .------------------------
-     │                     .---
-     │                 .---         Vgs = 7V
-     │             .---        .------------------------
-     │         .---        .---
-     │     .---        .---         Vgs = 5V
-     │  .-'        .---        .------------------------
-     │ /       .---        .---
-     │/    .---        .---         Vgs = 3V
-     │ .---        .---        .------------------------
-     │/        .---
-     │     .---                     Vgs < Vth (Cutoff: Id ~ 0)
-     └───────────────────────────────────────────────────> Vds
-        Linear / Triode          Saturation (Active)
-        (Vds < Vgs - Vth)        (Vds >= Vgs - Vth)
+               Drain Current (Id) vs. Drain-to-Source Voltage (Vds)
+   Id ^
+      │                                                     Vgs = 10V (Deep Triode & Saturation)
+      │                                                .─────────────────────────── / / ───┐ Avalanche
+      │                                           .───'                                    │ Breakdown
+      │                                      .───'            Vgs = 8V                     │ (V_BR)
+      │                                 .───'            .───────────────────────── / / ───┤
+      │                            .───'            .───'                                  │
+      │                       .───'            .───'          Vgs = 6V                     │
+      │                  .───'            .───'          .───────────────────────── / / ───┤
+      │             .───'            .───'          .───'                                  │
+      │        .───'            .───'          .───'          Vgs = 4V                     │
+      │   .───'            .───'          .───'          .───────────────────────── / / ───┤
+      │  /            .───'          .───'          .───'                                  │
+      │ /        .───'          .───'          .───'          Vgs = 2.5V (Near Threshold)  │
+      │/    .───'          .───'          .───'          .───────────────────────── / / ───┤
+      │ .──'          .───'          .───'          .───'                                  │
+      │/         .───'          .───'          .───'                                       │
+      │     .───'          .───'          .───'               Vgs = 2.0V = Vth             │
+      │.───'          .───'          .───'               .───────────────────────── / / ───┤
+      ├────'──────────'───────────'───────────'─────────────── Vgs < Vth (Cutoff: Id ~ 0)──┴───────
+      │ ◄───────────► │ ◄─────────────────────────────────────────────► │ ◄──────────────────────►
+      0    Linear /      Pinch-Off Boundary          Saturation / Active          Avalanche Breakdown
+         Triode Region    Vds = Vgs - Vth                  Region                    Vds >= V_BR(DSS)
+        (Vds < Vgs-Vth)   (Channel collapsed           (Vds >= Vgs-Vth)              (Impact Ionization)
+       Rds_on = Vds/Id        at Drain)              Id = 0.5*kn*(Vgs-Vth)^2
 ```
 
-### Characteristic Mathematical Equations:
-- **Triode (Linear / Ohmic) Regime** ($V_{DS} < V_{GS} - V_{TH}$):
-  $$I_D = \mu_n C_{ox} \left(\frac{W}{L}\right) \left[ (V_{GS} - V_{TH}) V_{DS} - \frac{1}{2} V_{DS}^2 \right]$$
-  For small $V_{DS}$, channel resistance $R_{DS(on)}$ is purely ohmic:
-  $$R_{DS(on)} = \frac{1}{\mu_n C_{ox} (W/L) (V_{GS} - V_{TH})}$$
-- **Saturation Regime** ($V_{DS} \ge V_{GS} - V_{TH}$):
-  $$I_{D(sat)} = \frac{1}{2} \mu_n C_{ox} \left(\frac{W}{L}\right) (V_{GS} - V_{TH})^2 (1 + \lambda V_{DS})$$
-  Where $\lambda$ is channel length modulation ($1/V_A$).
+#### Working Region Operating Equations:
+1. **Cutoff Region ($V_{GS} < V_{TH}$)**:
+   - Inversion channel is absent; only subthreshold diffusion leakage flows:
+     $$I_D \approx I_{0} \cdot \exp\left(\frac{q(V_{GS} - V_{TH})}{n k T}\right) \cdot \left[1 - \exp\left(-\frac{q V_{DS}}{k T}\right)\right] \approx 0$$
+2. **Linear / Triode / Ohmic Region ($V_{GS} > V_{TH}$ and $V_{DS} < V_{GS} - V_{TH}$)**:
+   - Electron channel connects Source to Drain continuously:
+     $$I_D = \mu_n C_{ox} \left(\frac{W}{L}\right) \left[ (V_{GS} - V_{TH}) V_{DS} - \frac{1}{2} V_{DS}^2 \right]$$
+   - For very low $V_{DS} \ll 2(V_{GS} - V_{TH})$, the channel acts as an ideal resistor $R_{DS(on)}$:
+     $$R_{DS(on)} = \frac{1}{\mu_n C_{ox} (W/L) (V_{GS} - V_{TH})}$$
+3. **Pinch-Off Point ($V_{DS} = V_{GS} - V_{TH}$)**:
+   - Local surface inversion depth at the drain corner collapses to zero.
+4. **Saturation (Active) Region ($V_{GS} > V_{TH}$ and $V_{DS} \ge V_{GS} - V_{TH}$)**:
+   - Pinch-off point moves slightly toward the source; current is constrained by carrier drift:
+     $$I_{D(sat)} = \frac{1}{2} \mu_n C_{ox} \left(\frac{W}{L}\right) (V_{GS} - V_{TH})^2 (1 + \lambda V_{DS})$$
+   - Small-signal transconductance: $g_m = \sqrt{2 \mu_n C_{ox} (W/L) I_D} = \frac{2 I_D}{V_{GS} - V_{TH}}$.
+5. **Avalanche Breakdown Region ($V_{DS} \ge V_{BR(DSS)}$)**:
+   - Carrier multiplication due to high reverse field across the drain-body junction.
 
 ---
+
+### 2.2 Transfer Characteristics Waveform ($I_D$ vs. $V_{GS}$)
+
+```text
+       Linear Scale (Square-Law Conduction)              Logarithmic Scale (Subthreshold Swing)
+   Id ^                                              log(Id)^
+      │                          Saturation Regime          │             Strong Inversion
+      │                          Id ~ (Vgs - Vth)^2   10^-2 ┼                (Ohmic / Saturation)
+      │                                   .─'               │                  /
+      │                                .─'            10^-4 ┼                 /
+      │                             .─'                     │                /
+      │                          .─'                  10^-6 ┼               /
+      │                       .─'                           │              /
+      │                    .─'                        10^-8 ┼             / Subthreshold Swing:
+      │                 .─'                                 │            /  S = dVgs / d(log10 Id)
+      │              .─'                                    │           /     ~ 70mV/decade
+      │           .─'                                10^-10 ┼          /
+      │        .─'                                          │         /
+      │     .─'    Subthreshold Exponential Leakage  10^-12 ┼────────/  <-- Off-state leakage floor
+      └─────┴────────────────────────────────> Vgs          └────────┴─────────────────────────────> Vgs
+      0    Vth                                              0       Vth
+```
+
+---
+
+### 2.3 Third-Quadrant Reverse Conduction Waveform ($V_{DS} < 0\,\text{V}$)
+
+```text
+               Quadrant III Conduction: Body Diode vs. Synchronous Rectification
+         -Id (Reverse Current: Source to Drain)
+         ^
+         │               Active Synchronous Rectifier (Vgs = 10V)
+         │               Linear Ohmic Conduction: -Vds = -Id * Rds_on (< 30mV)
+         │             .─'
+         │           .─'
+         │         .─'
+         │       .─'
+         │     .─'       Passive Body Diode Conduction (Vgs = 0V)
+         │   .─'         Standard p-n Diode Knee: VF ~ 0.7V - 1.2V
+         │  /            High forward dissipation & Qrr recovery!
+         │ /
+         │/
+         ├───────────────────────.
+         │                        \
+         │                         \
+         │                          \
+  -Vds ◄─┴───────────────────────────┴────── 0 (Drain-to-Source Voltage)
+                                    -VF (~0.8V)
+```
+
+---
+
+### 2.4 Time-Domain Inductive Switching Waveform & Regional Trajectory
+
+When an e-NMOS switches an inductive load (solenoid, motor, or buck stage), it transitions sequentially across all operating regions:
+
+```text
+               Time-Domain Switching Waveform & Region Trajectory
+        │◄─ t_d(on) ─►│◄─ t_ri ─►│◄── t_vf ──►│◄─ t_enh ─►│
+  Vgs ^ │             │          │            │           │
+      │ │             │          │Miller Plat.│  V_drive  │
+ V_drv┼─┼─────────────┼──────────┼────────────┼──.────────┤
+ V_plt┼─┼─────────────┼──────────┼────────────┴'──────────┤
+  V_th┼─┼─────────────┼──────────/            │           │
+   0V ┴─┴─────────────┴─────────'┴────────────┴───────────┴──> Time
+        │             │          │            │           │
+  Vds ^ │             │          │            │           │
+ V_bus┼─┼─────────────┼──────────┼────────────┼───────────┤
+      │ │             │          │\           │           │
+      │ │             │          │ \          │  Rds*Id   │
+   0V ┴─┴─────────────┴──────────┴──'─────────┴──.────────┴──> Time
+        │             │          │            │           │
+  Id  ^ │             │          │            │           │
+I_load┼─┼─────────────┼──────────┼────────────┼───────────┤
+      │ │             │          │            │           │
+      │ │             │/         │            │           │
+   0A ┴─┴─────────────'──────────┴────────────┴───────────┴──> Time
+────────┼─────────────┼──────────┼────────────┼───────────┤
+REGION: │  1. CUTOFF  │ 2.ACTIVE │ 3.ACTIVE-> │ 4. LINEAR │
+        │             │(SATURAT.)│   LINEAR   │  (OHMIC)  │
+────────┴─────────────┴──────────┴────────────┴───────────┘
+```
+
+1. **Turn-on Delay ($t_{d(on)}$)**: Device is in **Cutoff** ($V_{GS} < V_{TH}$). $I_D = 0$, $V_{DS} = V_{BUS}$.
+2. **Current Rise ($t_{ri}$)**: Device enters **Saturation** ($V_{GS} > V_{TH}$, $V_{DS} \ge V_{GS} - V_{TH}$). $I_D$ ramps up to load current while $V_{DS}$ remains clamped at $V_{BUS}$.
+3. **Voltage Fall / Miller Plateau ($t_{vf}$)**: Device traverses from **Saturation toward Linear** boundary. Gate voltage is held at $V_{plateau}$ while $C_{gd}$ is discharged and $V_{DS}$ collapses.
+4. **Channel Enhancement ($t_{enh}$)**: Device enters **Deep Linear (Ohmic)** regime. $V_{GS}$ rises to $V_{DRIVE}$, settling $R_{DS(on)}$ to minimum.
 
 ## 3. Circuit Implementation: Low-Side Switch Architecture
 
