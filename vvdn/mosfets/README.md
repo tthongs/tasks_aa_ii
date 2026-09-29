@@ -76,8 +76,9 @@ MOSFETs are categorized along several fundamental engineering dimensions:
 
 This repository is structured into dedicated, modular technical dossiers for every major MOSFET category:
 
-| Directory | Core Focus | Voltage Range | Typical Application Domains |
+| Directory / Document | Core Focus | Voltage Range | Typical Application Domains |
 | :--- | :--- | :--- | :--- |
+| [**`mosfets-in-power-electronics.md`**](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/mosfets/mosfets-in-power-electronics.md) | **Power Electronics Master Guide**: Converters (Buck, Boost, H-Bridge, Flyback, LLC ZVS), Bootstrap drives, Miller clamp, SOA/UIS & Paralleling | DC to $1200\,\text{V}+$ | SMPS, Motor inverters, EV chargers, Solar, Traction |
 | [**`n-channel-enhancement/`**](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/mosfets/n-channel-enhancement/README.md) | Standard e-NMOS, electron conduction, low-side switching, conduction losses | $20\,\text{V} \dots 600\,\text{V}+$ | Low-side switches, synchronous buck low-side, motor H-bridge |
 | [**`p-channel-enhancement/`**](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/mosfets/p-channel-enhancement/README.md) | Standard e-PMOS, hole mobility, high-side switching, reverse battery protection | $20\,\text{V} \dots 200\,\text{V}$ | High-side power distribution, reverse polarity protection, CMOS |
 | [**`depletion-mode/`**](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/mosfets/depletion-mode/README.md) | Normally-ON d-MOSFET, channel pinch-off, negative gate cutoff | $50\,\text{V} \dots 800\,\text{V}$ | SMPS high-voltage startup circuits, constant-current sources, fail-safe disconnects |
@@ -228,7 +229,32 @@ $$T_j = T_A + P_{TOTAL} \cdot (R_{\theta JC} + R_{\theta CS} + R_{\theta SA})$$
 
 ---
 
-## 8. CLI Engineering Tool: `mosfet_calc.py`
+## 8. Power Electronics Applications: Converters, Gate Drivers & Protection
+
+For in-depth analysis of MOSFETs in power electronic conversion, refer to the dedicated master engineering dossier:  
+👉 [**Power MOSFETs in Power Electronics: Topologies, Gate Drives, Loss Modeling & Design (`mosfets-in-power-electronics.md`)**](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/mosfets/mosfets-in-power-electronics.md)
+
+### Key Core Topics Explored:
+1. **Converter Topologies**:
+   - **Synchronous Buck**: High-side vs. Low-side sizing, $C_{gd}/C_{gs}$ shoot-through prevention, dead-time body diode losses ($V_{SD} \cdot I_L \cdot t_{dead} \cdot f_{sw}$) and $Q_{rr}$.
+   - **Synchronous Boost**: Voltage rating headroom ($V_{DS} \ge 1.3 \times V_{OUT}$), CCM/DCM peak currents.
+   - **Half-Bridge & Inverters**: Bridge shoot-through, high $dV/dt$ Miller turn-on ($I_{disp} = C_{gd} \cdot dV_{DS}/dt$), Active Miller Clamps (AMC), and negative gate turn-off bias ($-2\text{V} \dots -5\text{V}$).
+   - **Flyback Converter**: Leakage inductance energy ($E_{leak} = \frac{1}{2} L_{lk} I_{pk}^2$) and RCD snubber design equations.
+   - **LLC Resonant Converter**: Zero-Voltage Switching (ZVS), magnetizing current discharge of $C_{oss}$, and minimum dead-time formulations.
+2. **Gate Driver Engineering**:
+   - Asymmetric gate drive ($R_{G,on} > R_{G,off}$) with anti-parallel Schottky diode.
+   - High-side bootstrap circuitry: $C_{boot}$ sizing and the $100\%$ duty-cycle limitation.
+   - Kelvin-Source (4-pin packages like TO-247-4L) decoupling common source inductance ($L_S \cdot di/dt$).
+3. **Safe Operating Area & Fault Ruggedness**:
+   - The 5 boundaries of the SOA curve and the **Spirito Effect** (thermal instability in linear mode).
+   - Unclamped Inductive Switching (UIS) physics, single-pulse avalanche energy ($E_{AS}$), and repetitive avalanche ($E_{AR}$).
+4. **Paralleling Power MOSFETs**:
+   - Positive temperature coefficient of $R_{DS(on)}$ for static DC sharing vs. dynamic switching imbalance ($V_{TH}$ mismatch, stray loop inductance).
+   - Individual gate resistors, ferrite beads, and symmetrical star/kelvin-source PCB routing.
+
+---
+
+## 9. CLI Engineering Tool: `mosfet_calc.py`
 
 To assist hardware designers in calculating switching and conduction budgets, sizing gate resistors, and verifying junction thermal margins, the repository includes a dedicated CLI calculation utility located at [**`tools/mosfet_calc.py`**](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/tools/mosfet_calc.py).
 

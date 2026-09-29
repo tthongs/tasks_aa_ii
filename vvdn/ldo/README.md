@@ -116,14 +116,15 @@ When architecting embedded power trees, hardware engineers must weigh linear reg
 
 ## 5. Documentation Suite Roadmap
 
-The LDO engineering documentation suite is partitioned into three focused, specialized technical guides:
+The LDO engineering documentation suite is partitioned into four focused, specialized technical guides:
 
 ```text
 ldo/
 ├── README.md (.docx)                                  # Master Hub, executive overview & pass element comparison
 ├── pmos-ldo-working-and-architecture.md (.docx)       # Common-Source topology, stability tunnel & MLCC compensation
 ├── nmos-ldo-working-and-architecture.md (.docx)       # Source-Follower topology, Vbias rails, charge pumps & fast transient
-└── ldo-calculations-and-thermal-design.md (.docx)     # Thermal networks, heatsinks, feedback dividers, ESR zeros & RCA
+├── ldo-calculations-and-thermal-design.md (.docx)     # Thermal networks, heatsinks, feedback dividers, ESR zeros & RCA
+└── ldo-in-power-electronics.md (.docx)                # Power tree, SMPS post-regulation, paralleling, fast transient & rugged protection
 ```
 
 ### [1. PMOS LDO Working Mechanism & Architecture](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/ldo/pmos-ldo-working-and-architecture.md)
@@ -150,6 +151,14 @@ ldo/
 - Feedforward capacitor ($C_{FF}$) phase-lead zero/pole derivations for improved phase margin and transient recovery.
 - Output capacitor sizing for dynamic load step undershoot and ESR zero calculation.
 - Root Cause Analysis (RCA) troubleshooting matrix for bench debugging (oscillation, thermal shutdown, dropout violations).
+
+### [4. LDOs in Power Electronics: Architectures & Rugged Protection](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/ldo/ldo-in-power-electronics.md)
+- Strategic role of LDOs in high-noise power electronics (motor drives, inverters, EVSE, solar): precision shunt current sensing, clean ADC references, and gate driver logic rails.
+- Hybrid Power Architecture (SMPS Pre-Regulator + LDO Post-Regulator): dynamic headroom sizing ($V_{IN(LDO)} \ge V_{OUT} + V_{DO} + V_{ripple}/2 + V_{margin}$) and system efficiency formulations ($\eta_{total} \approx 80\%$).
+- Intermediate passive filtering: Ferrite Bead + MLCC Pi-network bridging the LDO PSRR roll-off zone ($200\,\text{kHz} \dots 2\,\text{MHz}$).
+- High-current scaling and paralleling: Ballast resistors vs. modern precision current-reference (SET-pin) architectures (LT3080 / LT3083 / TPS7A85) with active current sharing.
+- Rugged protection mechanics: Inrush current limitation and soft-start capacitor ($C_{SS}$) sizing, reverse-current backfeeding protection under bus collapse, and short-circuit foldback limiting.
+- Complete hardware implementation: Industrial $24\,\text{V} \rightarrow 3.8\,\text{V}$ Buck $\rightarrow 3.3\,\text{V}$ ultra-low noise ($4.2\,\mu\text{V}_{\text{RMS}}$) analog power supply schematic.
 
 ---
 
@@ -182,4 +191,5 @@ python3 tools/md_to_docx.py ldo/README.md
 python3 tools/md_to_docx.py ldo/pmos-ldo-working-and-architecture.md
 python3 tools/md_to_docx.py ldo/nmos-ldo-working-and-architecture.md
 python3 tools/md_to_docx.py ldo/ldo-calculations-and-thermal-design.md
+python3 tools/md_to_docx.py ldo/ldo-in-power-electronics.md
 ```
