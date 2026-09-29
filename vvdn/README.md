@@ -14,21 +14,26 @@ Welcome to your central tracking workspace for embedded systems, hardware protoc
 │   └── device-bringup-checklist.md    # Bring-up checklist for serial interfaces
 ├── tools/
 │   ├── baud_calc.py                   # CLI tool to calculate UART baud rate divisors & error %
+│   ├── uart_calc.py                   # CLI tool for UART BRG divisors, frame throughput & RS-485 delays
 │   ├── spi_calc.py                    # CLI tool for SPI timing budgets, round-trip delays & throughput
 │   ├── nfc_calc.py                    # CLI tool for antenna inductance, matching network, Q & NDEF
 │   ├── i2c_calc.py                    # CLI tool for I2C pull-up windows, bus capacitance & address decode
 │   ├── can_calc.py                    # CLI tool for CAN/CAN-FD bit timing, sample points & arbitration
 │   ├── lin_calc.py                    # CLI tool for LIN frame timing, PID parity, checksums & auto-baud
 │   ├── ldo_calc.py                    # CLI tool for LDO thermal dissipation, feedback dividers & ESR stability
+│   ├── mosfet_calc.py                 # CLI tool for MOSFET conduction/switching loss, gate drive & thermal
 │   └── md_to_docx.py                  # CLI generator to synchronize .md guides into styled .docx files
 ├── protocols/
 │   ├── uart/
-│   │   ├── uart-guide.md (.docx)      # Complete guide on UART architecture & debugging
-│   │   └── baud-rate-calculations.md  # Detailed baud rate theory, BRG formulas & error analysis
+│   │   ├── README.md (.docx)          # UART master hub, transceiver standards (TTL, RS-232/422/485) & roadmap
+│   │   ├── uart-guide.md (.docx)      # Complete guide on UART architecture, Linux subsystem & debugging
+│   │   ├── uart-frame-and-protocol-analysis.md (.docx) # Frame anatomy, 16x oversampling, 9-bit mode & DMA ring buffers
+│   │   └── baud-rate-calculations.md (.docx) # Detailed baud rate theory, BRG formulas & error analysis
 │   ├── spi/
+│   │   ├── README.md (.docx)          # SPI master hub, standards overview & 4-mode comparison
 │   │   ├── spi-guide.md (.docx)       # Complete guide on SPI architecture, CPOL/CPHA, Linux spidev & debugging
-│   │   ├── spi-timing-and-modes.md    # Detailed SPI modes, AC timing budgets & propagation delay analysis
-│   │   └── spi-frame-analysis.md      # Detailed SPI data frames, packet structures, archetypes & CRC
+│   │   ├── spi-timing-and-modes.md (.docx) # Detailed SPI modes, AC timing budgets & propagation delay analysis
+│   │   └── spi-frame-analysis.md (.docx) # Detailed SPI data frames, packet structures, archetypes & CRC
 │   ├── nfc/
 │   │   ├── README.md (.docx)          # NFC master hub, standards overview & transceiver comparison
 │   │   ├── nfc-rf-and-physical-layer.md (.docx) # 13.56 MHz RF physics, ASK modulations, antenna & matching
@@ -103,6 +108,12 @@ Welcome to your central tracking workspace for embedded systems, hardware protoc
   ```bash
   python3 tools/baud_calc.py --clock 16MHz --baud 115200
   ```
+- **[tools/uart_calc.py](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/tools/uart_calc.py)**: Calculate UART baud divisors, frame timing budgets, payload throughput, and RS-485 cable delays:
+  ```bash
+  python3 tools/uart_calc.py --baud --clock 16MHz --baudrate 115200
+  python3 tools/uart_calc.py --frame --baudrate 115200 --data-bits 8 --parity N --stop-bits 1
+  python3 tools/uart_calc.py --rs485 --cable-m 100 --baudrate 115200
+  ```
 - **[tools/spi_calc.py](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/tools/spi_calc.py)**: Calculate SPI round-trip propagation delays, safe maximum read clock frequencies, and throughput:
   ```bash
   python3 tools/spi_calc.py --clock 50MHz --trace-cm 5 --tco 7 --tsu 3
@@ -160,8 +171,11 @@ Welcome to your central tracking workspace for embedded systems, hardware protoc
 
 ## Protocol Guides & Quick Links
 
+- [UART Master Architecture & Knowledge Base](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/uart/README.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/uart/README.docx)): Master hub for UART protocols, transceiver standards (TTL, RS-232, RS-422, RS-485), protocol benchmark matrix, and CLI tools.
 - [UART Complete Guide](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/uart/uart-guide.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/uart/uart-guide.docx)): Complete architecture, Linux subsystem, C/Python code, and failure modes.
+- [UART Frame & Protocol Analysis](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/uart/uart-frame-and-protocol-analysis.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/uart/uart-frame-and-protocol-analysis.docx)): Bit-level frame anatomy, 16x oversampling clock recovery, majority voting, 9-bit multi-drop addressing, hardware flow control, and DMA circular ring buffers.
 - [UART Baud Rate Calculations](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/uart/baud-rate-calculations.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/uart/baud-rate-calculations.docx)): In-depth look at baud vs bit rate, hardware BRG divisor formulas, 16x oversampling, error margins, and oscilloscope measurement.
+- [SPI Master Architecture & Knowledge Base](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/spi/README.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/spi/README.docx)): Master hub for SPI protocols, 4-mode truth table, multi-target topologies, Quad/Octal SPI extensions, and benchmark comparison.
 - [SPI Complete Guide](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/spi/spi-guide.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/spi/spi-guide.docx)): Complete architecture, CPOL/CPHA modes, QSPI/OSPI variants, Linux spidev, C/Python code, and failure modes.
 - [SPI Timing & Modes Guide](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/spi/spi-timing-and-modes.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/spi/spi-timing-and-modes.docx)): In-depth look at CPOL/CPHA edge transitions, shift register mechanics, round-trip delay calculations, high-speed signal integrity, and logic analyzer debugging.
 - [SPI Data Frame Analysis](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/spi/spi-frame-analysis.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/spi/spi-frame-analysis.docx)): Deep dive on physical vs logical framing, command/address/dummy phases, Flash/IMU/ADC/Safe-SPI archetypes, CRC-8, and multi-segment Linux transfers.
