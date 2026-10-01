@@ -9,30 +9,119 @@ Welcome to the **VVDN Engineering Hub Technical Dossier on the Forward DC-DC Con
 The **Forward Converter** is an isolated, buck-derived switched-mode power supply topology. Unlike the Flyback converter—where energy is stored in the transformer's magnetic field during the switch ON time and discharged to the secondary during the OFF time—the Forward converter transfers energy **instantaneously from primary to secondary while the primary switch is ON**:
 
 ```text
-                  Single-Switch Forward Converter with Tertiary Reset Winding
-  +Vin DC ───┬───────────────────────────────┬───────────────────────────────┐
-             │                               │                               │
-             ├───[ Tertiary Reset: N_ter ]───┤                               │
-             │         ││                    │                               │
-             ├──[>|]───┘│ (D_reset)          ├───[ Primary Winding: N_p ]────┤
-             │   (Returns core energy to Vin)│         ││                    │
-             │                               │         ││                    ├─── Drain (D)
-             │                               │         ││                    │   ┌───┴───┐
-             │                               │         ││                    └───┤   Q1  │ Primary Switch
-             │                               │         ││                        └───┬───┘
-             │                               │         ││                            │ Source (S)
-          GND_PRI ───────────────────────────┴─────────┼─────────────────────────────┴─── GND_PRI
-                                                       │
-  ============================================= ISOLATION BARRIER =============================================
-                                                       │
-                                             Secondary │
-                                             Winding   ├───[>|] D1 (Forward Diode) ──┬───[ Inductor L_o ]──┬───> +Vout
-                                             (N_s)     │                             │                     │
-                                                       │                            ┌┴┐ D2 (Freewheel)   ┌─┴─┐ C_o
-                                                       │                            └┬┘                   └─┬─┘
-                                                       │                             │                     │
-                                             Secondary ┴─────────────────────────────┴─────────────────────┴─── GND_SEC
+========================================================================================================================
+     DETAILED HARDWARE SCHEMATIC: SINGLE-SWITCH FORWARD CONVERTER WITH TERTIARY RESET (48V -> 12V/10A)
+========================================================================================================================
+
+    +VIN (+48V DC Telecom Bus) ─────────┬───────────────────────────────┬───────────────────────────────┐
+        │                               │                               │                               │
+       ┌┴─────────────────┐             │* (Dot at +VIN)                │ [ Cathode ]                   │
+       │ CIN_BULK         │             │                               │ D_reset: ES1J (600V / 1A)     │
+       │ 220µF / 100V     │             │ TRANSFORMER PRIMARY           │ (Ultra-Fast trr < 35ns)       │
+       │ Electrolytic     │             │ WINDING (Np: 14T)             │ [ Anode ]                     │
+       └┬─────────────────┘             │                               │                               │
+        │                               │                               │* (Dot at Cathode / D_reset)   │
+        │                               │                               │                               │
+        │                               +=== SWITCHING NODE (SW)        │ TERTIARY RESET                │
+        │                               |    (Swings 0V to +96V)        │ WINDING (Nter: 14T)           │
+        │                               |                               │                               │
+        │                               ├──[ R_snub_pri: 10Ω / 2W ]     │                               │
+        │                               │         │                     │                               │
+        │                               │   [ C_snub_pri: 470pF/200V ]  │                               │
+        │                               │         │                     │                               │
+        │                               │      GND_PRI                  │                               │
+        │                               │                               │                               │
+        │                               │ Drain (D)                     │                               │
+        │                              ┌┴──────────────┐                │                               │
+        │                              │ Q1: N-MOSFET  │                │                               │
+        │                              │ BSC093N15NS5  │                │                               │
+        │                       +----->│ (150V, 9.3mΩ) │                │                               │
+        │                       | Gate └┬──────────────┘                │                               │
+        │                       |       │ Source (S)                    │                               │
+        │                       |       │                               │                               │
+        │                       |       +---[ Kelvin CS+ ]              │                               │
+        │                       |       │                               │                               │
+        │   GATE DRIVER IC      |      ┌┴┐ R_shunt: 15mΩ / 2W 1%        │                               │
+        │   UCC27517 (Low-Side) |      │ │ Metal Alloy                  │                               │
+        │   OUT ----[ R_g: 4.7Ω ]+     └┬┘ (Current Sense)              │                               │
+        │                               │                               │                               │
+    GND_PRI ────────────────────────────┴───────────────────────────────┴───────────────────────────────┴─── GND_PRI
+        │
+       ┌┴┐ CY1: Safety Y-Capacitor (1.0nF / 250VAC Class Y2 Across Barrier)
+       └┬┘
+        │
+   ============================================= ISOLATION BARRIER (>= 4.0mm Clearance) ===================
+        │
+    GND_SEC ────────────────────────────────────────────────────────────┬───────────────────────────────┬─── GND_SEC
+        │                                                               │                               │
+        │                               TRANSFORMER SECONDARY           │                               │
+        │                               WINDING (Ns: 7T)                │                               │
+        │                               * (Dot aligned with Np)         │                               │
+        │                               │                               │                               │
+        │                               +---[ D1: Forward Diode ]-------+=== NODE SW_SEC                │
+        │                                   V40100P (100V / 40A)        |    (0V to +24V Rectified)     │
+        │                                   [ Anode to Ns, Cathode Out] │                               │
+        │                                                               │                               │
+        │                                   +---[ R_snub1: 4.7Ω / 1W ]--+                               │
+        │                                   |         │                 │                               │
+        │                                   |   [ C_snub1: 1nF / 100V ] │                               │
+        │                                   |         │                 │                               │
+        │                                   |      GND_SEC              │                               │
+        │                                   |                           │                               │
+        │                                   |    [ Cathode ]            │                               │
+        │                                   +---[ D2: Freewheel Diode ]-+                               │
+        │                                       V40100P (100V / 40A)    │                               │
+        │                                       [ Anode to GND_SEC ]    │                               │
+        │                                             │                 │                               │
+        │                                          GND_SEC              │                               │
+        │                                                               │                               │
+        │                                                               +---[ Lo: 15µH / 14A Choke ]----+
+        │                                                                   Coilcraft AGP4233-153       │
+        │                                                                   (DCR = 4.2mΩ, Isat = 16A)   │
+        │                                                                                               │
+        │                                                                                               +=== +VOUT (+12V/10A)
+        │                                                                                               │
+        │                                                                                              ┌┴──────────────────┐
+        │                                                                                              │ COUT_BULK         │
+        │                                                                                             ┌┴┐ 3x 330µF/25V    ┌┴┐ COUT_CER
+        │                                                                                             │ │ Poly (ESR=8mΩ)  │ │ 4x 22µF/25V
+        │                                                                                             └┬┘                 └┬┘ X7R 1210
+        │                                                                                              │                   │
+        │                                                                                              │      +VOUT        │
+        │                                                                                              │        │          │
+        │                                                                                              │     [ R_fb1: 38.3kΩ ]
+        │                                                                                              │        │
+        │                                                                                              │        +---> TL431 REF
+        │                                                                                              │        │     (V_ref=2.50V)
+        │                                                                                              │     [ R_fb2: 10.0kΩ ]
+        │                                                                                              │        │
+        │                                                                                              │       GND_SEC
+        │                                                                                              │        │
+    GND_SEC ───────────────────────────────────────────────────────────────────────────────────────────┴────────+───────────> GND_SEC (Return)
 ```
+
+### 1.1 Detailed Component Connection Netlist & Terminal Details:
+
+| Net Name | Source (Pin / Terminal) | Destination (Pin / Terminal) | Electrical Function | Hardware Engineering Notes |
+| :--- | :--- | :--- | :--- | :--- |
+| **+VIN_RAW** | Input Connector Pin 1 | $C_{in,bulk}$ (+), Primary $N_p$ Pin 1, Reset Diode $D_{reset}$ Cathode | +48V DC input bus | Primary winding pin 1 and reset diode cathode tie directly to supply rail. |
+| **DRAIN_PRI** | Transformer Primary $N_p$ Pin 2 | $Q_1$ Drain, Primary Snubber $R_{snub,pri}$ | Primary switching node ($0\,\text{V} \dots 2 V_{IN}$) | With $N_p = N_{ter}$, peak drain voltage is clamped precisely to $2 V_{IN} = 96\,\text{V}$. |
+| **RESET_NODE** | Tertiary Winding $N_{ter}$ Pin 1 | Reset Diode $D_{reset}$ Anode | Magnetic core demagnetization rail | Winding dot is inverted relative to $N_p$; returns magnetizing energy back to $V_{IN}$ during OFF interval. |
+| **SW_SEC** | Forward Diode $D_1$ Cathode, Freewheel $D_2$ Cathode | Output Inductor $L_o$ Pin 1, Secondary Snubber | Secondary pulsating rectangular voltage node | Swings between $V_{IN} \cdot (N_s/N_p) = 24\,\text{V}$ and $-V_F \approx -0.5\,\text{V}$. |
+| **+VOUT** | Output Inductor $L_o$ Pin 2 | $C_{out}$ bank (+), Feedback $R_{fb1}$, Load (+) | Regulated +12V DC output rail | Continuous current output stage delivers low ripple and tight dynamic regulation. |
+| **GND_PRI / GND_SEC** | Primary Ground / Secondary Ground | Safety Y2 Capacitor ($C_{Y1}$) | Isolated return planes | Minimum $4.0\,\text{mm}$ clearance maintained across PCB boundary. |
+
+### 1.2 Component Bill of Materials & Parametric Specifications:
+
+| RefDes | Component Description | Manufacturer & Part Number | Key Electrical Specifications | Critical Design Constraint |
+| :--- | :--- | :--- | :--- | :--- |
+| **$Q_1$** | Primary N-MOSFET | Infineon BSC093N15NS5 | $V_{DS} = 150\,\text{V}, I_D = 75\,\text{A}, R_{DS(on)} = 9.3\,\text{m}\Omega, Q_g = 25\,\text{nC}$ | Rated for $150\,\text{V}$ to provide $50\%$ margin above $2 V_{IN} = 96\,\text{V}$ clamp level. |
+| **$T_1$** | Forward Transformer | Custom ETD34 Core (3C90) | Turns: $N_p:N_s:N_{ter} = 14:7:14, L_m = 450\,\mu\text{H}, L_{lk} < 2.0\,\mu\text{H}$ | Ungapped high-permeability core; bifilar winding of $N_p$ and $N_{ter}$ minimizes leakage inductance. |
+| **$D_{reset}$** | Core Demagnetizing Diode | Vishay ES1J | $V_{RRM} = 600\,\text{V}, I_F = 1\,\text{A}, t_{rr} < 35\,\text{ns}$ | High-voltage ultra-fast diode conducts magnetizing current $I_m$ back into input rail during OFF time. |
+| **$D_1, D_2$** | Secondary Rectifier Diodes | Vishay V40100P | $V_{RRM} = 100\,\text{V}, I_F = 40\,\text{A}, V_F = 0.58\,\text{V}, t_{rr} < 25\,\text{ns}$ | Dual Schottky diode in TO-247 package; provides forward conduction ($D_1$) and freewheeling loop ($D_2$). |
+| **$L_o$** | Output Filter Inductor | Coilcraft AGP4233-153ME | $L = 15\,\mu\text{H}, I_{sat} = 16\,\text{A}, I_{rms} = 14\,\text{A}, DCR = 4.2\,\text{m}\Omega$ | High DC current power choke with flat-wire winding; maintains continuous conduction down to $1\,\text{A}$. |
+| **$C_{out,bulk}$** | Output Bulk Capacitor | Panasonic 25SVPF330M | $3 \times 330\,\mu\text{F}, 25\,\text{V}, \text{Polymer}, ESR = 8\,\text{m}\Omega$ | Accommodates output ripple current $\Delta I_{Lo} = 2.5\,\text{A}$ with $< 20\,\text{mV}$ peak-to-peak ripple. |
+
 
 ### Core Operating Phases:
 1. **Phase 1: Switch ON ($0 < t \le D \cdot T_s$)**:

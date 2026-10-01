@@ -11,17 +11,99 @@ This document explores the circuit topology, derives the volt-second and charge-
 The **Ćuk Converter** comprises two inductors ($L_1, L_2$), an active switch ($Q_1$), a diode ($D_1$), an energy-transfer coupling capacitor ($C_1$), and an output filter capacitor ($C_o$):
 
 ```text
-                           Classic Inverting Ćuk Converter
-              Inductor L1                      Capacitor C1              Inductor L2
-   +Vin DC ─────^^^^^^──────────────┬──────────────[   ]─────────────┬─────^^^^^^───────┬───> -Vout
-                                    │      (Energy Transfer Cap)     │                  │
-                                Drain (D)                            │                 ┌┴┐
-                                ┌───┴───┐ Q1                        ┌┴┐ D1 (Diode)     │ │ C_out
-                                │  SW   │                           │ │ (Anode to Vo)  └┬┘
-                                └───┬───┘                           └┬┘                 │
-                                    │ Source (S)                     │                  │
-   GND ─────────────────────────────┴────────────────────────────────┴──────────────────┴─── GND
+========================================================================================================================
+     DETAILED HARDWARE SCHEMATIC: INVERTING ĆUK DC-DC CONVERTER (+12V -> -12V/3A WITH ZERO-RIPPLE CAPABILITY)
+========================================================================================================================
+
+    +VIN (+12V DC) ─────────────────────────────────────────────────────────────┐
+        │                                                                       │
+       [F1: 5A Fuse]                                                            │
+        │                                                                       │
+       ┌┴─────────────────┐                                                     │
+       │ CIN_BULK         │                                                     │
+      ┌┴┐ 150µF/35V Poly ┌┴┐ CIN_CER                                            │
+      │ │ (Low-ESR 14mΩ) │ │ 2x 10µF/25V X7R                                    │
+      └┬┘                └┬┘                                                    │
+       │                  │                                                     │
+       │                  │        INPUT CHOKE INDUCTOR                         │
+       │                  │    +---[ L1: 33µH / 5.5A Shielded ]---+             │
+       │                  │    |   Wurth 7443320330               |             │
+       │                  │    |   (DCR = 16mΩ, Isat = 6.2A)      |             │
+       │                  │    +----------------------------------+             │
+       │                  │                                       │             │
+       │                  │                                       +=== NODE SW1 (Switching Node)
+       │                  │                                       |    (0V to +24.5V pulse)
+       │                  │                                       |
+       │                  │              ENERGY TRANSFER CAPACITOR|
+       │                  │       +------[ C1: 10µF / 50V X7R ]---+
+       │                  │       |      TDK C3225X7R1H106M
+       │                  │       |      (Carries high RMS ripple)
+       │                  │       |                               |
+       │                  │       |      Drain (D)                +---[ R_snub: 3.3Ω / 1W ]
+       │                  │       |     ┌┴──────────────┐         |         │
+       │                  │       |     │ Q1: N-MOSFET  │         |   [ C_snub: 470pF ]
+       │                  │       |     │ BSC040N10NS5  │         |         │
+       │                  │       |  +->│ (100V, 4.0mΩ) │         |        PGND
+       │                  │       |  |  └┬──────────────┘         |
+       │                  │       |  |   │ Source (S)             |
+       │                  │       |  |   │                        |
+       │                  │       |  |   +---[ CS+ ]              |
+       │                  │       |  |   │                        |
+       │                  │       |  |  ┌┴┐ R_shunt: 10mΩ / 2W    |
+       │                  │       |  |  │ │ Metal Alloy           |
+       │                  │       |  |  └┬┘ (Current Sense)       |
+       │                  │       |  |   │                        |
+       │                  │       |  |  PGND                      |
+       │                  │       |  |                            |
+       │                  │       |  |  GATE DRIVER INTERFACE     |
+       │                  │       |  +--[ R_g: 4.7Ω ]<-- UCC27517 |
+       │                  │       |                               |
+       │                  │       +=== NODE SW2 (Diode Node)      |
+       │                  │       |    (-24.5V to 0V pulse)       |
+       │                  │       |                               |
+       │                  │       +---[ D1: Schottky Diode ]      |
+       │                  │       |   V30100P (100V / 30A)        |
+       │                  │       |   [ Cathode to SW2 ]          |
+       │                  │       |   [ Anode to PGND ]           |
+       │                  │       |         │                     |
+       │                  │       |        PGND                   |
+       │                  │       |                               |
+       │                  │       |        OUTPUT CHOKE INDUCTOR  |
+       │                  │       +---[ L2: 33µH / 5.5A Shielded ]+
+       │                  │           Wurth 7443320330            |
+       │                  │           (DCR = 16mΩ)                |
+       │                  │                                       |
+       │                  │                                       +=== -VOUT (-12V/3A)
+       │                  │                                       │
+       │                  │                                      ┌┴──────────────────┐
+       │                  │                                      │ COUT_BULK         │
+       │                  │                                     ┌┴┐ 2x 220µF/25V    ┌┴┐ COUT_CER
+       │                  │                                     │ │ Poly (ESR=12mΩ) │ │ 3x 10µF/25V
+       │                  │                                     └┬┘ (+) to PGND     └┬┘ X7R 1210
+       │                  │                                      │ (-) to -VOUT      │
+   PGND┴──────────────────┴──────────────────────────────────────+───────────────────┴─── PGND (0V Rail)
 ```
+
+### 1.1 Detailed Component Connection Netlist & Terminal Details:
+
+| Net Name | Source (Pin / Terminal) | Destination (Pin / Terminal) | Electrical Function | Hardware Engineering Notes |
+| :--- | :--- | :--- | :--- | :--- |
+| **+VIN_FILT** | Fuse $F_1$ Output | $C_{in}$ bank (+), Inductor $L_1$ Pin 1 | Filtered positive input DC bus | Carries smooth DC current with minimal ripple due to input inductor $L_1$. |
+| **SW1 (Switch Node 1)** | Inductor $L_1$ Pin 2, $Q_1$ Drain | Transfer Capacitor $C_1$ Left Plate, Snubber | High-voltage switching node ($0\,\text{V} \dots V_{IN} + \|V_o\|$) | Trace must withstand $V_{IN} + \|V_o\| = 24\,\text{V}$ plus inductive spike. |
+| **SW2 (Switch Node 2)** | Transfer Capacitor $C_1$ Right Plate | Diode $D_1$ Cathode, Inductor $L_2$ Pin 1 | Negative-swinging switching node | Swings between $-(V_{IN} + \|V_o\|)$ when $Q_1$ is ON and $0\,\text{V}$ when $Q_1$ is OFF. |
+| **-VOUT (Negative Rail)** | Inductor $L_2$ Pin 2 | $C_{out}$ Negative terminal, Load (-) | Continuous-current regulated negative rail | Because $L_2$ is in series with output, output ripple current is pure triangular and very low. |
+| **PGND** | $C_{in}$ (-), $R_{shunt}$ (-), Diode $D_1$ Anode, $C_{out}$ (+) | System power ground return | Common zero-volt reference | Diode $D_1$ anode connects directly to PGND; carries continuous freewheeling return current. |
+
+### 1.2 Component Bill of Materials & Parametric Specifications:
+
+| RefDes | Component Description | Manufacturer & Part Number | Key Electrical Specifications | Critical Design Constraint |
+| :--- | :--- | :--- | :--- | :--- |
+| **$Q_1$** | Low-Side N-MOSFET | Infineon BSC040N10NS5 | $V_{DS} = 100\,\text{V}, I_D = 100\,\text{A}, R_{DS(on)} = 4.0\,\text{m}\Omega, Q_g = 27\,\text{nC}$ | Low ground-referenced driver complexity; $V_{DS}$ stress equals $V_{IN} + \|V_o\| = 24\,\text{V}$. |
+| **$D_1$** | Catch Schottky Diode | Vishay V30100P | $V_{RRM} = 100\,\text{V}, I_F = 30\,\text{A}, V_F = 0.55\,\text{V}, t_{rr} < 20\,\text{ns}$ | Anode grounded; cathode tied to $C_1/L_2$. Must handle combined current $I_{L1} + I_{L2}$. |
+| **$C_1$** | Energy Transfer Capacitor | TDK C3225X7R1H106M | $10\,\mu\text{F}, 50\,\text{V}, \text{X7R Ceramic}, 1210$ package | **Crucial Component**: Carries full AC load current ripple ($I_{C1,rms} \approx 4.5\,\text{A}$); must use low-loss MLCC or film. |
+| **$L_1, L_2$** | Coupled / Dual Inductors | Würth Elektronik 7443320330 | $2 \times 33\,\mu\text{H}, I_{sat} = 6.2\,\text{A}, DCR = 16\,\text{m}\Omega$ | Can be wound on a single shared core to steer ripple to zero on either input or output side! |
+| **$C_{out,bulk}$** | Output Bulk Capacitor | Panasonic 25SVPF220M | $2 \times 220\,\mu\text{F}, 25\,\text{V}, \text{OS-CON Polymer}, ESR = 12\,\text{m}\Omega$ | Positive terminal grounded; negative terminal connected to $-V_{OUT}$. |
+
 
 ### 1.1 Conduction Intervals:
 1. **Interval 1: Switch OFF ($D \cdot T_s < t \le T_s$)**:

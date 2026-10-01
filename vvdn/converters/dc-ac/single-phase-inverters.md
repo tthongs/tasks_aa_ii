@@ -38,30 +38,72 @@ The Half-Bridge inverter employs two switches and a split DC bus capacitor divid
 The Full-Bridge topology utilizes four switches in two bridge legs (Leg A and Leg B):
 
 ```text
-                         Full-Bridge (H-Bridge) Inverter
-   +Vdc ────┬───────────────────────┬───────────────────────────────────────┐
-            │                       │                                       │
-        Drain (D)               Drain (D)                                   │
-        ┌───┴───┐ S1            ┌───┴───┐ S3                               ┌┴┐
-        │  Q1   │ Leg A High    │  Q3   │ Leg B High                       │ │ C_bulk
-        └───┬───┘               └───┬───┘                                  └┬┘
-            │ Source (S)            │ Source (S)                            │
-            ├─── Leg A Node ┐       ├─── Leg B Node ───┐                    │
-            │               │       │                  │                    │
-        Drain (D)           │   Drain (D)              │                    │
-        ┌───┴───┐ S2        │   ┌───┴───┐ S4           │                    │
-        │  Q2   │ Leg A Low │   │  Q4   │ Leg B Low    │                    │
-        └───┬───┘           │   └───┬───┘              │                    │
-            │ Source (S)    │       │ Source (S)       │                    │
-   GND ─────┴───────────────┼───────┴──────────────────┼────────────────────┴─── GND
-                            │                          │
-                            ├───[ Filter Inductor Lf ]─┼───┐
-                            │                          │  ┌┴┐
-                            │                          └──┤ │ Filter Cap Cf
-                            │                             └┬┘
-                            │                              │
-                            └──────────────────────────────┴───> AC Load (Vo = Va - Vb)
+========================================================================================================================
+     DETAILED HARDWARE SCHEMATIC: SINGLE-PHASE FULL-BRIDGE (H-BRIDGE) INVERTER (400V DC -> 230V AC RMS, 3kVA)
+========================================================================================================================
+
+    +VDC BUS (+400V DC Rail) ──────────────┬───────────────────────────────┬─────────────────────────────┐
+        │                                  │                               │                             │
+       ┌┴─────────────────┐            Drain (D)                       Drain (D)                        ┌┴┐
+       │ C_BUS_BULK       │           ┌────┴──────────┐               ┌────┴──────────┐                 │ │ C_HF_FILM
+       │ 680µF / 450V     │           │ Q1: HS LEG A  │               │ Q3: HS LEG B  │                 └┬┘ 4x 1µF / 630V
+       │ Aluminum Elec.   │    +----->│ IPW65R041CFD7 │        +----->│ IPW65R041CFD7 │                  │  Poly Film
+       └┬─────────────────┘    | Gate │ (650V, 41mΩ)  │        | Gate │ (650V, 41mΩ)  │                  │
+        │                      |      └────┬──────────┘        |      └────┬──────────┘                  │
+        │                      |     Source│                   |     Source│                             │
+        │   HIGH-SIDE DRIVER   |           │                   |           │                             │
+        │   HO_A --------------+           +=== NODE SW_A      |           +=== NODE SW_B                │
+        │   (UCC27282: Leg A)              |    (0V to +400V)  |           |    (0V to +400V)            │
+        │                                  |                   |           |                             │
+        │                              Drain (D)   +-----------+       Drain (D)                         │
+        │                             ┌────┴───────┴──┐               ┌────┴──────────┐                  │
+        │                             │ Q2: LS LEG A  │               │ Q4: LS LEG B  │                  │
+        │                      +----->│ IPW65R041CFD7 │        +----->│ IPW65R041CFD7 │                  │
+        │                      | Gate └────┬──────────┘        | Gate └────┬──────────┘                  │
+        │   LO_A --------------+     Source│             LO_B -+     Source│                             │
+        │   (Low-Side Leg A)               │             HO_B ─────────────+ (UCC27282: Leg B)           │
+        │                                  │                               │                             │
+    GND_DC ────────────────────────────────┴───────────────────────────────┴─────────────────────────────┴─── GND_DC
+                                           │                               │
+                                           │  SYMMETRICAL LC SINE FILTER   │
+                                           ├──[ Lf1: 1.5mH / 20A Choke ]───┼────────────────────────+=== AC LINE (L)
+                                           │  Sendust Toroid (DCR=12mΩ)    │                        │    (230V RMS, 50Hz)
+                                           │                               │                       ┌┴┐
+                                           │                               │                       │ │ Cf: 4.7µF / 310VAC
+                                           │                               │                       └┬┘ Metallized Poly
+                                           │                               │                        │  (Across L-N)
+                                           │                               ├──[ Lf2: 1.5mH / 20A ]──+=== AC NEUTRAL (N)
+                                           │                               │  Sendust Toroid        │
+                                           │                               │                        │
+                                           │                               │   [ HALL CURRENT SENSOR ]
+                                           │                               │   LEM CASR 15-NP       │
+                                           │                               │   (Output -> DSP ADC)  │
+                                           │                               │                        │
+    EARTH (PE) ────────────────────────────┴───────────────────────────────┴────────────────────────┴─── EARTH (PE)
 ```
+
+### 1.2 Detailed Component Connection Netlist & Terminal Details:
+
+| Net Name | Source (Pin / Terminal) | Destination (Pin / Terminal) | Electrical Function | Hardware Engineering Notes |
+| :--- | :--- | :--- | :--- | :--- |
+| **+VDC_BUS** | DC Source / PFC Pre-Regulator | $C_{bus}$ (+), $Q_1$ Drain, $Q_3$ Drain | High-voltage stiff DC link | Symmetrical high-frequency film bypass capacitors placed directly across each phase leg. |
+| **SW_A (Leg A Mid)** | $Q_1$ Source, $Q_2$ Drain | Sine Filter Inductor $L_{f1}$ Pin 1 | High-speed PWM leg A switching node | Swings between $0\,\text{V}$ and $+400\,\text{V}$ at carrier frequency $f_c = 20\,\text{kHz}$; high $dv/dt$ node. |
+| **SW_B (Leg B Mid)** | $Q_3$ Source, $Q_4$ Drain | Sine Filter Inductor $L_{f2}$ Pin 1 | High-speed PWM leg B switching node | Swings between $0\,\text{V}$ and $+400\,\text{V}$; differential voltage $v_{AB} = v_{SW\_A} - v_{SW\_B}$. |
+| **AC_LINE (L)** | Filter Inductor $L_{f1}$ Pin 2 | AC Output Terminal 1, Filter Cap $C_f$ Terminal 1 | Pure sinusoidal AC line rail | Fundamental $230\,\text{V}_{\text{RMS}}, 50\,\text{Hz}$ sine wave; carrier ripple attenuated by $> 40\,\text{dB}$. |
+| **AC_NEUT (N)** | Filter Inductor $L_{f2}$ Pin 2 | AC Output Terminal 2, Filter Cap $C_f$ Terminal 2 | Pure sinusoidal AC neutral rail | Symmetrical inductor $L_{f2}$ ensures balanced common-mode emission attenuation to Earth. |
+| **GND_DC** | $Q_2$ Source, $Q_4$ Source, $C_{bus}$ (-) | DC link return plane | High-current circulating DC ground | Heavy ground copper plane on internal PCB Layer 2. |
+
+### 1.3 Component Bill of Materials & Parametric Specifications:
+
+| RefDes | Component Description | Manufacturer & Part Number | Key Electrical Specifications | Critical Design Constraint |
+| :--- | :--- | :--- | :--- | :--- |
+| **$Q_1 \dots Q_4$** | High-Voltage N-MOSFETs | Infineon IPW65R041CFD7 | $V_{DS} = 650\,\text{V}, I_D = 50\,\text{A}, R_{DS(on)} = 41\,\text{m}\Omega, Q_{rr} = 570\,\text{nC}$ | Integrated fast body diode prevents destructive latchup during inductive freewheeling dead-time. |
+| **$L_{f1}, L_{f2}$** | AC Sine Filter Inductors | Custom Sendust Core (CS468125) | $2 \times 1.5\,\text{mH}, I_{rated} = 20\,\text{A}, DCR = 12\,\text{m}\Omega$ | Low-loss powder core prevents thermal saturation under full $3\,\text{kVA}$ rated load current ($I_{rms} = 13\,\text{A}$). |
+| **$C_f$** | Differential AC Filter Cap | KEMET R46KR447000M2M | $4.7\,\mu\text{F}, 310\,\text{V}_{\text{AC}}, \text{Metallized Polypropylene Film}$ | Handles continuous $50\,\text{Hz}$ AC reactive currents with negligible dissipation factor ($\tan \delta < 0.001$). |
+| **$C_{bus,bulk}$** | DC Link Bulk Capacitor | Nichicon LGN2W681MELC | $680\,\mu\text{F}, 450\,\text{V}_{\text{DC}}, 105^\circ\text{C}, ESR = 0.12\,\Omega$ | Absorbs double grid-frequency ($100\,\text{Hz}$) pulsating power delivered to single-phase AC loads ($P(t) = P_o [1 - \cos 2\omega t]$). |
+| **$U_{drv1}, U_{drv2}$**| High-Voltage Half-Bridge Drivers| TI UCC27282DR | $120\,\text{V} / 650\,\text{V}, 3\,\text{A}$ sink / source, robust $-5\,\text{V}$ negative swing | Built-in shoot-through protection and $150\,\text{ns}$ dead-time prevents rail-to-rail shoot-through. |
+| **$U_{sense}$** | Closed-Loop Current Sensor | LEM CASR 15-NP | Nominal $15\,\text{A}_{\text{RMS}}$, bandwidth DC to $300\,\text{kHz}$, isolated | Provides fast current feedback to DSP for instantaneous current limiting and overcurrent trip. |
+
 - **Output Swing**: Differential voltage $v_{AB} = v_A - v_B$ swings across three discrete levels: $+V_{dc}$, $0\,\text{V}$, and $-V_{dc}$.
 - **Advantage**: Peak AC output voltage equals full $V_{dc}$ ($\hat{V}_{ac} = V_{dc}$), requiring only half the DC bus voltage of a half bridge ($V_{dc} \approx 350\,\text{V} \dots 400\,\text{V}$ for $230\,\text{V}_{rms}$).
 

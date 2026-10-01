@@ -9,16 +9,87 @@ Utilizing back-to-back (anti-parallel) Silicon Controlled Rectifiers (SCRs) or T
 ## 1. Operating Principle & Topologies
 
 ```text
-                     Single-Phase AC Voltage Controller
-                        T1 (Forward SCR)
-             ┌───────────────[>|]───────────────┐
-             │               gate1              │
-   AC Line ──┴───┬──────────────────────────────┴───┬───[ Inductive / Resistive Load ]───> AC Return
-                 │               gate2              │       (Z_L = R + jwL)
-                 └───────────────[|<]───────────────┘
-                                T2 (Reverse SCR)
-                                (Anti-Parallel)
+========================================================================================================================
+     DETAILED HARDWARE SCHEMATIC: SINGLE-PHASE SOLID-STATE AC VOLTAGE CONTROLLER (230V AC RMS, 16A / 3.6kW)
+========================================================================================================================
+
+    AC LINE (230V RMS, 50Hz) ──[ F1: 20A Time-Lag ]──┬──────────────────────────────────────────────────┐
+                                                     │                                                  │
+                                                    ┌┴┐ MOV1: 275V RMS                                  │
+                                                    │ │ Littelfuse V275LA20CP                           │
+                                                    └┬┘ (Clamps Spikes > 4.5kA)                         │
+                                                     │                                                  │
+    AC NEUTRAL (Return) ─────────────────────────────┼────────────────────────────────────────────+     │
+                                                     │                                            │     │
+                                                     │        +---[ OPTO-TRIAC GATE DRIVER ]---+  │     │
+                                                     │        |   Fairchild MOC3052 (600V)     |  │     │
+                                                     │        |   [ Pin 6: Output Main Term ]  |  │     │
+                                                     │        |        │                       |  │     │
+                                                     │        |     [ R_lim: 330Ω / 1W ]       |  │     │
+                                                     │        |        │                       |  │     │
+                                                     │        |        +-----------------------|--|--+  │
+                                                     │        |        │                       |  │  |  │
+                                                     │        |   [ Pin 4: Output Trigger ]    |  │  |  │
+                                                     │        |        │                       |  │  |  │
+                                                     │        |        +-----------------------|--|--|--+
+                                                     │        |                                |  │  |  │
+                                                     │        |   [ Pin 1: LED Anode (+) ]     |  │  |  │
+                                                     │        |   [ Pin 2: LED Cathode (-) ]   |  │  |  │
+                                                     │        +--------+--------------+--------+  │  |  │
+                                                     │                 |              |           │  |  │
+                                                     │              PWM_TRIG        GND_ISO       │  |  │
+                                                     │             (From MCU)                     │  |  │
+                                                     │                                            │  |  │
+                                                 Anode (A)      T1: FORWARD THYRISTOR             │  |  │
+                                                ┌────┴──────────┐ (Vishay 25TTS12: 1200V/25A)     │  |  │
+                                         +----->│               │<--------------------------------+  │  │
+                                         |      └────┬──────────┘ (Gate 1)                           │  │
+                                         |     Cath  │                                               │  │
+                                         |           +================================+              │  │
+                                         |           |                                |              │  │
+                                         |       Cath│          T2: REVERSE THYRISTOR |              │  │
+                                         |      ┌────┴──────────┐ (Anti-Parallel SCR) │              │  │
+                                         |      │               │<--------------------+--------------+  │
+                                         |      └────┬──────────┘ (Gate 2)            │                 │
+                                         |     Anode │                                │                 │
+                                         |           │                                │                 │
+                                         +-----------+--[ R_snub: 47Ω / 5W Wirewound ]+                 │
+                                                     |         │                                        │
+                                                     |   [ C_snub: 0.1µF / 630V Film ]                  │
+                                                     |         │                                        │
+                                                     +---------+                                        │
+                                                     │                                                  │
+                                                     +=== PHASE-CONTROLLED AC OUTPUT (V_out)            │
+                                                     │    (RMS Voltage: 0V to 230V Adjustable)          │
+                                                     │                                                  │
+                                                    ┌┴────────────────────────────────────────────────┐ │
+                                                    │ AC MOTOR / HEATER LOAD (Z_L = R + jωL)          │ │
+                                                    │ - Resistance: R = 15Ω                           │ │
+                                                    │ - Inductance: L = 30mH                          │ │
+                                                    └┬────────────────────────────────────────────────┘ │
+                                                     │                                                  │
+    AC NEUTRAL (Return) ─────────────────────────────┴──────────────────────────────────────────────────┴─── AC NEUTRAL
 ```
+
+### 1.1 Detailed Component Connection Netlist & Terminal Details:
+
+| Net Name | Source (Pin / Terminal) | Destination (Pin / Terminal) | Electrical Function | Hardware Engineering Notes |
+| :--- | :--- | :--- | :--- | :--- |
+| **AC_LINE_IN** | Input Terminal Block (L) | Fuse $F_1$ Input | 230V AC 50Hz utility input line | Time-lag ceramic fuse accommodates inrush current of inductive loads. |
+| **AC_LINE_SW** | Fuse $F_1$ Output | $T_1$ Anode, $T_2$ Cathode, Snubber, MOV1 | Protected input AC rail | Direct input to the back-to-back anti-parallel SCR module. |
+| **AC_CONTROLLED** | $T_1$ Cathode, $T_2$ Anode | Snubber, Load Terminal 1 | Phase-chopped AC output voltage | Waveform is sliced at firing angle $\alpha$; fundamental voltage is continuously variable. |
+| **GATE_TRIG** | MOC3052 Opto-TRIAC Pin 4 | $T_1 / T_2$ Gate Terminals | Optically isolated firing pulses | Zero-crossing or random-phase triggering depending on phase-angle vs burst mode. |
+| **LOAD_RETURN** | Load Terminal 2 | AC Neutral Terminal Block (N) | AC mains neutral return path | Heavy-gauge line wiring sized for 16A continuous current. |
+
+### 1.2 Component Bill of Materials & Parametric Specifications:
+
+| RefDes | Component Description | Manufacturer & Part Number | Key Electrical Specifications | Critical Design Constraint |
+| :--- | :--- | :--- | :--- | :--- |
+| **$T_1, T_2$** | Phase-Control Thyristor Pair | Vishay Semiconductors 25TTS12 | $V_{RRM} = 1200\,\text{V}, I_{T(AV)} = 16\,\text{A}, I_{GT} = 45\,\text{mA}, V_{TM} = 1.25\,\text{V}$ | $1200\,\text{V}$ rating ensures safe margins during inductive turn-off voltage kickback. |
+| **$R_{snub}, C_{snub}$**| AC Power Snubber Network | TE Connectivity / KEMET | $R = 47\,\Omega / 5\,\text{W Wirewound}, C = 0.1\,\mu\text{F} / 630\,\text{V Polypropylene}$ | Essential for inductive loads ($\cos \phi < 1$); limits $\frac{dv}{dt} < 200\,\text{V}/\mu\text{s}$ at current zero-crossing. |
+| **$U_1$ (Opto)** | Random-Phase Optoisolator | ON Semiconductor MOC3052M | $V_{DRM} = 600\,\text{V}, I_{FT} = 10\,\text{mA}, V_{ISO} = 5000\,\text{V}_{RMS}$ | Non-zero-crossing bilateral triac driver allows arbitrary firing angles $\alpha \in [0^\circ, 180^\circ]$. |
+| **$MOV_1$** | Line Surge Varistor | Littelfuse V275LA20CP | $V_{RMS} = 275\,\text{V}, I_{max} = 6500\,\text{A}, W_{max} = 120\,\text{J}$ | Protects thyristors and optotriac driver against lightning and grid switching transients. |
+
 
 ### 1.1 Switching Devices:
 - **Anti-Parallel Thyristor Pair ($T_1, T_2$)**: Dominates high-power industrial systems ($> 1\,\text{kW} \dots 500\,\text{kW}$). Independent gate terminals allow asymmetric control and high $dv/dt$ immunity.

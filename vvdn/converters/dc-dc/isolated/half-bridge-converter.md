@@ -9,34 +9,127 @@ Welcome to the **VVDN Engineering Hub Technical Dossier on the Isolated Half-Bri
 The **Half-Bridge DC-DC Converter** replaces two switches of a full bridge with a pair of input divider capacitors ($C_1, C_2$), applying an alternating square-wave voltage of $\pm \frac{V_{IN}}{2}$ across the transformer primary winding:
 
 ```text
-                      Symmetrical Half-Bridge Converter Power Stage
-   +Vin DC ────┬─────────────────────────────┬───────────────────────────────────────────┐
-               │                             │                                           │
-           Drain (D)                         │                                           │
-           ┌───┴───┐ Q1                      │                                           │
-           │  S1   │ High-Side Switch      ┌─┴─┐ C1 (Bulk Divider Cap)                  ┌┴┐
-           └───┬───┘                       │   │ (Maintains Vin/2)                      │ │ C_in
-               │ Source (S)                └─┬─┘                                        └┬┘
-               ├──────────────────┐          ├─── Virtual Neutral Point (Vin/2)          │
-               │                  │          │                                           │
-           Drain (D)              ├──[ Np ]──┤                                           │
-           ┌───┴───┐ Q2           │    ││    │                                           │
-           │  S2   │ Low-Side     │    ││  ┌─┴─┐ C2 (Bulk Divider Cap)                  │
-           └───┬───┘ Switch       │    ││  │   │ (Maintains Vin/2)                      │
-               │ Source (S)       │    ││  └─┬─┘                                         │
-   GND_PRI ────┴──────────────────┼────┼─────┴───────────────────────────────────────────┴─── GND_PRI
-                                  │    ││
-   ============================== │ == │ ================== ISOLATION BARRIER ==================
-                                  │    ││
-                                  │    ││ Secondary Center-Tap
-                                  │    └───[ Ns1 ]───[>|] D1 ──┬───[ Inductor Lo ]──┬───> +Vout
-                                  │          ││                │                    │
-                                  └──────────┼─────────────────┤                   ┌┴┐
-                                             ││                │                   │ │ Co
-                                           [ Ns2 ]───[>|] D2 ──┘                   └┬┘
-                                             ││                                     │
-                                  GND_SEC ───┴──────────────────────────────────────┴─── GND_SEC
+========================================================================================================================
+     DETAILED HARDWARE SCHEMATIC: TWO-SWITCH ASYMMETRICAL/SYMMETRICAL HALF-BRIDGE CONVERTER (400V -> 12V/25A, 300W)
+========================================================================================================================
+
+                  +-----------------[ D_boot: DFLS1100 ]<------+ +VCC_DRV (+12V)
+                  |                 [ 100V / 1A Schottky]      |
+                  |                                           [R_boot: 2.2Ω]
+                  |                                            |
+                  |     +-----------[ C_boot: 0.1µF/50V X7R ]--+
+                  |     |                                      |
+                  |     |   +---[ HIGH-VOLTAGE HALF-BRIDGE DRIVER (e.g. UCC27282) ]---+
+                  |     |   |                                                         |
+                  +-------->| BOOT      [HO] Pin 8 ----[ R_g1: 4.7Ω ]----+             |
+                        |   |                                            |             |
+                        +-->| PHASE/HB  [LO] Pin 5 ----[ R_g2: 4.7Ω ]--+ |             |
+                            |                                          | |             |
+          PWM_IN ---------->| IN_HS/IN_LS    [VCC] Pin 2 <--- +12V     | |             |
+                            | COM/GND_PRI    [COM] Pin 4 ---> GND_PRI  | |             |
+                            +------------------------------------------|-|-------------+
+                                                                       | |
+    +V_BUS (+400V DC High-Voltage Rail) ──────┬────────────────────────|─|─────────────┬────────────────┐
+        │                                     │                        │ │             │                │
+       ┌┴─────────────────┐               Drain (D)                    │ │            ┌┴┐ C1            │
+       │ C_BUS_BULK       │              ┌────┴──────────┐             │ │            │ │ 2.2µF / 450V ┌┴┐ R_bleed1
+       │ 220µF / 450V     │              │ Q1: HS N-FET  │<------------+ │            └┬┘ Poly Film    │ │ 100kΩ / 1W
+       │ Electrolytic     │              │ IPB60R099C7   │               │             │ (Divides Vin) └┬┘
+       └┬─────────────────┘              │ (650V, 99mΩ)  │               │             │                │
+        │                                └────┬──────────┘               │             +=== VIRTUAL NEUTRAL
+        │                               Source│                          │             |    (Maintains +200V)
+        │                                     │                          │             |
+        │                                     +=== HALF-BRIDGE MID (HB)  │             |
+        │                                     |    (Swings 0V to +400V)  │             |
+        │                                     |                          │             |
+        │                    +----------------+--[ C_b: 0.47µF / 630V ]--+             |
+        │                    |                |   DC BLOCKING CAP        |             |
+        │                    |                |   (Prevents Xfmr Sat)    |             |
+        │                    |                |                          |             |
+        │                    |                |       PRIMARY WINDING    |             |
+        │                    |                |   +---[ Np: 24T ]--------+             |
+        │                    |                |   |   * (Dot at HB)                    |
+        │                    |                |   +------------------------------------+
+        │                    |                |                                        │
+        │                    |            Drain (D)                                   ┌┴┐ C2
+        │                    |           ┌────┴──────────┐                            │ │ 2.2µF / 450V ┌┴┐ R_bleed2
+        │                    |           │ Q2: LS N-FET  │<--------------+            └┬┘ Poly Film    │ │ 100kΩ / 1W
+        │                    |           │ IPB60R099C7   │ (Gate)        │             │ (Divides Vin) └┬┘
+        │                    |           └────┬──────────┘               │             │                │
+        │                    |          Source│                          │             │                │
+        │                    |                +---[ CS_PRI ]             │             │                │
+        │                    |                │                          │             │                │
+        │                    |               ┌┴┐ R_shunt: 0.10Ω / 3W     │             │                │
+        │                    |               │ │ 1% Metal Strip          │             │                │
+        │                    |               └┬┘ (Primary Current Sense) │             │                │
+        │                    |                │                          │             │                │
+    GND_PRI ─────────────────┴────────────────┴──────────────────────────┴─────────────┴────────────────┴─── GND_PRI
+        │
+       ┌┴┐ CY1: Safety Y1 Capacitor (2.2nF / 400VAC Across Galvanic Isolation Barrier)
+       └┬┘
+        │
+   ============================================= ISOLATION BARRIER =====================================================
+        │
+    GND_SEC ──────────────────────────────────+─────────────────────────────────────────────────────────┬─── GND_SEC
+        │                                     │                                                         │
+        │                          SECONDARY CENTER-TAP                                                 │
+        │                          (Ns1: 2T, Ns2: 2T)                                                   │
+        │                                     │                                                         │
+        │                       +-------------+-------------+                                           │
+        │                       |                           |                                           │
+        │                 SECONDARY WINDING 1         SECONDARY WINDING 2                               │
+        │                 (Ns1: 2T)                   (Ns2: 2T)                                         │
+        │                 * (Dot at Anode D1)         |                                                 │
+        │                       |                     * (Dot at Center-Tap)                             │
+        │                       +---[>|] D1           |                                                 │
+        │                           MBR40200WT        +---[>|] D2 (MBR40200WT Schottky)                 │
+        │                           [Cathode]             [Cathode]                                     │
+        │                               │                     │                                         │
+        │                               +==========+==========+=== NODE SEC_RECT                        │
+        │                                          |               (Rectified +20V AC)                  │
+        │                                          |                                                    │
+        │                                          ├──[ R_snub_sec: 3.3Ω / 2W ]                         │
+        │                                          │         │                                          │
+        │                                          │   [ C_snub_sec: 2.2nF / 100V ]                     │
+        │                                          │         │                                          │
+        │                                          │      GND_SEC                                       │
+        │                                          │                                                    │
+        │                                          +---[ Lo: 4.7µH / 30A Choke ]───+=== +VOUT (+12V/25A)│
+        │                                              Vishay IHLP-6767GZ-11       │                    │
+        │                                              (DCR = 1.2mΩ, Isat = 36A)  ┌┴──────────────────┐ │
+        │                                                                         │ COUT_BULK         │ │
+        │                                                                        ┌┴┐ 4x 470µF/25V    ┌┴┐│ COUT_CER
+        │                                                                        │ │ Poly (ESR=5mΩ)  │ ││ 6x 47µF/16V
+        │                                                                        └┬┘                 └┬┘│ X7R 1210
+        │                                                                         │                   │ │
+    GND_SEC ──────────────────────────────────────────────────────────────────────┴───────────────────┴─┴─ GND_SEC
 ```
+
+### 1.1 Detailed Component Connection Netlist & Terminal Details:
+
+| Net Name | Source (Pin / Terminal) | Destination (Pin / Terminal) | Electrical Function | Hardware Engineering Notes |
+| :--- | :--- | :--- | :--- | :--- |
+| **+V_BUS** | PFC Output (+400V) | $C_{bus}$ (+), $Q_1$ Drain, Divider Cap $C_1$ Pin 1 | High-voltage stiff DC bus | Trace layout must respect IEC 62368-1 high-voltage creepage rules ($\ge 2.5\,\text{mm}$). |
+| **HB_MID** | $Q_1$ Source, $Q_2$ Drain | Driver PHASE (Pin 7), DC Blocking Cap $C_b$ Pin 1 | High-voltage half-bridge switching node | Swings between $0\,\text{V}$ and $+400\,\text{V}$ at switching frequency $f_s$; minimize copper area. |
+| **VIRTUAL_NEUTRAL** | Divider Caps $C_1 / C_2$ Junction | Transformer Primary $N_p$ Pin 2, Bleeders | Midpoint reference rail ($V_{BUS}/2 = 200\,\text{V}$) | Balanced by polypropylene film capacitors $C_1, C_2$; bleeder resistors prevent DC drift. |
+| **PRI_XFMR_AC** | DC Blocking Cap $C_b$ Pin 2 | Transformer Primary $N_p$ Pin 1 | AC-coupled primary excitation | Capacitor $C_b$ blocks any DC imbalance current, preventing staircase transformer saturation. |
+| **SEC_RECT** | Diodes $D_1, D_2$ Common Cathodes | Output Choke $L_o$ Pin 1, Secondary Snubber | Full-wave rectified low-voltage AC node | Delivers smooth continuous inductor charging current; double switching frequency ripple. |
+| **+VOUT** | Output Choke $L_o$ Pin 2 | $C_{out}$ bank (+), Feedback network, Load (+) | High-current regulated +12V DC rail | Wide power copper plane; handles 25A continuous load current. |
+| **GND_SEC** | Transformer Secondary Center-Tap | $C_{out}$ bank (-), Secondary Return | Secondary isolated power ground | Carries total load return current ($25\,\text{A}$). |
+
+### 1.2 Component Bill of Materials & Parametric Specifications:
+
+| RefDes | Component Description | Manufacturer & Part Number | Key Electrical Specifications | Critical Design Constraint |
+| :--- | :--- | :--- | :--- | :--- |
+| **$Q_1, Q_2$** | High-Voltage N-MOSFETs | Infineon IPB60R099C7 | $V_{DS} = 650\,\text{V}, I_D = 24\,\text{A}, R_{DS(on)} = 99\,\text{m}\Omega, Q_g = 32\,\text{nC}$ | CoolMOS C7 technology minimizes switching and gate charge losses at $100\,\text{kHz}$. |
+| **$C_1, C_2$** | Voltage Divider Film Caps | KEMET R46KR422000M1M | $2.2\,\mu\text{F}, 450\,\text{V}_{\text{DC}}, \text{Metallized Polypropylene Film}$ | Handles high continuous AC ripple current ($I_{rms} \approx 2.5\,\text{A}$); film dielectric avoids capacitance drift. |
+| **$C_b$** | DC Blocking Capacitor | TDK B32652A6474J000 | $0.47\,\mu\text{F}, 630\,\text{V}_{\text{DC}}, \text{High-Pulse Film}$ | Eliminates any steady-state DC magnetization current through transformer primary winding. |
+| **$T_1$** | Main Power Transformer | Custom ETD44 Core (3C95) | Turns: $24:(2+2), L_m = 1.8\,\text{m}\H, L_{lk} < 2.5\,\mu\text{H}$ | Split primary/secondary sandwich construction to minimize leakage inductance and proximity losses. |
+| **$D_1, D_2$** | Secondary Dual Schottky | ON Semi MBR40200WT | $V_{RRM} = 200\,\text{V}, I_F = 40\,\text{A}, V_F = 0.72\,\text{V}$ | Common-cathode TO-247 Schottky diode mounted on secondary high-performance heatsink. |
+| **$L_o$** | Output Filter Inductor | Vishay IHLP-6767GZ-11 | $L = 4.7\,\mu\text{H}, I_{sat} = 36\,\text{A}, I_{rms} = 30\,\text{A}, DCR = 1.2\,\text{m}\Omega$ | Low-loss molded powder choke rated for $> 30\,\text{A}$ continuous saturation. |
+| **$C_{out,bulk}$** | Output Bulk Capacitor | Panasonic 25SVPF470M | $4 \times 470\,\mu\text{F}, 25\,\text{V}, \text{OS-CON Polymer}, ESR = 5\,\text{m}\Omega$ | Paralleled bank yields total ESR of $1.25\,\text{m}\Omega$ for ultra-low output ripple ($< 15\,\text{mV}$). |
+| **$U_1$ (Driver)** | Half-Bridge Gate Driver | TI UCC27282DR | $120\,\text{V} / 650\,\text{V}$ bootstrap, $3\,\text{A}$ sink / source, robust $dv/dt$ | Withstands negative transient swings on HB pin down to $-5\,\text{V}$. |
+
 
 ### 1.1 Core Operating Phases:
 1. **Phase 1: High-Side Conduction ($Q_1$ ON, $0 < t \le D \cdot T_s$)**:

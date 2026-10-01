@@ -11,17 +11,109 @@ This guide provides a comprehensive hardware analysis of the SEPIC converter, co
 The **SEPIC Converter** uses two inductors ($L_1, L_2$), a ground-referenced active switch ($Q_1$), a series AC coupling capacitor ($C_{sep}$), a diode ($D_1$), and an output filter capacitor ($C_o$):
 
 ```text
-                           SEPIC DC-DC Converter Power Stage
-              Inductor L1                      Capacitor C_sep           Diode D1
-   +Vin DC ─────^^^^^^──────────────┬──────────────[   ]─────────────┬─────[>|]─────────┬───> +Vout
-                                    │      (Series DC Blocking)      │                  │
-                                Drain (D)                           ┌┴┐                ┌┴┐
-                                ┌───┴───┐ Q1                        │ │ Inductor L2    │ │ C_out
-                                │  SW   │ Low-Side Switch           └┬┘ (To GND)       └┬┘
-                                └───┬───┘                            │                  │
-                                    │ Source (S)                     │                  │
-   GND ─────────────────────────────┴────────────────────────────────┴──────────────────┴─── GND
+========================================================================================================================
+       DETAILED HARDWARE SCHEMATIC: NON-INVERTING SEPIC DC-DC CONVERTER (9V-18V IN -> 12V/4A OUT)
+========================================================================================================================
+
+    +VIN (9V-18V DC) ───────────────────────────────────────────────────────────┐
+        │                                                                       │
+       [F1: 8A Fuse]                                                            │
+        │                                                                       │
+       ┌┴─────────────────┐                                                     │
+       │ CIN_BULK         │                                                     │
+      ┌┴┐ 220µF/35V Poly ┌┴┐ CIN_CER                                            │
+      │ │ (Low-ESR 12mΩ) │ │ 2x 10µF/35V X7R                                    │
+      └┬┘                └┬┘                                                    │
+       │                  │                                                     │
+       │                  │        PRIMARY INDUCTOR                             │
+       │                  │    +---[ L1: 22µH / 6.0A Shielded ]---+             │
+       │                  │    |   Coilcraft MSD1278-223          |             │
+       │                  │    |   (DCR = 32mΩ, Isat = 6.8A)      |             │
+       │                  │    +----------------------------------+             │
+       │                  │                                       │             │
+       │                  │                                       +=== NODE SW1 (Switching Node)
+       │                  │                                       |    (0V to +30V pulse)
+       │                  │                                       |
+       │                  │              SEPIC DC BLOCKING CAP    |
+       │                  │       +------[ C_sep: 10µF / 50V ]----+
+       │                  │       |      TDK C3225X7R1H106M       |
+       │                  │       |      (Carries high RMS ripple)|
+       │                  │       |                               |
+       │                  │       |      Drain (D)                +---[ R_snub: 3.3Ω / 1W ]
+       │                  │       |     ┌┴──────────────┐         |         │
+       │                  │       |     │ Q1: N-MOSFET  │         |   [ C_snub: 470pF ]
+       │                  │       |     │ BSC035N10NS5  │         |         │
+       │                  │       |  +->│ (100V, 3.5mΩ) │         |        PGND
+       │                  │       |  |  └┬──────────────┘
+       │                  │       |  |   │ Source (S)
+       │                  │       |  |   │
+       │                  │       |  |   +---[ CS+ ]
+       │                  │       |  |   │
+       │                  │       |  |  ┌┴┐ R_shunt: 8.0mΩ / 2W
+       │                  │       |  |  │ │ Metal Alloy
+       │                  │       |  |  └┬┘ (Current Sense)
+       │                  │       |  |   │
+       │                  │       |  |  PGND
+       │                  │       |  |
+       │                  │       |  |  GATE DRIVER INTERFACE
+       │                  │       |  +--[ R_g: 4.7Ω ]<-- UCC27517 (Low-Side Driver)
+       │                  │       |
+       │                  │       +=== NODE SW2 (Diode Anode Node)
+       │                  │       |    (Swings -12V to +18V)
+       │                  │       |
+       │                  │       |        SECONDARY INDUCTOR
+       │                  │       +---[ L2: 22µH / 6.0A Shielded ]---+
+       │                  │       |   Coilcraft MSD1278-223          |
+       │                  │       |   (DCR = 32mΩ)                   |
+       │                  │       |                                  │
+       │                  │       |                                 PGND (Return)
+       │                  │       |
+       │                  │       +---[ D1: Schottky Diode (Anode) ]
+       │                  │           V30100P (100V / 30A Trench)
+       │                  │           [ Cathode ]
+       │                  │               │
+       │                  │               +=== +VOUT (+12V/4A Regulated)
+       │                  │               │
+       │                  │              ┌┴──────────────────┐
+       │                  │              │ COUT_BULK         │
+       │                  │             ┌┴┐ 2x 270µF/25V    ┌┴┐ COUT_CER
+       │                  │             │ │ Poly (ESR=10mΩ) │ │ 3x 22µF/25V
+       │                  │             └┬┘                 └┬┘ X7R 1210
+       │                  │              │                   │
+       │                  │              │      +VOUT        │
+       │                  │              │        │          │
+       │                  │              │     [ R_fb1: 90.9kΩ, 0.1% ]
+       │                  │              │        │
+       │                  │              │        +---> V_FB (To Controller FB Pin)
+       │                  │              │        │     (V_ref = 1.200V)
+       │                  │              │     [ R_fb2: 10.0kΩ, 0.1% ]
+       │                  │              │        │
+       │                  │              │       AGND (Quiet Ground)
+       │                  │              │        │
+       │                  │              │     (Single Star Point)
+   PGND┴──────────────────┴──────────────┴────────+───────────────────┴─── PGND (0V Rail)
 ```
+
+### 1.1 Detailed Component Connection Netlist & Terminal Details:
+
+| Net Name | Source (Pin / Terminal) | Destination (Pin / Terminal) | Electrical Function | Hardware Engineering Notes |
+| :--- | :--- | :--- | :--- | :--- |
+| **+VIN_FILT** | Fuse $F_1$ Output | $C_{in}$ bank (+), Inductor $L_1$ Pin 1 | Filtered positive input DC bus | Carries continuous DC input current with triangular ripple. |
+| **SW1 (Switching Node)** | Inductor $L_1$ Pin 2, $Q_1$ Drain | Coupling Cap $C_{sep}$ Pin 1, Snubber | High-voltage pulsating switching node | Maximum switch voltage stress is $V_{stress} = V_{IN} + V_o = 18\,\text{V} + 12\,\text{V} = 30\,\text{V}$. |
+| **SW2 (Diode Node)** | Coupling Cap $C_{sep}$ Pin 2 | Inductor $L_2$ Pin 1, Diode $D_1$ Anode | AC-coupled pulsating diode node | Swings between $-V_{IN}$ when $Q_1$ is ON and $+V_o$ when $Q_1$ is OFF. |
+| **+VOUT** | Diode $D_1$ Cathode | $C_{out}$ bank (+), Feedback $R_{fb1}$, Load (+) | Non-inverted regulated +12V DC output rail | Smooth DC output rail; capacitors absorb discontinuous diode current pulses. |
+| **PGND** | $C_{in}$ (-), $R_{shunt}$ (-), Inductor $L_2$ Pin 2, $C_{out}$ (-) | System power ground return | Common zero-volt power ground | Inductor $L_2$ return connects directly to PGND; solid copper plane recommended. |
+
+### 1.2 Component Bill of Materials & Parametric Specifications:
+
+| RefDes | Component Description | Manufacturer & Part Number | Key Electrical Specifications | Critical Design Constraint |
+| :--- | :--- | :--- | :--- | :--- |
+| **$Q_1$** | Low-Side N-MOSFET | Infineon BSC035N10NS5 | $V_{DS} = 100\,\text{V}, I_D = 100\,\text{A}, R_{DS(on)} = 3.5\,\text{m}\Omega, Q_g = 28\,\text{nC}$ | Low ground-referenced driver complexity; $100\,\text{V}$ rating easily withstands $30\,\text{V}$ peak stress. |
+| **$D_1$** | Output Schottky Diode | Vishay V30100P | $V_{RRM} = 100\,\text{V}, I_F = 30\,\text{A}, V_F = 0.52\,\text{V}, t_{rr} < 20\,\text{ns}$ | Must be rated for peak reverse voltage $V_{R} = V_{IN} + V_o = 30\,\text{V}$ plus inductive overshoot. |
+| **$C_{sep}$** | SEPIC Coupling Capacitor | TDK C3225X7R1H106M | $10\,\mu\text{F}, 50\,\text{V}, \text{X7R Ceramic}, 1210$ package | **High RMS Current**: $I_{Csep,rms} = I_o \cdot \sqrt{V_o / V_{IN}} \approx 4.6\,\text{A}$. Must use high-grade MLCCs in parallel. |
+| **$L_1, L_2$** | Coupled / Dual Inductors | Coilcraft MSD1278-223MLD | $2 \times 22\,\mu\text{H}, I_{sat} = 6.8\,\text{A}, DCR = 32\,\text{m}\Omega$ | Coupled winding on single core cuts component count in half and eliminates inductor AC ripple cancellation issues. |
+| **$C_{out,bulk}$** | Output Bulk Capacitor | Panasonic 25SVPF270M | $2 \times 270\,\mu\text{F}, 25\,\text{V}, \text{OS-CON Polymer}, ESR = 10\,\text{m}\Omega$ | Supplies output current while $Q_1$ is ON and $D_1$ is reverse-biased. |
+
 
 ### 1.1 Conduction Intervals:
 1. **Interval 1: Switch ON ($0 < t \le D \cdot T_s$)**:

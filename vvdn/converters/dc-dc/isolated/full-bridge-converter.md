@@ -9,39 +9,115 @@ Welcome to the **VVDN Engineering Hub Technical Dossier on the Isolated Full-Bri
 The **Full-Bridge DC-DC Converter** employs four primary semiconductor switches configured in an H-bridge configuration across a center-tapped or full-wave secondary stage:
 
 ```text
-                       Phase-Shifted Full-Bridge (PSFB) Power Stage
-   +Vin DC ────┬───────────────────────┬───────────────────────┐
-               │                       │                       │
-           Drain (D)               Drain (D)                   │
-           ┌───┴───┐ Q1 (Leading)  ┌───┴───┐ Q3 (Lagging)     ┌┴┐
-           │  S1   │               │  S3   │                  │ │ C_bulk
-           └───┬───┘               └───┬───┘                  └┬┘
-               │ Source (S)            │ Source (S)            │
-               ├─── Leg A (Lead) ┐     ├─── Leg B (Lag) ─┐     │
-               │                 │     │                 │     │
-           Drain (D)             │ Drain (D)             │     │
-           ┌───┴───┐ Q2 (Leading)│ ┌───┴───┐ Q4 (Lagging)│     │
-           │  S2   │             │ │  S4   │             │     │
-           └───┬───┘             │ └───┬───┘             │     │
-               │ Source (S)      │     │ Source (S)      │     │
-   GND_PRI ────┴─────────────────┴─────┴─────────────────┴─────┴── GND_PRI
-                                 │     │
-                                 ├──[ L_lk / L_ext ]───[ Primary Np ]───┐
-                                 │  (Resonant/Leakage)       ││         │
-                                 │                           ││         │
-                                 └───────────────────────────┼──────────┘
-                                                             ││
-   =================================== ISOLATION BARRIER ===================================
-                                                             ││
-                                            Secondary        ││
-                                            Center-Tap   ┌───[ Ns1 ]───[>|] D1 ──┬───[ Inductor Lo ]──┬───> +Vout
-                                            Winding      │   ││                  │                    │
-                                                         ├───┼───────────────────┤                   ┌┴┐
-                                                         │   ││                  │                   │ │ Co
-                                                         └───[ Ns2 ]───[>|] D2 ──┘                   └┬┘
-                                                         │                                            │
-                                              GND_SEC ───┴────────────────────────────────────────────┴─── GND_SEC
+========================================================================================================================
+     DETAILED HARDWARE SCHEMATIC: PHASE-SHIFTED FULL-BRIDGE (PSFB) ZVS CONVERTER (400V -> 48V/20A, 1kW)
+========================================================================================================================
+
+    +V_BUS (+400V DC Rail) ───────────────┬───────────────────────────────┬─────────────────────────────┐
+        │                                 │                               │                             │
+       ┌┴─────────────────┐           Drain (D)                       Drain (D)                        ┌┴┐
+       │ C_BUS_BULK       │          ┌────┴──────────┐               ┌────┴──────────┐                 │ │ C_CER
+       │ 470µF / 450V     │          │ Q1: HS LEADING│               │ Q3: HS LAGGING│                 └┬┘ 4x 1µF/630V
+       │ Aluminum Elec.   │   +----->│ IPW60R045CP   │        +----->│ IPW60R045CP   │                  │   Poly Film
+       └┬─────────────────┘   | Gate │ (650V, 45mΩ)  │        | Gate │ (650V, 45mΩ)  │                  │
+        │                     |      └────┬──────────┘        |      └────┬──────────┘                  │
+        │                     |     Source│                   |     Source│                             │
+        │   DUAL-LEG DRIVER   |           │                   |           │                             │
+        │   HO_A -------------+           +=== NODE MID_A     |           +=== NODE MID_B               │
+        │   (Leading Leg)                 |    (Leading Leg)  |           |    (Lagging Leg)            │
+        │                                 |                   |           |                             │
+        │                             Drain (D)   +-----------+       Drain (D)                         │
+        │                            ┌────┴───────┴──┐               ┌────┴──────────┐                  │
+        │                            │ Q2: LS LEADING│               │ Q4: LS LAGGING│                  │
+        │                     +----->│ IPW60R045CP   │        +----->│ IPW60R045CP   │                  │
+        │                     | Gate └────┬──────────┘        | Gate └────┬──────────┘                  │
+        │   LO_A -------------+     Source│             LO_B -+     Source│                             │
+        │   HO_B ---------------------------------------------+           │                             │
+        │                                 │                               │                             │
+    GND_PRI ──────────────────────────────┴───────────────────────────────┴─────────────────────────────┴─── GND_PRI
+                                          │                               │
+                                          │  RESONANT SHIM INDUCTOR       │
+                                          ├──[ L_shim: 8.5µH / 15A ]──────┼────────────────────────┐
+                                          │  Wurth 7443640850             │                        │
+                                          │                               │                        │
+                                          │  DC BLOCKING CAPACITOR        │                        │
+                                          ├──[ C_b: 0.22µF / 630V Film ]──┼──[ CT1: Prim Current ]─┤
+                                          │                               │   Sense Transformer    │
+                                          │                               │   (1:100 Ratio)        │
+                                          │                               │                        │
+                                          │                               │   TRANSFORMER PRIMARY  │
+                                          │                               │   +---[ Np: 16T ]------+
+                                          │                               │   |   * (Dot at Mid_A)
+                                          │                               └───+--------------------+
+                                          │
+   =======================================│===================================== ISOLATION BARRIER =================
+                                          │
+    GND_SEC ──────────────────────────────┼───+─────────────────────────────────────────────────────────┬─── GND_SEC
+                                          │   │                                                         │
+                                          │   │                        SECONDARY CENTER-TAP             │
+                                          │   │                        (Ns1: 3T, Ns2: 3T)               │
+                                          │   │                                   │                     │
+                                          │   │                     +-------------+-------------+       │
+                                          │   │                     |                           |       │
+                                          │   │               SECONDARY WINDING 1         SECONDARY WINDING 2
+                                          │   │               (Ns1: 3T)                   (Ns2: 3T)     │
+                                          │   │               * (Dot at Anode D1)         |             │
+                                          │   │                     |                     * (Dot at Center-Tap)
+                                          │   │                     +---[>|] D1           |             │
+                                          │   │                         IDH12G65C6        +---[>|] D2 (SiC Schottky)
+                                          │   │                         [Cathode]             [Cathode] │
+                                          │   │                             │                     │     │
+                                          │   │                             +==========+==========+     │
+                                          │   │                                        |                │
+                                          │   │                                        +=== NODE SEC_RECT
+                                          │   │                                        |    (Rectified +75V)
+                                          │   │                                        |                │
+                                          │   │                                        ├──[ R_snub_sec: 4.7Ω / 3W ]
+                                          │   │                                        │         │      │
+                                          │   │                                        │   [ C_snub: 1.5nF/200V ]
+                                          │   │                                        │         │      │
+                                          │   │                                        │      GND_SEC   │
+                                          │   │                                        │                │
+                                          │   │                                        +---[ Lo: 22µH / 25A Choke ]---+
+                                          │   │                                            Coilcraft AGP4233-223      │
+                                          │   │                                            (DCR = 3.6mΩ, Isat = 28A)  │
+                                          │   │                                                                       │
+                                          │   │                                                                       +=== +VOUT (+48V/20A)
+                                          │   │                                                                       │
+                                          │   │                                                                      ┌┴──────────────────┐
+                                          │   │                                                                      │ COUT_BULK         │
+                                          │   │                                                                     ┌┴┐ 4x 220µF/63V    ┌┴┐ COUT_CER
+                                          │   │                                                                     │ │ Poly (ESR=12mΩ) │ │ 6x 10µF/100V
+                                          │   │                                                                     └┬┘                 └┬┘ X7R 1210
+                                          │   │                                                                      │                   │
+    GND_SEC ──────────────────────────────┴───┴──────────────────────────────────────────────────────────────────────┴───────────────────┴─── GND_SEC
 ```
+
+### 1.1 Detailed Component Connection Netlist & Terminal Details:
+
+| Net Name | Source (Pin / Terminal) | Destination (Pin / Terminal) | Electrical Function | Hardware Engineering Notes |
+| :--- | :--- | :--- | :--- | :--- |
+| **+V_BUS** | PFC Pre-Regulator Bus | $C_{bus}$ (+), $Q_1$ Drain, $Q_3$ Drain | High-voltage 400V DC input rail | Symmetrical high-frequency decoupling film capacitors placed adjacent to each half-bridge leg. |
+| **MID_A (Leading Leg)**| $Q_1$ Source, $Q_2$ Drain | Shim Inductor $L_{shim}$ Pin 1 | High-speed ZVS leading leg switching node | Driven by $50\%$ complementary PWM with fixed dead-time ($t_{dead} \approx 200\,\text{ns}$). |
+| **MID_B (Lagging Leg)**| $Q_3$ Source, $Q_4$ Drain | Transformer Primary $N_p$ Pin 2 | Phase-shifted lagging leg switching node | Phase-shifted by angle $\phi$ relative to Leg A; achieves ZVS using energy stored in $L_{shim}$. |
+| **PRIM_RESONANT** | Shim Inductor $L_{shim}$ Pin 2 | Series DC Blocking Cap $C_b$, Current Transformer CT1 | Primary resonant energy transfer loop | $L_{shim}$ supplements transformer leakage inductance to ensure ZVS down to $20\%$ light load. |
+| **SEC_RECT** | SiC Diodes $D_1, D_2$ Common Cathodes | Output Filter Choke $L_o$ Pin 1, Snubber | High-frequency rectified DC pulse train | Operating frequency is $2 f_s = 200\,\text{kHz}$; SiC diodes eliminate reverse-recovery voltage overshoot. |
+| **+VOUT** | Output Choke $L_o$ Pin 2 | $C_{out}$ bank (+), Feedback network, Load (+) | High-power regulated +48V DC bus | Power copper plane designed for 20A continuous load current. |
+| **GND_SEC** | Transformer Secondary Center-Tap | $C_{out}$ bank (-), Secondary Return | Secondary isolated power ground | Carries total load return current ($20\,\text{A}$). |
+
+### 1.2 Component Bill of Materials & Parametric Specifications:
+
+| RefDes | Component Description | Manufacturer & Part Number | Key Electrical Specifications | Critical Design Constraint |
+| :--- | :--- | :--- | :--- | :--- |
+| **$Q_1 \dots Q_4$** | Primary High-Voltage N-FETs | Infineon IPW60R045CP | $V_{DS} = 650\,\text{V}, I_D = 60\,\text{A}, R_{DS(on)} = 45\,\text{m}\Omega, C_{oss} = 160\,\text{pF}$ | Low $R_{DS(on)}$ and well-defined output capacitance $C_{oss}$ enable complete ZVS discharge during dead-time. |
+| **$L_{shim}$** | External Resonant Inductor | Würth Elektronik 7443640850 | $L = 8.5\,\mu\text{H}, I_{sat} = 22\,\text{A}, I_{rms} = 16\,\text{A}, DCR = 3.2\,\text{m}\Omega$ | High-frequency gapped core handles circulating primary reactive energy without thermal runaway. |
+| **$C_b$** | DC Blocking Film Cap | Vishay MKP1848520704K2 | $0.22\,\mu\text{F}, 700\,\text{V}_{\text{DC}}, \text{Metallized Polypropylene}$ | Prevents net DC volt-second imbalance from walking the transformer core into saturation. |
+| **$T_1$** | Main PSFB Transformer | Custom ETD49 Core (3C95) | Turns: $16:(3+3), L_m = 2.4\,\text{m}\text{H}, L_{lk} = 1.5\,\mu\text{H}$ | Triple-insulated wire, interleaved secondary copper foil for low proximity loss and leakage control. |
+| **$D_1, D_2$** | Secondary SiC Diodes | Infineon IDH12G65C6 | $V_{RRM} = 650\,\text{V}, I_F = 12\,\text{A}, Q_c = 17\,\text{nC}, V_F = 1.35\,\text{V}$ | SiC Schottky eliminates diode reverse recovery snap-off, allowing smaller snubbers and higher efficiency. |
+| **$L_o$** | Output Filter Inductor | Coilcraft AGP4233-223ME | $L = 22\,\mu\text{H}, I_{sat} = 28\,\text{A}, I_{rms} = 22\,\text{A}, DCR = 3.6\,\text{m}\Omega$ | Heavy edge-wound copper ribbon choke maintains CCM across entire active load spectrum. |
+| **$C_{out,bulk}$** | Output Bulk Capacitor | Panasonic 63SVPF220M | $4 \times 220\,\mu\text{F}, 63\,\text{V}, \text{OS-CON Polymer}, ESR = 12\,\text{m}\Omega$ | Low equivalent impedance ($3\,\text{m}\Omega$) absorbs inductor current ripple with $< 25\,\text{mV}$ ripple. |
+| **$U_1$ (Controller)** | Phase-Shifted PWM IC | TI UCC28951-Q1 | Advanced ZVS controller with adaptive delay, sync rect drive | Independent programmable dead-time control for leading and lagging legs. |
+
 
 ### 1.1 Hard-Switched Full-Bridge vs. Phase-Shifted Full-Bridge (PSFB)
 - **Hard-Switched Full-Bridge**: Diagonal switch pairs (Q1-Q4 and Q2-Q3) are driven simultaneously via conventional pulse-width modulation (PWM). Turn-on and turn-off occur at high $V_{DS}$ and high $I_D$, leading to severe switching losses ($E_{sw} \propto f_s \cdot V_{in}^2 \cdot I$), preventing operation above $50\,\text{kHz}$.

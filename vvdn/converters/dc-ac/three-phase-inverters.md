@@ -11,29 +11,76 @@ This guide provides an exhaustive mathematical and hardware analysis covering th
 The three-phase two-level VSI comprises three identical half-bridge phase legs (Leg U, Leg V, Leg W) connected across a common stiff DC link:
 
 ```text
-                        Three-Phase Two-Level Voltage Source Inverter (VSI)
-   +Vdc ────┬───────────────────────┬───────────────────────┬───────────────────────────────────┐
-            │                       │                       │                                   │
-        Drain (D)               Drain (D)               Drain (D)                               │
-        ┌───┴───┐ S1            ┌───┴───┐ S3            ┌───┴───┐ S5                           ┌┴┐
-        │  Q1   │ Leg U High    │  Q3   │ Leg V High    │  Q5   │ Leg W High                   │ │ C_dc
-        └───┬───┘               └───┬───┘               └───┬───┘                              └┬┘
-            │ Source (S)            │ Source (S)            │ Source (S)                        │
-            ├─── Phase U (A) ───────┼───────────────────────┼───────────────────┐               │
-            │                       ├─── Phase V (B) ───────┼───────────────┐   │               │
-            │                       │                       ├─── Phase W (C)┼───┼───────────┐   │
-            │                       │                       │               │   │           │   │
-        Drain (D)               Drain (D)               Drain (D)           │   │           │   │
-        ┌───┴───┐ S2            ┌───┴───┐ S4            ┌───┴───┐ S6        │   │           │   │
-        │  Q2   │ Leg U Low     │  Q4   │ Leg V Low     │  Q6   │ Leg W Low │   │           │   │
-        └───┬───┘               └───┬───┘               └───┬───┘           │   │           │   │
-            │ Source (S)            │ Source (S)            │ Source (S)    │   │           │   │
-   GND ─────┴───────────────────────┴───────────────────────┴───────────────┼───┼───────────┼───┴─── GND
-                                                                            │   │           │
-                                                                   ┌────────┴───┴───────────┴────────┐
-                                                                   │ 3-Phase AC Motor / Grid (U,V,W) │
-                                                                   └─────────────────────────────────┘
+========================================================================================================================
+     DETAILED HARDWARE SCHEMATIC: THREE-PHASE TWO-LEVEL VOLTAGE SOURCE INVERTER (VSI) (800V DC -> 400V 3-PHASE, 50kW)
+========================================================================================================================
+
+    +VDC BUS (+800V Traction Battery / DC Link) ────────────────────────────────────────────────────────┐
+        │                                                                                               │
+       ┌┴─────────────────┐           PHASE LEG U                     PHASE LEG V           PHASE LEG W │
+       │ C_LINK_BULK      │           Collector (C)                   Collector (C)         Collector(C)│
+       │ 500µF / 900V     │          ┌────┴──────────┐               ┌────┴──────────┐     ┌────┴──────┐│
+       │ Low-ESR Film     │          │ Q1: HS LEG U  │               │ Q3: HS LEG V  │     │ Q5: HS W  ││
+       │ (Laminated Bus)  │   +----->│ Wolfspeed SiC │        +----->│ Wolfspeed SiC │  +->│ SiC MOSFET││
+       └┬─────────────────┘   | Gate │ CAB016M12FM3  │        | Gate │ CAB016M12FM3  │  |  │ 1200V/16mΩ││
+        │                     |      └────┬──────────┘        |      └────┬──────────┘  |  └────┬──────┘│
+        │                     |    Emitter│                   |    Emitter│             |   Emit│       │
+        │   ISOLATED DRIVER   |           │                   |           │             |       │       │
+        │   UCC21750 (DESAT)  |           +=== PHASE U (U)    |           +=== PHASE V  |       +=== PH W
+        │   OUT_U_HS ---------+           |    (0V to +800V)  |           |    (0V-800V)|       |    (0V-800V)
+        │                                 |                   |           |             |       |       │
+        │                             Collect(C)  +-----------+       Collect(C)        |   Collect(C)  │
+        │                            ┌────┴───────┴──┐               ┌────┴──────────┐  |  ┌────┴──────┐│
+        │                            │ Q2: LS LEG U  │               │ Q4: LS LEG V  │  |  │ Q6: LS W  ││
+        │                     +----->│ CAB016M12FM3  │        +----->│ CAB016M12FM3  │  +->│ 1200V/16mΩ││
+        │                     | Gate └────┬──────────┘        | Gate └────┬──────────┘     └────┬──────┘│
+        │   OUT_U_LS ---------+    Emitter│             OUT_V-+    Emitter│             OUT_W--+Emit│   │
+        │   (Low-Side Leg U)              │             (Leg V Drivers)   │             (Leg W Drivers) │
+        │                                 │                               │                     │       │
+    GND_DC ───────────────────────────────┴───────────────────────────────┴─────────────────────┴───────┴─── GND_DC
+                                          │                               │                     │
+                                          │     INLINE HALL SENSORS       │                     │
+                                          ├──[ LEM CAB-500: Phase U ]─────┼─────────────────────┼───> TERMINAL U (Phase A)
+                                          │  (Analog ADC -> TMS320F28379D)│                     │
+                                          │                               ├──[ LEM CAB-500 ]────┼───> TERMINAL V (Phase B)
+                                          │                               │  (Phase V Current)  │
+                                          │                               │                     ├───> TERMINAL W (Phase C)
+                                          │                               │                     │     │
+                                          │  +----------------------------+---------------------+     │
+                                          │  |   3-PHASE LC OUTPUT SINE FILTER (OPTIONAL FOR GRID-TIE) │
+                                          │  |   - 3x Lf: 250µH / 100A Powder Core Chokes              │
+                                          │  |   - 3x Cf: 22µF / 480VAC Delta-Connected Film Bank      │
+                                          │  +----------------------------+---------------------+     │
+                                          │                               │                     │     │
+                                          +───────────────────────────────┼─────────────────────┼─────+
+                                                                          │                     │
+                                                                 +========+=====================+=======+
+                                                                 |  3-PHASE PERMANENT MAGNET SYNCHRONOUS|
+                                                                 |  MOTOR (PMSM) / INDUCTION MACHINE    |
+                                                                 +======================================+
 ```
+
+### 1.1 Detailed Component Connection Netlist & Terminal Details:
+
+| Net Name | Source (Pin / Terminal) | Destination (Pin / Terminal) | Electrical Function | Hardware Engineering Notes |
+| :--- | :--- | :--- | :--- | :--- |
+| **+VDC_BUS** | EV Battery / DC Busbar | $C_{link}$ (+), $Q_1, Q_3, Q_5$ Collectors/Drains | Main 800V DC high-voltage rail | Symmetrical planar laminated copper busbar minimizes stray parasitic inductance ($L_{stray} < 15\,\text{nH}$). |
+| **PHASE_U (SW_U)** | $Q_1$ Emitter, $Q_2$ Collector | Current Transducer CT_U, Motor Terminal U | Phase U high-power switching node | Swings between $0\,\text{V}$ and $+800\,\text{V}$ at PWM carrier frequency $f_c = 16\,\text{kHz} \dots 20\,\text{kHz}$. |
+| **PHASE_V (SW_V)** | $Q_3$ Emitter, $Q_4$ Collector | Current Transducer CT_V, Motor Terminal V | Phase V high-power switching node | Displaced $120^\circ$ electrically from Phase U; high $dv/dt$ edge rates ($> 20\,\text{V/ns}$). |
+| **PHASE_W (SW_W)** | $Q_5$ Emitter, $Q_6$ Collector | Current Transducer CT_W, Motor Terminal W | Phase W high-power switching node | Displaced $240^\circ$ electrically from Phase U; monitored by inline current transducer. |
+| **I_U / I_V / I_W** | LEM CAB-500 Analog Outputs | DSP ADC Inputs (ADCIN_A0, A1, A2) | Instantaneous phase current feedback | Closed-loop Field Oriented Control (FOC / Clarke-Park transforms) requires $< 1\,\mu\text{s}$ sampling latency. |
+| **GND_DC** | $Q_2, Q_4, Q_6$ Emitters, $C_{link}$ (-) | DC negative return busbar | High-current power return | Continuous return busbar; isolated from 12V automotive control chassis ground. |
+
+### 1.2 Component Bill of Materials & Parametric Specifications:
+
+| RefDes | Component Description | Manufacturer & Part Number | Key Electrical Specifications | Critical Design Constraint |
+| :--- | :--- | :--- | :--- | :--- |
+| **$Q_1 \dots Q_6$** | 3-Phase SiC Power Module | Wolfspeed CAB016M12FM3 | $V_{DS} = 1200\,\text{V}, I_D = 150\,\text{A}, R_{DS(on)} = 16\,\text{m}\Omega$ | Half-bridge SiC module; ultra-fast body diode and low switching losses enable $98.8\%$ peak inverter efficiency. |
+| **$C_{link}$** | DC Link Film Capacitor | KEMET C4AKJBW5500A3MJ | $500\,\mu\text{F}, 900\,\text{V}_{\text{DC}}, ESR = 1.2\,\text{m}\Omega, I_{ripple} = 85\,\text{A}_{rms}$ | Handles severe triangular RMS ripple current drawn by 3-phase Space Vector PWM modulation. |
+| **$U_{drv1-6}$** | Isolated Smart Gate Drivers | TI UCC21750DW | $5.7\,\text{kV}_{RMS}$ isolation, $10\,\text{A}$ sink/source, integrated DESAT & AMC | Fast Overcurrent Desaturation (DESAT) shutdown ($< 200\,\text{ns}$) protects SiC switches during phase short-circuits. |
+| **$CT_{U,V,W}$** | Automotive Hall Current Sensors | LEM CAB 500-C/SP5 | $\pm 500\,\text{A}$ primary range, $0.5\%$ accuracy, CAN / analog output | High galvanic isolation; measures DC and AC phase currents without inserting series resistance into motor cables. |
+| **$U_{ctrl}$** | Central Motor Control MCU | TI TMS320F28379D | Dual-Core 32-bit floating-point C28x DSP, Trigonometric Math Unit | Computes Space Vector PWM (SVPWM) switching vectors $V_0 \dots V_7$ in real-time every $50\,\mu\text{s}$. |
+
 
 ### 1.1 Switching Logic & Pole Voltages:
 Each leg switch state can be defined by a binary variable $S_x \in \{0, 1\}$ (where $x \in \{u, v, w\}$):

@@ -69,43 +69,144 @@ Resonant converters introduce an LC tank network that shapes the switch voltage 
 The **LLC Resonant Converter** utilizes three reactive elements: a series resonant capacitor $C_r$, a series resonant inductor $L_r$ (often integrated as transformer primary leakage inductance), and the transformer primary magnetizing inductance $L_m$:
 
 ```text
-                       LLC Resonant Half-Bridge Converter Power Stage
-   +Vin DC ────┬─────────────────────────────────────────────────────────────────────────────────┐
-               │                                                                                 │
-           Drain (D)                                                                            ┌┴┐
-           ┌───┴───┐ Q1                                                                         │ │ C_in
-           │  S1   │ High-Side Switch                                                           └┬┘
-           └───┬───┘                                                                             │
-               │ Source (S)                                                                      │
-               ├─── Midpoint (HB) ──┐                                                            │
-               │                    │                                                            │
-           Drain (D)              ┌─┴─┐ Cr (Resonant Cap)                                        │
-           ┌───┴───┐ Q2           │   │                                                          │
-           │  S2   │ Low-Side     └─┬─┘                                                          │
-           └───┬───┘ Switch         ├───[ Lr (Resonant Inductor) ]───┬──────────────────┐        │
-               │ Source (S)         │                                │                  │        │
-   GND_PRI ────┴────────────────────┼───────────────────────────────┌┴┐ Lm              │        │
-                                    │                               │ │ (Magnetizing)   │        │
-                                    │                               └┬┘                 │        │
-                                    │                                │                  │        │
-                                    │                       [ Primary Winding Np ]      │        │
-                                    │                                ││                 │        │
-                                    └────────────────────────────────┼──────────────────┘        │
-                                                                     ││                          │
-   ================================================ ISOLATION BARRIER ================================================
-                                                                     ││
-                                                              Secondary ││ Center-Tap
-                                                              Winding ┌───[ Ns1 ]───[>|] D1 ──┬───> +Vout
-                                                                      │   ││                  │
-                                                              GND_SEC ├───┼───────────────────┤
-                                                                      │   ││                  │
-                                                                      └───[ Ns2 ]───[>|] D2 ──┤
-                                                                          ││                  │
-                                                                                             ┌┴┐ Co (Only
-                                                                                             │ │ Cap Needed!)
-                                                                                             └┬┘
-                                                              GND_SEC ────────────────────────┴─── GND_SEC
+========================================================================================================================
+     DETAILED HARDWARE SCHEMATIC: LLC RESONANT HALF-BRIDGE CONVERTER (400V -> 12V/40A, 500W SERVER PSU)
+========================================================================================================================
+
+                  +-----------------[ D_boot: DFLS1100 ]<------+ +VCC_DRV (+12V)
+                  |                 [ 100V / 1A Schottky]      |
+                  |                                           [R_boot: 2.2Ω]
+                  |                                            |
+                  |     +-----------[ C_boot: 0.1µF/50V X7R ]--+
+                  |     |                                      |
+                  |     |   +---[ RESONANT LLC CONTROLLER IC (e.g. UCC256403 / L6599A) ]---+
+                  |     |   |                                                              |
+                  +-------->| BOOT      [HO] Pin 16 ---[ R_g1: 4.7Ω ]----+                 |
+                        |   |                                            |                 |
+                        +-->| PHASE/HB  [LO] Pin 11 ---[ R_g2: 4.7Ω ]--+ |                 |
+                            |                                          | |                 |
+         OPTO_FB ---------->| FB (VCO)  [VCC] Pin 12 <-- +12V          | |                 |
+         ISEN_IN ---------->| ISEN      [GND] Pin 10 --> GND_PRI       | |                 |
+                            +------------------------------------------|-|-----------------+
+                                                                       | |
+    +V_BUS (+400V DC Rail) ───────────────┬────────────────────────────|─|───────────────────────┐
+        │                                 │                            │ │                       │
+       ┌┴─────────────────┐           Drain (D)                        │ │                      ┌┴┐
+       │ C_BUS_BULK       │          ┌────┴──────────┐                 │ │                      │ │ C_CER
+       │ 330µF / 450V     │          │ Q1: HS N-MOS  │<----------------+ │                      └┬┘ 2x 1µF/630V
+       │ Aluminum Elec.   │          │ IPW60R099CP   │                   │                       │   Poly Film
+       └┬─────────────────┘          │ (650V, 99mΩ)  │                   │                       │
+        │                            └────┬──────────┘                   │                       │
+        │                           Source│                              │                       │
+        │                                 │                              │                       │
+        │                                 +=== HALF-BRIDGE MID (HB)      │                       │
+        │                                 |    (0V to +400V Square Wave) │                       │
+        │                                 |                              │                       │
+        │       +-------------------------+--[ Cr: 24nF / 630V MKP ]     │                       │
+        │       |                         |  SERIES RESONANT CAP         │                       │
+        │       |                         |  (Low-Loss Polypropylene)    │                       │
+        │       |                         |                              │                       │
+        │       |                         +--[ Lr: 22µH Resonant Choke ]-+                       │
+        │       |                         |  (Integrated Leakage / Ext)  |                       │
+        │       |                         |                              |                       │
+        │       |                     Drain (D)                          |                       │
+        │       |                    ┌────┴──────────┐                   |                       │
+        │       |                    │ Q2: LS N-MOS  │<------------------+                       │
+        │       |                    │ IPW60R099CP   │                                           │
+        │       |                    │ (650V, 99mΩ)  │                                           │
+        │       |                    └────┬──────────┘                                           │
+        │       |                   Source│                                                      │
+        │       |                         +---[ CT1: Resonant Current ]                          │
+        │       |                         │   Sense Transformer -> ISEN                          │
+        │       |                         │                                                      │
+    GND_PRI ────┴─────────────────────────┴──────────────────────────────────────────────────────┴─── GND_PRI
+                                          │
+                                          +=== TANK EXCITATION NODE
+                                          |
+                                          ├──[ Lm: 110µH Magnetizing Inductance ]──┐
+                                          │  (Integrated Transformer Core Gap)     │
+                                          │                                        │
+                                          +---[ Transformer Primary Winding Np ]───┤ (Np: 18T)
+                                          |   * (Dot at Tank Node)                 |
+                                          |                                        |
+                                          +----------------------------------------+
+                                          |
+   =======================================│===================================== ISOLATION BARRIER =================
+                                          |
+    GND_SEC ──────────────────────────────┼───+─────────────────────────────────────────────────────────┬─── GND_SEC
+                                          │   │                                                         │
+                                          │   │                        SECONDARY CENTER-TAP             │
+                                          │   │                        (Ns1: 1T, Ns2: 1T Cu-Foil)       │
+                                          │   │                                   │                     │
+                                          │   │                     +-------------+-------------+       │
+                                          │   │                     |                           |       │
+                                          │   │               SECONDARY WINDING 1         SECONDARY WINDING 2
+                                          │   │               (Ns1: 1T Foil)              (Ns2: 1T Foil)│
+                                          │   │               * (Dot at SR1 Drain)        |             │
+                                          │   │                     |                     * (Dot at Center-Tap)
+                                          │   │                 Drain (D)                 |             │
+                                          │   │               ┌─────┴──────────┐      Drain (D)         │
+                                          │   │               │ Q_SR1: SYNC FET│     ┌────┴──────────┐  │
+                                          │   │               │ BSC014N04LS    │     │ Q_SR2: SYNC   │  │
+                                          │   │        +----->│ (40V, 1.4mΩ)   │ +-->│ BSC014N04LS   │  │
+                                          │   │        | Gate └─────┬──────────┘ |   └────┬──────────┘  │
+                                          │   │        |      Source│            |  Source│             │
+                                          │   │        |            │            |        │             │
+                                          │   │   +----+------------|------------+--------+             │
+                                          │   │   | DUAL SYNCHRONOUS RECTIFIER CONTROLLER               │
+                                          │   │   | (e.g. MP6922 / TEA1995: Zero-Current Sensing)       │
+                                          │   │   +-----------------+-----------------------------------+
+                                          │   │                     │
+                                          │   │                  GND_SEC
+                                          │   │
+                                          │   +===================================+=== +VOUT (+12V/40A, 500W)
+                                          │                                       │    (Pure Capacitive Filter!)
+                                          │                                      ┌┴──────────────────┐
+                                          │                                      │ COUT_BULK         │
+                                          │                                     ┌┴┐ 6x 470µF/16V    ┌┴┐ COUT_CER
+                                          │                                     │ │ Poly (ESR=4mΩ)  │ │ 8x 47µF/16V
+                                          │                                     └┬┘                 └┬┘ X7R 1210
+                                          │                                      │                   │
+                                          │            +VOUT                     │      +VOUT        │
+                                          │              │                       │        │          │
+                                          │           [ 1kΩ ]                    │     [ R_fb1: 38.3kΩ ]
+                                          │              │                       │        │
+                                          │     [ Anode: Pin 1 ]                 │        +---> TL431 REF
+                                          │     PC817 OPTOCOUPLER                │        │     (V_ref=2.50V)
+                                          │     [ Cathode: Pin 2 ]               │     [ R_fb2: 10.0kΩ ]
+                                          │              │                       │        │
+                                          │              +----[ CATHODE: TL431 ]─+       GND_SEC
+                                          │              |    (Precision Shunt)  |        │
+                                          │              +----[ ANODE: GND_SEC ]─+        │
+                                          │                                               │
+    GND_SEC ──────────────────────────────┴───────────────────────────────────────────────┴─── GND_SEC (Return)
 ```
+
+### 3.1 Detailed Component Connection Netlist & Terminal Details:
+
+| Net Name | Source (Pin / Terminal) | Destination (Pin / Terminal) | Electrical Function | Hardware Engineering Notes |
+| :--- | :--- | :--- | :--- | :--- |
+| **+V_BUS** | PFC 400V Bulk Bus | $C_{bus}$ (+), $Q_1$ Drain, Controller $V_{IN}$ | Stiff DC high-voltage rail | Symmetrical high-frequency MLCC bypass directly at half-bridge drain. |
+| **HB (Switch Node)** | $Q_1$ Source, $Q_2$ Drain | Resonant Cap $C_r$ Pin 1, Driver PHASE | High-speed ZVS switching midpoint | Swings between $0\,\text{V}$ and $+400\,\text{V}$ at variable frequency ($80\,\text{kHz} \dots 200\,\text{kHz}$). |
+| **RESONANT_TANK** | Resonant Cap $C_r$ Pin 2 | Series Resonant Choke $L_r$ Pin 1 | High-current AC resonant loop | $C_r$ sees high peak AC voltage ($\pm 600\,\text{V}_{pk}$); must use low-loss MKP dielectric. |
+| **TANK_XFMR** | Resonant Choke $L_r$ Pin 2 | Transformer Primary $N_p$ Pin 1, $L_m$ | Transformer excitation node | Sinusoidal current excitation produces zero EMI harmonics compared to hard-switched PWM. |
+| **SR1_GATE / SR2_GATE**| SR Controller OUTA / OUTB | Synchronous Rectifier $Q_{SR1}, Q_{SR2}$ Gates | Ultra-fast sync rect gate signals | Senses $V_{DS}$ across FET to turn ON when channel conducts and turn OFF at exact zero-crossing (ZCS). |
+| **+VOUT** | Transformer Secondary Center-Tap | $C_{out}$ bank (+), Feedback network, Load (+) | High-efficiency regulated +12V DC rail | **No Output Inductor Needed**: LLC functions as a smooth current source, feeding $C_o$ directly. |
+| **GND_SEC** | Sync FETs $Q_{SR1}, Q_{SR2}$ Sources | $C_{out}$ bank (-), Secondary Return | Secondary high-current power return | Continuous plane pour handling 40A return current. |
+
+### 3.2 Component Bill of Materials & Parametric Specifications:
+
+| RefDes | Component Description | Manufacturer & Part Number | Key Electrical Specifications | Critical Design Constraint |
+| :--- | :--- | :--- | :--- | :--- |
+| **$Q_1, Q_2$** | Resonant Half-Bridge FETs | Infineon IPW60R099CP | $V_{DS} = 650\,\text{V}, I_D = 31\,\text{A}, R_{DS(on)} = 99\,\text{m}\Omega, C_{oss} = 95\,\text{pF}$ | Low $C_{oss}$ allows fast zero-voltage switching transitions with modest magnetizing current $I_m$. |
+| **$C_r$** | Series Resonant Capacitor | KEMET R76IR4240SE30K | $24\,\text{nF}, 630\,\text{V}_{\text{DC}}, \text{Double Metallized Polypropylene}$ | Ultra-low dissipation factor ($\tan \delta < 0.0005$); handles continuous $4\,\text{A}_{rms}$ resonant tank current. |
+| **$L_r$** | Series Resonant Inductor | Custom PQ26/20 (3C95) | $L_r = 22\,\mu\text{H}, I_{pk} = 4.8\,\text{A}, DCR = 14\,\text{m}\Omega$ | High-frequency litz-wire winding minimizes AC resistance from skin and proximity effects. |
+| **$T_1$ (LLC)** | LLC Power Transformer | Custom ETD44 Core (3C95) | Turns: $18:(1+1), L_m = 110\,\mu\text{H}, L_k \approx 4\,\mu\text{H}$ | Precisely gapped center leg controls magnetizing inductance ratio $k = L_m / L_r = 5.0$. |
+| **$Q_{SR1}, Q_{SR2}$** | Synchronous Rectifier FETs | Infineon BSC014N04LS | $V_{DS} = 40\,\text{V}, I_D = 125\,\text{A}, R_{DS(on)} = 1.4\,\text{m}\Omega, Q_g = 35\,\text{nC}$ | Superjunction sync FETs in PowerPAK eliminate $> 15\,\text{W}$ of diode forward conduction loss. |
+| **$C_{out,bulk}$** | Output Bulk Capacitor | Panasonic 16SEPC470M | $6 \times 470\,\mu\text{F}, 16\,\text{V}, \text{Conductive Polymer}, ESR = 4\,\text{m}\Omega$ | Net bank ESR $< 0.7\,\text{m}\Omega$; absorbs secondary resonant AC ripple current ($I_{rms} \approx 20\,\text{A}$). |
+| **$U_1$ (Controller)** | LLC Resonant Controller | TI UCC256403DDBR | Variable frequency control ($35\,\text{kHz} \dots 1\,\text{MHz}$), soft start, burst mode | Built-in high-voltage startup and hybrid hysteretic control for lightning-fast transient response. |
+| **$U_2$ (SR Driver)** | Dual Smart SR Controller | MPS MP6922GS | $V_{DS}$ sensing down to $-30\,\text{mV}$, $t_{prop} < 20\,\text{ns}$ | Prevents shoot-through by ensuring synchronous switches turn OFF cleanly before current reverses. |
+
 
 ### 3.1 Two Characteristic Resonant Frequencies:
 1. **Series Resonant Frequency ($f_r$ or $f_0$)**:

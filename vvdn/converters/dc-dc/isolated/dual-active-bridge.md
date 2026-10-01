@@ -9,31 +9,75 @@ Welcome to the **VVDN Engineering Hub Technical Dossier on the Dual Active Bridg
 The **Dual Active Bridge (DAB)** converter comprises two active full-bridge (H-bridge) switching stages coupled across a high-frequency isolation transformer with an energy-transfer power inductance ($L$):
 
 ```text
-                           Dual Active Bridge (DAB) Power Stage
-  ========== PRIMARY BRIDGE (PORT 1: V1) ==========       ========== SECONDARY BRIDGE (PORT 2: V2) ==========
-  +V1 DC ────┬──────────────────┬─────────────────┐        +V2 DC ────┬──────────────────┬─────────────────┐
-             │                  │                 │                   │                  │                 │
-         Drain (D)          Drain (D)             │               Drain (D)          Drain (D)             │
-         ┌───┴───┐          ┌───┴───┐             │               ┌───┴───┐          ┌───┴───┐             │
-         │  S1   │          │  S3   │           ┌─┴─┐ C1          │  S5   │          │  S7   │           ┌─┴─┐ C2
-         └───┬───┘          └───┬───┘           │   │             └───┬───┘          └───┬───┘           │   │
-             │ Source (S)       │ Source (S)    └─┬─┘                 │ Source (S)       │ Source (S)    └─┬─┘
-             ├─── Leg A ──┐     ├─── Leg B ─┐     │                   ├─── Leg C ──┐     ├─── Leg D ─┐     │
-             │            │     │           │     │                   │            │     │           │     │
-         Drain (D)        │ Drain (D)       │     │               Drain (D)        │ Drain (D)       │     │
-         ┌───┴───┐        │ ┌───┴───┐       │     │               ┌───┴───┐        │ ┌───┴───┐       │     │
-         │  S2   │        │ │  S4   │       │     │               │  S6   │        │ │  S8   │       │     │
-         └───┬───┘        │ └───┬───┘       │     │               └───┬───┘        │ └───┬───┘       │     │
-             │ Source (S) │     │ Source (S)│     │                   │ Source (S) │     │ Source (S)│     │
-          GND_1 ──────────┴─────┴───────────┴─────┴── GND_1        GND_2 ──────────┴─────┴───────────┴─────┴── GND_2
-                          │                 │                                      │                 │
-                          ├───[ Inductor L ]┼───[ Transformer Primary: N1 ]───┐    │                 │
-                          │   (Energy Trans)│             ││                  │    │                 │
-                          │                 └─────────────┼───────────────────┘    │                 │
-                          │                               ││                       │                 │
-                          │                     [ Transformer Secondary: N2 ]──────┴─────────────────┘
-                          │                               ││
+========================================================================================================================
+     DETAILED HARDWARE SCHEMATIC: BIDIRECTIONAL DUAL ACTIVE BRIDGE (DAB) CONVERTER (400V <-> 48V, 3.3kW EV/ESS)
+========================================================================================================================
+
+  +================ PORT 1: HIGH-VOLTAGE DC BUS (+400V) ================+   +================ PORT 2: LOW-VOLTAGE DC BUS (+48V) =================+
+  +V1 (+400V DC) ─────────┬───────────────────────┬─────────────────────┐     +V2 (+48V DC) ──────────┬───────────────────────┬─────────────────────┐
+      │                   │                       │                     │         │                   │                       │                     │
+     ┌┴─────────────────┐ │                       │                    ┌┴┐       ┌┴─────────────────┐ │                       │                    ┌┴┐
+     │ C1_BULK          │ │                       │                    │ │ C1_CER│ C2_BULK          │ │                       │                    │ │ C2_CER
+     │ 470µF / 450V     │ │                       │                    └┬┘ 4x 1µF│ 1200µF / 63V     │ │                       │                    └┬┘ 6x 10µF
+     │ Poly Film        │ │                       │                     │  630V  │ Low-ESR Poly     │ │                       │                     │  100V
+     └┬─────────────────┘ │                       │                     │        └┬─────────────────┘ │                       │                     │
+      │               Drain(D)                Drain(D)                  │         │               Drain(D)                Drain(D)                  │
+      │              ┌────┴──────────┐       ┌────┴──────────┐          │         │              ┌────┴──────────┐       ┌────┴──────────┐          │
+      │              │ S1: HS SiC-FET│       │ S3: HS SiC-FET│          │         │              │ S5: HS N-MOS  │       │ S7: HS N-MOS  │          │
+      │       +----->│ C3M0065090D   │+----->│ C3M0065090D   │          │         │       +----->│ IPT012N08N5   │+----->│ IPT012N08N5   │          │
+      │       | Gate │ (900V, 65mΩ)  || Gate │ (900V, 65mΩ)  │          │         │       | Gate │ (80V, 1.2mΩ)  || Gate │ (80V, 1.2mΩ)  │          │
+      │       |      └────┬──────────┘|      └────┬──────────┘          │         │       |      └────┬──────────┘|      └────┬──────────┘          │
+      │       |     Source│           |     Source│                     │         │       |     Source│           |     Source│                     │
+      │       |           │           |           │                     │         │       |           │           |           │                     │
+      │       |           +=== NODE A |           +=== NODE B           │         │       |           +=== NODE C |           +=== NODE D           │
+      │       |           |   (Leg A) |           |   (Leg B)           │         │       |           |   (Leg C) |           |   (Leg D)           │
+      │       |           |           |           |                     │         │       |           |           |           |                     │
+      │       |       Drain(D)        |       Drain(D)                  │         │       |       Drain(D)        |       Drain(D)                  │
+      │       |      ┌────┴──────────┐|      ┌────┴──────────┐          │         │       |      ┌────┴──────────┐|      ┌────┴──────────┐          │
+      │       |      │ S2: LS SiC-FET│|      │ S4: LS SiC-FET│          │         │       |      │ S6: LS N-MOS  │|      │ S8: LS N-MOS  │          │
+      │   +---+----->│ C3M0065090D   │+----->│ C3M0065090D   │          │         │   +---+----->│ IPT012N08N5   │+----->│ IPT012N08N5   │          │
+      │   |   | Gate └────┬──────────┘| Gate └────┬──────────┘          │         │   |   | Gate └────┬──────────┘| Gate └────┬──────────┘          │
+      │   |   |     Source│           |     Source│                     │         │   |   |     Source│           |     Source│                     │
+  GND_1 ──┴───┼───────────┴───────────┼───────────┴─────────────────────┴── GND_1│GND_2 ──┴───┼───────────┴───────────┼───────────┴─────────────────────┴── GND_2
+          │   │                       │                                           │   │                       │
+          │   +---[ ISOLATED GATE DRIVERS: UCC21520 ]<---+                        │   +---[ ISOLATED GATE DRIVERS: UCC21520 ]<---+
+          │       (Reinforced 5.7kV Isolation)           │                        │       (High-Current 4A Source / 6A Sink)     │
+          │                                              │                        │                                              │
+          │   +=== ENERGY TRANSFER INDUCTOR & TRANSFORMER========+                │   +=== DIGITAL CONTROL SYSTEM (TMS320F28379D) ========================+
+          │   |                                                  |                │   | - Phase-Shift Modulator: Generates 8 PWM outputs with resolution  |
+          └───+---[ L_ext: 18µH / 20A ]───[ Primary N1: 16T ]────+                    |   of 150 picoseconds (High-Resolution PWM: HRPWM)                  |
+                  Wurth 7443641800        * (Dot at Node A)      |                    | - Closed-loop digital phase angle shift: -90° <= φ <= +90°        |
+                                                                 |                    | - Seamless bidirectional power flow reversal in < 1 millisecond   |
+   ==============================================================│====================+====================================================================
+                                                                 |                    |
+                                          [ Secondary N2: 2T ]───┴────────────────────┘
+                                          * (Dot at Node C)
 ```
+
+### 1.1 Detailed Component Connection Netlist & Terminal Details:
+
+| Net Name | Source (Pin / Terminal) | Destination (Pin / Terminal) | Electrical Function | Hardware Engineering Notes |
+| :--- | :--- | :--- | :--- | :--- |
+| **+V1 (Port 1 Rail)** | High-Voltage Battery / DC Bus | $C_{1}$ bank (+), $S_1$ Drain, $S_3$ Drain | Stiff 400V DC input/output rail | Polypropylene film capacitors handle high continuous RMS switching current ($I_{rms} \approx 10\,\text{A}$). |
+| **NODE_A / NODE_B** | Primary Half-Bridge Legs A & B | Series Inductor $L_{ext}$, Transformer Primary $N_1$ | High-frequency AC excitation port ($v_{ac1}$) | 50% square wave at switching frequency $f_s = 100\,\text{kHz}$; amplitude is $\pm 400\,\text{V}$. |
+| **TANK_AC_LOOP** | Node A -> Inductor $L_{ext}$ Pin 1 | Transformer $N_1$ Pin 1 -> Node B | High-frequency inductive power transfer branch | Power is transferred by driving current through $L_{ext}$; current is quasi-trapezoidal/sinusoidal. |
+| **NODE_C / NODE_D** | Secondary Half-Bridge Legs C & D | Transformer Secondary $N_2$ | Low-voltage AC excitation port ($v_{ac2}$) | 50% square wave phase-shifted by angle $\phi$ relative to Port 1; amplitude is $\pm 48\,\text{V}$. |
+| **+V2 (Port 2 Rail)** | Low-Voltage Battery / DC Bus | $C_{2}$ bank (+), $S_5$ Drain, $S_7$ Drain | Stiff 48V DC input/output rail | Very low ESR polymer capacitor bank absorbs high circulating RMS currents ($I_{rms} \approx 70\,\text{A}$). |
+| **GND_1 / GND_2** | Port 1 Ground / Port 2 Ground | Galvanic isolation barrier | Fully isolated system grounds | Galvanic isolation barrier rated for $> 3000\,\text{V}_{RMS}$ withstand; creepage $\ge 8.0\,\text{mm}$. |
+
+### 1.2 Component Bill of Materials & Parametric Specifications:
+
+| RefDes | Component Description | Manufacturer & Part Number | Key Electrical Specifications | Critical Design Constraint |
+| :--- | :--- | :--- | :--- | :--- |
+| **$S_1 \dots S_4$** | Primary SiC Power MOSFETs | Wolfspeed C3M0065090D | $V_{DS} = 900\,\text{V}, I_D = 36\,\text{A}, R_{DS(on)} = 65\,\text{m}\Omega, Q_g = 30\,\text{nC}$ | Silicon carbide (SiC) provides zero reverse-recovery and ultra-low switching loss at $100\,\text{kHz}$. |
+| **$S_5 \dots S_8$** | Secondary LV N-MOSFETs | Infineon IPT012N08N5 | $V_{DS} = 80\,\text{V}, I_D = 300\,\text{A}, R_{DS(on)} = 1.2\,\text{m}\Omega, Q_g = 178\,\text{nC}$ | OptiMOS 5 in 8-pin PowerBlock package handles high secondary RMS current ($I_{rms} \approx 55\,\text{A}$). |
+| **$L_{ext}$** | Energy Transfer Inductor | Würth Elektronik 7443641800 | $L = 18\,\mu\text{H}, I_{sat} = 28\,\text{A}, I_{rms} = 22\,\text{A}, DCR = 4.8\,\text{m}\Omega$ | Determines maximum bidirectional power transfer: $P_{max} = \frac{n V_1 V_2}{8 f_s L_{ext}}$. |
+| **$T_1$** | Planar Isolation Transformer | Custom E64 Planar Core (3C95) | Turns: $16:2 (8:1), L_m = 1.2\,\text{m}\text{H}, L_{lk} < 0.8\,\mu\text{H}$ | Multi-layer heavy copper PCB planar windings achieve $> 99\%$ transformer efficiency and low leakage. |
+| **$C_1$ Bank** | Port 1 DC Link Film Caps | KEMET C4AEGBW5300A3FJ | $470\,\mu\text{F}, 450\,\text{V}_{\text{DC}}, \text{Metallized Polypropylene Film}$ | Handles continuous high-frequency triangular ripple current without dielectric breakdown. |
+| **$C_2$ Bank** | Port 2 DC Link Polymer Caps | Panasonic 63SVPF220M | $6 \times 220\,\mu\text{F}, 63\,\text{V}, \text{OS-CON Polymer}, ESR = 12\,\text{m}\Omega$ | Paralleled array yields $< 2\,\text{m}\Omega$ net ESR to prevent low-voltage bus voltage ripple. |
+| **$U_{drv1-4}$** | Isolated Dual Gate Drivers | TI UCC21520DW | $5.7\,\text{kV}_{RMS}$ reinforced isolation, $4\,\text{A} / 6\,\text{A}$ sink/source | High CMTI ($> 100\,\text{V/ns}$) prevents false gate triggering during fast SiC switching edges. |
+| **$U_{ctrl}$** | Central Digital Controller | TI TMS320F28379D | Dual-Core 200MHz C28x DSP, 150ps HRPWM resolution | Controls phase-shift angle $\phi$ in real-time based on bus current and voltage demand. |
+
 
 ### 1.1 Core Energy Transfer Mechanism:
 1. Both primary and secondary bridges generate high-frequency AC square-wave voltages ($v_{ac1}$ and $v_{ac2}$) with $50\%$ duty cycle at frequency $f_s$ ($50\,\text{kHz} \dots 200\,\text{kHz}$).

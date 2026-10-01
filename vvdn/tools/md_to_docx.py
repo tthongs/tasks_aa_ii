@@ -428,8 +428,8 @@ def main():
             print(f"Invalid target: {target}")
             return
     else:
-        # Default: scan standards/, protocols/, evse/, dual_lift_controller/, ldo/, and mosfets/
-        scan_dirs = ["standards", "protocols", "evse", "dual_lift_controller", "ldo", "mosfets"]
+        # Default: scan standards/, protocols/, evse/, dual_lift_controller/, ldo/, mosfets/, and converters/
+        scan_dirs = ["standards", "protocols", "evse", "dual_lift_controller", "ldo", "mosfets", "converters"]
         md_files = []
         for d in scan_dirs:
             p = base_dir / d

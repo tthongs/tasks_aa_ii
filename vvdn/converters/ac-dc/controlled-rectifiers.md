@@ -11,21 +11,83 @@ This guide provides an exhaustive hardware analysis covering single-phase and th
 ## 1. Operating Principle & Rectifier Architectures
 
 ```text
-                      Single-Phase Controlled Rectifier Architectures
-   SEMI-CONVERTER (Half-Controlled: 2 SCRs + 2 Diodes)   FULL-CONVERTER (Fully-Controlled: 4 SCRs)
-          Line ───┬──────────────────────┐                      Line ───┬──────────────────────┐
-                  │                      │                              │                      │
-                ┌─┴─┐ T1               ┌─┴─┐ T2                       ┌─┴─┐ T1               ┌─┴─┐ T3
-                │SCR│                  │SCR│                          │SCR│                  │SCR│
-                └─┬─┘                  └─┬─┘                          └─┬─┘                  └─┬─┘
-                  ├──────────┬───────────┤                              ├──────────┬───────────┤
-                  │          │           │                              │          │           │
-                ┌─┴─┐ D1    ┌┴┐ D_FW   ┌─┴─┐ D2                       ┌─┴─┐ T4    ┌┴┐ Load   ┌─┴─┐ T2
-                │>| │Diode  │ │ (Opt)  │>| │Diode                     │SCR│       │ │ R-L-E  │SCR│
-                └─┬─┘       └┬┘        └─┬─┘                          └─┬─┘       └┬┘        └─┬─┘
-                  │          │           │                              │          │           │
-        Neutral ──┴──────────┴───────────┴─                  Neutral ───┴──────────┴───────────┴─
+========================================================================================================================
+     DETAILED HARDWARE SCHEMATIC: SINGLE-PHASE FULLY-CONTROLLED THYRISTOR BRIDGE (230V AC -> 0-200V DC / 25A)
+========================================================================================================================
+
+    AC LINE (230V RMS) ──[ F1: 30A Fast ]──┬─────────────────────────────────────────────────────────────┐
+                                           │                                                             │
+                                          ┌┴┐ MOV1: 275V RMS                                             │
+                                          │ │ (Surge Clamp)                                              │
+                                          └┬┘                                                            │
+    AC NEUTRAL ────────────────────────────┼───────────────────────────┬─────────────────────────────────┼───+
+                                           │                           │                                 │   │
+                                           │                           │                                 │   │
+                                       Anode (A)                   Anode (A)                             │   │
+                                      ┌────┴──────────┐           ┌────┴──────────┐                      │   │
+                                      │ T1: THYRISTOR │           │ T3: THYRISTOR │                      │   │
+                                      │ Vishay 40TPS12│           │ Vishay 40TPS12│                      │   │
+                               +----->│ (1200V, 35A)  │    +----->│ (1200V, 35A)  │                      │   │
+                               | Gate └────┬──────────┘    | Gate └────┬──────────┘                      │   │
+                               |     Cath  │               |     Cath  │                                 │   │
+                               |           │               |           │                                 │   │
+                               |           +---------------+-----------+=== COMMON CATHODE DC+           │   │
+                               |           |                                (0V to +207V Controlled)     │   │
+                               |           |                                                             │   │
+                               |           ├──[ R_snub: 22Ω / 5W ]         +=== LOAD TERMINAL +          │   │
+                               |           │         │                     |                             │   │
+                               |           │   [ C_snub: 0.1µF / 630V ]    +---[ L_filter: 50mH / 25A ]--+   │
+                               |           │         │                         (DC Smoothing Choke)      │   │
+                               |           │      AC LINE                                                │   │
+                               |           │                                                             │   │
+                               |       Cath│                                                           ┌─┴─┐ │
+                               |      ┌────┴──────────┐                                                │ R │ │
+                               |      │ T4: THYRISTOR │                                                │ L │ │
+                               |      │ Vishay 40TPS12│                                                │ O │ │
+                               |   +->│ (1200V, 35A)  │                                                │ A │ │
+                               |   |  └────┬──────────┘                                                │ D │ │
+                               |   |  Anode│                                                           └─┬─┘ │
+                               |   |       │                                                             │   │
+                               |   |       +---------------------------+=== COMMON ANODE DC-             │   │
+                               |   |                                   |    (Return Reference)           │   │
+                               |   |                                   |                                ┌┴┐  │
+                               |   |                               Cath│                                │-│  │
+                               |   |                              ┌────┴──────────┐                     │E│  │
+                               |   |                              │ T2: THYRISTOR │                     │+│  │
+                               |   |                              │ Vishay 40TPS12│                     └┬┘  │
+                               |   |                       +----->│ (1200V, 35A)  │                      │   │
+                               |   |                       | Gate └────┬──────────┘                      │   │
+                               |   |                       |      Anode│        (DC Motor Back-EMF)      │   │
+                               |   |                       |           │                                 │   │
+                               |   |                       |           +─────────────────────────────────┼───+
+                               |   |                       |           │                                 │
+                               +---|-----------------------|-----------|---[ PULSE TRANSFORMER TX1: GATE 1 & 2 ]
+                                   +-----------------------+-----------|---[ PULSE TRANSFORMER TX2: GATE 3 & 4 ]
+                                                                       │     (Isolated Trigger: 1:1, 100mA Firing Pulse)
+                                                                       │
+    AC NEUTRAL ────────────────────────────────────────────────────────┴────────────────────────────────────────
 ```
+
+### 1.1 Detailed Component Connection Netlist & Terminal Details:
+
+| Net Name | Source (Pin / Terminal) | Destination (Pin / Terminal) | Electrical Function | Hardware Engineering Notes |
+| :--- | :--- | :--- | :--- | :--- |
+| **AC_LINE** | AC Mains Live Feed | $T_1$ Anode, $T_4$ Cathode, Snubber | Input AC phase branch 1 | Line input connects between upper and lower thyristors of Leg 1. |
+| **AC_NEUTRAL** | AC Mains Neutral Feed | $T_3$ Anode, $T_2$ Cathode, Snubber | Input AC phase branch 2 | Neutral connects between upper and lower thyristors of Leg 2. |
+| **DC_POS (+)** | Thyristors $T_1, T_3$ Cathodes | DC Smoothing Choke $L_{filter}$ Input | Controlled DC positive bus | Average DC voltage is $V_{dc} = \frac{2 V_m}{\pi} \cos \alpha$; can invert when $\alpha > 90^\circ$. |
+| **DC_NEG (-)** | Thyristors $T_4, T_2$ Anodes | DC Motor / Load Negative Terminal | Controlled DC return rail | Commutated return carrying continuous unidirectional DC current. |
+| **GATE_1_4** | Pulse Transformer TX1 Secondary | Thyristors $T_1, T_2$ Gate-Cathode Pins | Synchronized gate firing pulse train | Fired simultaneously at angle $\alpha$ during positive utility half-cycle. |
+| **GATE_3_2** | Pulse Transformer TX2 Secondary | Thyristors $T_3, T_4$ Gate-Cathode Pins | Synchronized gate firing pulse train | Fired simultaneously at angle $\pi + \alpha$ during negative utility half-cycle. |
+
+### 1.2 Component Bill of Materials & Parametric Specifications:
+
+| RefDes | Component Description | Manufacturer & Part Number | Key Electrical Specifications | Critical Design Constraint |
+| :--- | :--- | :--- | :--- | :--- |
+| **$T_1 \dots T_4$** | Phase-Control Thyristors | Vishay Semiconductors 40TPS12 | $V_{RRM} = 1200\,\text{V}, I_{T(AV)} = 35\,\text{A}, I_{GT} = 150\,\text{mA}, V_{TM} = 1.45\,\text{V}$ | $1200\,\text{V}$ rating easily withstands $325\,\text{V}$ peak grid voltage plus motor back-EMF spikes. |
+| **$R_{snub}, C_{snub}$**| Thyristor RC Snubbers | Ohmite 280 / KEMET PHE450 | $R = 22\,\Omega / 5\,\text{W Wirewound}, C = 0.1\,\mu\text{F} / 630\,\text{V Film}$ | Restricts rate of off-state voltage rise to $\frac{dv}{dt} < 500\,\text{V}/\mu\text{s}$ to prevent false $dv/dt$ triggering. |
+| **$TX_1, TX_2$** | Gate Pulse Transformers | Pulse Electronics PE-64936 | Ratio: $1:1, V_{isolation} = 3000\,\text{V}_{RMS}, E-T = 150\,\text{V}\cdot\mu\text{s}$ | Delivers sharp $150\,\text{mA}, 10\,\mu\text{s}$ firing pulses with steep rise time ($< 100\,\text{ns}$). |
+| **$L_{filter}$** | DC Smoothing Inductor | Hammond Mfg 195J25 | $L = 50\,\text{mH}, I_{DC} = 25\,\text{A}, DCR = 85\,\text{m}\Omega$ | Heavy laminated iron core choke guarantees continuous conduction down to $5\%$ rated current. |
+
 
 ### 1.1 Semi-Converter vs. Full-Converter:
 - **Semi-Converter (Single-Quadrant)**:

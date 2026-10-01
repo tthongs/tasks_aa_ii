@@ -9,30 +9,131 @@ Welcome to the **VVDN Engineering Hub Technical Dossier on the Flyback DC-DC Con
 The **Flyback Converter** is an isolated, buck-boost-derived switched-mode power supply topology. The core magnetic element is **not** an ideal transformer, but a **coupled inductor** with a gapped magnetic core designed specifically to store energy during the switch ON time and release it during the OFF time:
 
 ```text
-                           Isolated Flyback Converter Power Stage
-  +Vin DC ───┬─────────────────────────────────────────────────────────┐
-             │                                                         │
-             ├───┐                                            Primary Winding (Np)
-             │  ┌┴┐ R_snub                                    ───████████───┬─── Drain (D)
-             │  │ │                                              ││         │   ┌───┴───┐
-             │  └┬┘                                              ││         └───┤   Q1  │ Primary Switch
-             │   ├───┐ C_snub                                    ││ (Dot inverted)  └───┬───┘
-             │  ┌┴┐  │                                           ││                     │ Source (S)
-             │  │ │  │                                           ││                     ├───[ R_sense ]─── GND_PRI
-             │  └┬┘  │                                           ││                     │
-             │   ├───┘                                           ││                  GND_PRI
-             └───┴───[<| D_snub (Fast Recovery) ]────────────────┘│
-                                                                  │
-  ===================================== ISOLATION BARRIER ========│=====================================
-                                                                  │
-                                                        Secondary │
-                                                        Winding   ├───[>|] Secondary Diode (D_sec) ──┬───> +Vout
-                                                        (Ns)      │                                  │
-                                                                  │                                ┌─┴─┐ C_out
-                                                                  │                                │   │
-                                                                  │                                └─┬─┘
-                                                        Secondary ┴──────────────────────────────────┴─── GND_SEC
+========================================================================================================================
+     DETAILED HARDWARE SCHEMATIC: ISOLATED QUASI-RESONANT FLYBACK CONVERTER (100V-375V DC -> +12V/3A SELV OUT)
+========================================================================================================================
+
+    +VBULK (100V-375V DC) ─────────────────┬─────────────────────────────────────────────────────────────┐
+        │                                  │                                                             │
+       ┌┴─────────────────┐                │          PRIMARY RCD CLAMP SNUBBER                          │
+       │ C_BULK           │                │    +-----[ D_snub: US1M (1000V / 1A) ]<-----+               │
+       │ 100µF / 450V     │                │    |     (Ultra-Fast Recovery: trr < 75ns)  |               │
+       │ Aluminum Elec.   │                │    |                                        |               │
+       └┬─────────────────┘                │    +-----[ R_snub: 47kΩ / 3W ]--------------+               │
+        │                                  │    |     [ C_snub: 2.2nF / 630V Poly ]------+               │
+        │                                  │    |                                                        │
+        │                                  +----+=== TRANSFORMER PRIMARY (Np: 48T)                       │
+        │                                            |* (Dot at +VBULK)                                  │
+        │                                            |                                                   │
+        │                                            |                                                   │
+        │                                            | (Dot inverted)                                    │
+        │                                            +===================================+               │
+        │                                                                                │               │
+        │                                                                                │ Drain (D)     │
+        │                                                                               ┌┴──────────────┐│
+        │                                                                               │ Q1: N-MOSFET  ││
+        │                                                                               │ IPB80R290P7   ││
+        │                                                                        +----->│ (800V, 290mΩ) ││
+        │                                                                        | Gate └┬──────────────┘│
+        │                                                                        |       │ Source (S)    │
+        │      +---[ PWM / QR CONTROLLER (e.g. UCC28740) ]---+                   |       │               │
+        │      |                                             |                   |       +---[ CS Filter ]
+        │      | GATE (Pin 6) -------[ R_gate: 10Ω ]---------+                   |       │    R_cs: 1kΩ  │
+        │      |                                                                 |      ┌┴┐   C_cs: 220pF│
+        │      | CS   (Pin 3) <--------------------------------------------------+      │ │ R_sense      │
+        │      |                                                                        └┬┘ 0.25Ω / 2W 1%│
+        │      | VCC  (Pin 5) <----+                                                     │               │
+        │      |                   │                                                  GND_PRI            │
+        │      | FB   (Pin 1) <--+ │                                                                     │
+        │      |                 │ │                                                                     │
+        │      | GND  (Pin 4)    │ │                                                                     │
+        │      +--------+--------+-+---------------------------------------------------------------------+
+        │               │        │ │
+        │            GND_PRI     │ └──[ D_aux: 1N4148 ]<--+ AUXILIARY WINDING (Naux: 7T)
+        │                        │                        │* (Provides controller bias VCC = +14V)
+        │                        │                       ┌┴┐ C_aux: 10µF/25V
+        │                        │                       └┬┘
+        │                        │                        │
+        │                        │                     GND_PRI
+        │                        │
+        │                        +---[ Collector (Pin 4) ] OPTOCOUPLER: PC817A
+        │                             [ Emitter   (Pin 3) ] ---> GND_PRI
+        │
+    GND_PRI ─────────────────────────────────────────────────────────────────────────────────────────────
+        │
+       ┌┴┐ CY1: Safety Y-Capacitor (2.2nF / 400VAC Class Y1: Reinforced Isolation Across Barrier)
+       └┬┘
+        │
+   ============================================= ISOLATION BARRIER (>= 6.4mm Creepage) ===================
+        │
+    GND_SEC ─────────────────────────────────────────────────────────────────────────────────────────────
+        │                                                                                │
+        │                                            +===================================+
+        │                                            |
+        │                                            | TRANSFORMER SECONDARY (Ns: 6T)
+        │                                            | (Dot inverted relative to Np)
+        │                                            |*
+        │                                            +----[ D_sec: V30100P Schottky ]----+
+        │                                            |    (100V / 30A Trench)            │
+        │                                            |    [ Anode to Ns, Cathode to Out] │
+        │                                            |                                   │
+        │                                            +---[ R_snub_sec: 4.7Ω / 1W ]       │
+        │                                            |         │                         │
+        │                                            |   [ C_snub_sec: 1nF / 100V ]      │
+        │                                            |         │                         │
+        │                                            |      GND_SEC                      │
+        │                                            |                                   │
+        │                                            |                                   +=== +VOUT (+12V/3A)
+        │                                            |                                   │
+        │                                            |                                  ┌┴──────────────────┐
+        │                                            |                                  │ COUT_BULK         │
+        │                                            |                                 ┌┴┐ 2x 470µF/25V    ┌┴┐ COUT_CER
+        │                                            |                                 │ │ Poly (ESR=10mΩ) │ │ 2x 22µF/25V
+        │                                            |                                 └┬┘                 └┬┘ X7R 1210
+        │                                            |                                  │                   │
+        │                                            |            +VOUT                 │      +VOUT        │
+        │                                            |              │                   │        │          │
+        │                                            |           [ 1kΩ ]                │     [ R_fb1: 38.3kΩ ]
+        │                                            |              │                   │        │
+        │                                            |    [ Anode: Pin 1 ]              │        +---> REF (Pin 1)
+        │                                            |    PC817 OPTOCOUPLER             │        │     (V_ref=2.50V)
+        │                                            |    [ Cathode: Pin 2 ]            │     [ R_fb2: 10.0kΩ ]
+        │                                            |              │                   │        │
+        │                                            |              +----[ CATHODE ]----+       GND_SEC
+        │                                            |              |    TL431 PRECISION|
+        │                                            |              |    SHUNT REGULATOR|
+        │                                            |              +----[ ANODE: GND ]─+
+        │                                            │                                  │
+    GND_SEC ─────────────────────────────────────────┴──────────────────────────────────┴─── GND_SEC (Return)
 ```
+
+### 1.1 Detailed Component Connection Netlist & Terminal Details:
+
+| Net Name | Source (Pin / Terminal) | Destination (Pin / Terminal) | Electrical Function | Hardware Engineering Notes |
+| :--- | :--- | :--- | :--- | :--- |
+| **+VBULK** | Input Bridge Rectifier (+) | $C_{bulk}$ (+), Transformer Primary Pin 1, RCD Snubber | High-voltage rectified DC input rail | Trace clearance must satisfy IEC 62368-1 high-voltage spacing ($\ge 2.5\,\text{mm}$). |
+| **DRAIN_PRI** | Transformer Primary Pin 2 | $Q_1$ Drain, Diode $D_{snub}$ Cathode | Primary switching node ($0\,\text{V} \dots 650\,\text{V}$) | Keep copper loop from Primary Pin 2 through $D_{snub}$ and $C_{snub}$ extremely short to suppress leakage ringing. |
+| **CS_PRI** | $Q_1$ Source | Sense Resistor $R_{sense}$ Top Pad, $R_{cs}$ Filter | Primary peak current sensing | Low-inductance resistor layout; Kelvin sense trace to controller CS comparator pin. |
+| **VCC_AUX** | Aux Winding $N_{aux}$ Pin 2 | Diode $D_{aux}$ Anode -> $C_{aux}$ (+), Controller VCC | Controller primary bootstrap bias rail | Delivers steady $+14\,\text{V}$ DC to controller after initial startup resistor charges $C_{aux}$. |
+| **OPTO_COL** | PC817 Optocoupler Pin 4 | Controller FB Pin | Isolated closed-loop feedback signal | Modulates controller internal current setpoint; optocoupler emitter connects to GND_PRI. |
+| **+VOUT (SELV)**| Diode $D_{sec}$ Cathode | $C_{out}$ bank (+), Opto Pullup, Feedback $R_{fb1}$ | Regulated +12V SELV isolated DC output rail | Complies with Safety Extra Low Voltage limits ($< 60\,\text{V}$ DC touchable). |
+| **TL431_REF** | Divider $R_{fb1}/R_{fb2}$ Node | TL431 Shunt Regulator Reference (Pin 1) | Output voltage error sense | Precision reference node ($2.500\,\text{V}$); TL431 sinks cathode current to drive Opto LED. |
+| **GND_PRI / GND_SEC**| Primary GND / Secondary GND | Safety Capacitor $C_{Y1}$ bridging barrier | Galvanically isolated ground planes | Minimum $6.4\,\text{mm}$ creepage slot milled through PCB laminate beneath optocoupler and transformer. |
+
+### 1.2 Component Bill of Materials & Parametric Specifications:
+
+| RefDes | Component Description | Manufacturer & Part Number | Key Electrical Specifications | Critical Design Constraint |
+| :--- | :--- | :--- | :--- | :--- |
+| **$Q_1$** | Primary High-Voltage FET | Infineon IPB80R290P7 | $V_{DS} = 800\,\text{V}, I_D = 17\,\text{A}, R_{DS(on)} = 290\,\text{m}\Omega, Q_g = 23\,\text{nC}$ | $800\,\text{V}$ rating absorbs $V_{bulk,max} + V_{reflect} + V_{spike} = 375\,\text{V} + 96\,\text{V} + 150\,\text{V} = 621\,\text{V}$. |
+| **$T_1$** | Flyback Coupled Inductor | Custom PQ26/20 Core (3C95) | $L_p = 220\,\mu\text{H}, N_p:N_s:N_{aux} = 48:6:7, L_{lk} < 4.0\,\mu\text{H}$ | Gapped core prevents magnetic saturation at $I_{pk} = 2.4\,\text{A}$; triple-insulated wire (TIW) for secondary. |
+| **$D_{snub}$** | RCD Snubber Diode | Diodes Inc. US1M | $V_{RRM} = 1000\,\text{V}, I_F = 1\,\text{A}, t_{rr} < 75\,\text{ns}, C_j = 15\,\text{pF}$ | Fast recovery prevents reverse charge dumping into $C_{snub}$. |
+| **$R_{snub}, C_{snub}$**| RCD Snubber Resistor/Cap | Vishay AC03 / Vishay MKP385 | $R = 47\,\text{k}\Omega / 3\,\text{W}, C = 2.2\,\text{nF} / 630\,\text{V Film}$ | Clamps leakage spike below $700\,\text{V}$; dissipates $P_{snub} \approx 1.8\,\text{W}$ at full load. |
+| **$D_{sec}$** | Secondary Output Rectifier | Vishay V30100P | $V_{RRM} = 100\,\text{V}, I_F = 30\,\text{A}, V_F = 0.52\,\text{V}$ | Trench MOS barrier Schottky handles peak inverse voltage $V_{PIV} = V_o + V_{bulk} \cdot (N_s/N_p) = 60\,\text{V}$. |
+| **$C_{out,bulk}$** | Output Bulk Capacitor | Panasonic 25SVPF470M | $2 \times 470\,\mu\text{F}, 25\,\text{V}, \text{OS-CON Polymer}, ESR = 10\,\text{m}\Omega$ | Absorbs large secondary discontinuous triangular current pulses ($I_{sec,rms} \approx 6.2\,\text{A}$). |
+| **$U_1$ (Opto)** | Safety Optocoupler | Everlight EL817(B) | $V_{IOTV} = 5000\,\text{V}_{RMS}, CTR = 130\% \dots 260\%$ | Connects isolated output error amplifier to primary PWM controller across safety barrier. |
+| **$U_2$ (Ref)** | Precision Shunt Reference | TI TL431AQDBZR | $V_{ref} = 2.495\,\text{V} \pm 0.5\%, I_k = 1\,\text{mA} \dots 100\,\text{mA}$ | Closes voltage loop with high gain; includes Type-II compensation across Cathode and Ref. |
+| **$C_{Y1}$** | Safety Y1 Barrier Cap | Murata DE1E3KX222MA4BP01F | $2.2\,\text{nF}, 400\,\text{V}_{\text{AC}}, \text{Class Y1} (Reinforced)$ | Provides low-impedance return path for common-mode displacement currents; minimizes EMI emissions. |
+
 
 ### 1.1 Conduction Cycle Breakdown:
 1. **Interval 1: Switch ON ($0 < t \le D \cdot T_s$)**:

@@ -11,40 +11,197 @@ Operating on natural line commutation via high-power Silicon-Controlled Rectifie
 A cycloconverter consists of two back-to-back phase-controlled thyristor bridges: a **Positive Converter (P-Bank)** and a **Negative Converter (N-Bank)**:
 
 ```text
-                     Single-Phase to Single-Phase Bridge Cycloconverter
-        =================== POSITIVE CONVERTER (P-BANK) ===================
-        AC Input ────┬──────────────┬──────────────┐
-                     │              │              │
-                   ┌─┴─┐ T1       ┌─┴─┐ T3         │
-                   │SCR│          │SCR│            │
-                   └─┬─┘          └─┬─┘            │
-                     │              │              │
-                     ├─── Node A ───┴──────────────┼───────────────────────────┐
-                     │                             │                           │
-                   ┌─┴─┐ T4       ┌─┴─┐ T2         │                           │
-                   │SCR│          │SCR│            │                           │
-                   └─┬─┘          └─┬─┘            │                           │
-                     │              │              │                           │
-        AC Return ───┴──────────────┴──────────────┤                           │
-                                                   │                           │
-        =================== NEGATIVE CONVERTER (N-BANK) ===================    │
-                     │              │              │                           │
-                   ┌─┴─┐ T1'      ┌─┴─┐ T3'        │                           │
-                   │SCR│ (Inverse)│SCR│ (Inverse)  │                           │
-                   └─┬─┘          └─┬─┘            │                           │
-                     │              │              │                           │
-                     ├─── Node B ───┴──────────────┼─────────────┐             │
-                     │                             │             │             │
-                   ┌─┴─┐ T4'      ┌─┴─┐ T2'        │             │             │
-                   │SCR│ (Inverse)│SCR│ (Inverse)  │             │             │
-                   └─┬─┘          └─┬─┘            │             │             │
-                     │              │              │             │             │
-        AC Return ───┴──────────────┴──────────────┘             │             │
-                                                                 │             │
-                                                  ┌──────────────┴─────────────┴──┐
-                                                  │         AC LOAD (Z_L)         │
-                                                  └───────────────────────────────┘
+============================================================================================
+  DETAILED HARDWARE SCHEMATIC: SINGLE-PHASE DUAL-BANK BRIDGE CYCLOCONVERTER
+  (230V AC 50Hz Grid Input to Variable 0-115V AC RMS, 0-16.7Hz Synthesized AC Output)
+============================================================================================
+
+  AC MAINS INPUT (230V RMS, 50Hz)
+  AC_LINE ─────[ F1: 30A Fast ]───┬─────────────────────────────────┬───────────────────────┐
+                                  │                                 │                       │
+                                ┌─┴─┐ MOV1: 275V RMS                │                       │
+                                │   │ Littelfuse V275LA20CP         │                       │
+                                └─┬─┘ (Clamps Spikes > 4.5kA)       │                       │
+                                  │                                 │                       │
+  AC_NEUT ────────────────────────┼─────────────────────────+       │                       │
+                                  │                         │       │                       │
+                                 ┌┴┐ R_zcd1: 47kΩ          ┌┴┐ R_zcd2: 47kΩ                 │
+                                 └┬┘                       └┬┘                              │
+                                  │                         │                               │
+                                  └───[ HCPL-3700 ZCD ]─────┘                               │
+                                            │                                               │
+                                        LINE_SYNC (To DSP Timer Capture)                    │
+                                                                                            │
+  ==========================================================================================│===
+  POSITIVE CONVERTER (P-BANK: 4-SCR Full Bridge, Conducts for Positive Load Current io > 0) │
+  ==========================================================================================│===
+                                                            │                               │
+                        T_P1 (Vishay 30TPS12)               │       T_P3 (Vishay 30TPS12)   │
+                        ┌───────┴───────┐                   │       ┌───────┴───────┐       │
+   Pulse XFMR TX1 ─────>│ G_P1     K_P1 ├─┐                 └──────>│ G_P3     K_P3 ├─┐     │
+                        └───────┬───────┘ │                         └───────┬───────┘ │     │
+                         Anode  │         │                          Anode  │         │     │
+                                ├─────────┼──[ R_sp1: 47Ω / 5W ]────────────┤         │     │
+                                │         │             │                   │         │     │
+                                │         │      [ C_sp1: 0.1µF/630V ]      │         │     │
+                                │         │             │                   │         │     │
+                                │         └───+         +───────────────────┤         │     │
+                                │             │                             │         │     │
+                                ├── NODE_P1 ──┴─────────────────────────────┼─────────┴─────+
+                                │                                           │               │
+                        T_P4 (Vishay 30TPS12)                       T_P2 (Vishay 30TPS12)   │
+                        ┌───────┴───────┐                           ┌───────┴───────┐       │
+   Pulse XFMR TX4 ─────>│ G_P4     K_P4 ├─┐                    ────>│ G_P2     K_P2 ├─┐     │
+                        └───────┬───────┘ │                         └───────┬───────┘ │     │
+                         Cath   │         │                          Cath   │         │     │
+                                ├─────────┼──[ R_sp2: 47Ω / 5W ]────────────┤         │     │
+                                │         │             │                   │         │     │
+                                │         │      [ C_sp2: 0.1µF/630V ]      │         │     │
+                                │         │             │                   │         │     │
+                                │         └───+         +───────────────────┤         │     │
+                                │             │                             │         │     │
+                                ├── NODE_P2 ──┴─────────────────────────────┴─────────┴─+   │
+                                │                                                       │   │
+                                │    +======= POSITIVE P-RAIL (P_POS) ==================+   │
+                                │    │                                                      │
+                                +────┼======= NEGATIVE P-RAIL (P_NEG) ==================┐   │
+                                     │                                                  │   │
+  ===================================│==================================================│===│===
+  NEGATIVE CONVERTER (N-BANK: 4-SCR Inverse Bridge, Conducts for Negative Load Current) │   │
+  ======================================================================================│===│===
+                                     │                                                  │   │
+                        T_N1 (Vishay 30TPS12)                               T_N3        │   │
+                        ┌───────┴───────┐                           ┌───────┴───────┐   │   │
+   Pulse XFMR TX5 ─────>│ G_N1     K_N1 ├─┐                    ────>│ G_N3     K_N3 ├─┐ │   │
+                        └───────┬───────┘ │                         └───────┬───────┘ │ │   │
+                         Anode  │         │                          Anode  │         │ │   │
+                                ├─────────┼──[ R_sn1: 47Ω / 5W ]────────────┤         │ │   │
+                                │         │             │                   │         │ │   │
+                                │         │      [ C_sn1: 0.1µF/630V ]      │         │ │   │
+                                │         │             │                   │         │ │   │
+                                │         └───+         +───────────────────┤         │ │   │
+                                │             │                             │         │ │   │
+                                ├── NODE_N1 ──┴─────────────────────────────┼─────────┴─+   │
+                                │                                           │               │
+                        T_N4 (Vishay 30TPS12)                       T_N2 (Vishay 30TPS12)   │
+                        ┌───────┴───────┐                           ┌───────┴───────┐       │
+   Pulse XFMR TX8 ─────>│ G_N4     K_N4 ├─┐                    ────>│ G_N2     K_N2 ├─┐     │
+                        └───────┬───────┘ │                         └───────┬───────┘ │     │
+                         Cath   │         │                          Cath   │         │     │
+                                ├─────────┼──[ R_sn2: 47Ω / 5W ]────────────┤         │     │
+                                │         │             │                   │         │     │
+                                │         │      [ C_sn2: 0.1µF/630V ]      │         │     │
+                                │         │             │                   │         │     │
+                                │         └───+         +───────────────────┤         │     │
+                                │             │                             │         │     │
+                                ├── NODE_N2 ──┴─────────────────────────────┴─────────┴─+   │
+                                │                                                       │   │
+                                │    +======= POSITIVE N-RAIL (N_POS) ==================+   │
+                                │    │                                                      │
+                                +────┼======= NEGATIVE N-RAIL (N_NEG) ==================┐   │
+                                     │                                                  │   │
+  ===================================│==================================================│===│===
+  INTERPHASE REACTORS (IPR) & SYNTHESIZED VARIABLE-FREQUENCY AC LOAD                    │   │
+  ======================================================================================│===│===
+                                     │                                                  │   │
+       P_POS Rail ───────────────────+                                                  │   │
+                                     │                                                  │   │
+                                 ┌───┴───────────┐ L_IPR1: Interphase Reactor 1         │   │
+                                 )   Winding A   ) (Center-tapped, 10mH, 25A)           │   │
+                                 )   (P-Bus Tap) ) (Chokes Circulating Ripple)          │   │
+                                 ├───┬───────────┤                                      │   │
+                                 │   │ (Center Tap)                                     │   │
+                                 │   +=== LOAD PHASE TERMINAL (V_out)                   │   │
+                                 │   │                                                  │   │
+                                 │  ┌┴──────────────────────────────────────────────┐   │   │
+                                 │  │ LEM LA 25-NP Closed-Loop Hall Current Sensor  │   │   │
+                                 │  │ [ Pin 1: IN (+) ] ────> [ Pin 2: OUT (-) ]    │   │   │
+                                 │  └┬─────────────────────────────────────────────┬┘   │   │
+                                 │   │                                             │    │   │
+                                 │   │                                          I_FB    │   │
+                                 │   │                                        (To DSP)  │   │
+                                 │  ┌┴──────────────────────────────────────────────┐   │   │
+                                 │  │ VARIABLE-FREQUENCY AC LOAD (Z_L = R + jω_o L) │   │   │
+                                 │  │ - Resistance: R = 5Ω                          │   │   │
+                                 │  │ - Inductance: L = 25mH (Grinding Mill Stator) │   │   │
+                                 │  └┬──────────────────────────────────────────────┘   │   │
+                                 │   │                                                  │   │
+                                 │   +=== LOAD RETURN TERMINAL                          │   │
+                                 │   │                                                  │   │
+                                 )   Winding B                                          │   │
+                                 )   (N-Bus Tap)                                        │   │
+                                 └───┬───────────┘                                      │   │
+                                     │                                                  │   │
+       N_NEG Rail ───────────────────+                                                  │   │
+                                                                                        │   │
+       P_NEG Rail ───────────────────+                                                  │   │
+                                     │                                                  │   │
+                                 ┌───┴───────────┐ L_IPR2: Interphase Reactor 2         │   │
+                                 )   Winding A   ) (Center-tapped Return Reactor)       │   │
+                                 ├───┬───────────┤                                      │   │
+                                 │   │ (Center Tap connected to Load Return)            │   │
+                                 )   Winding B   )                                      │   │
+                                 └───┬───────────┘                                      │   │
+                                     │                                                  │   │
+       N_POS Rail ───────────────────+                                                  │   │
+                                                                                        │   │
+  ======================================================================================│===│===
+  PULSE TRANSFORMER ISOLATED GATE TRIGGER STAGE (Channel 1 of 8 Shown; Identical for All SCRs)  │
+  ======================================================================================│===│===
+                                                                                        │   │
+     +15V_GATE ──────┬──────────────────────────────────────────┐                       │   │
+                     │                                          │                       │   │
+                   ┌─┴─┐ R_pull: 1kΩ                          ┌─┴─┐ D_mag: 1N4148       │   │
+                   │   │                                      ▲   │ (Demag Clamp)       │   │
+                   └─┬─┘                                      │   │                     │   │
+                     │                                        └───┤                     │   │
+     PWM_GATE1 ─────┤ Q_dr1: 2N7002 FET                           │                     │   │
+     (From DSP)     │                                             ) TX1 Primary         │   │
+                    ▼                                             ) Pulse PE-65812      │   │
+     GND_CTRL ──────┴─────────────────────────────────────────────┤ (3750V Isolation)   │   │
+                                                                  │                     │   │
+                                                                  ├───[ R_g: 22Ω / 1W ]─┴───> G_P1
+                                                                  │
+                                                                 ┌┴┐ D_g: 1N4007
+                                                                 ▲ │ (Reverse Protection)
+                                                                 │ └────────────────────────> K_P1
+                                                                 │
+                                                                 ├───[ R_gk: 1kΩ / 0.5W ]───┤
+                                                                 │                          │
+                                                                 ├───[ C_gk: 10nF / 100V ]──┤
+                                                                 │                          │
+                                                                 +──────────────────────────+
 ```
+
+### 1.1 Detailed Component Connection Netlist & Terminal Details:
+
+| Net Name | Source (Pin / Terminal) | Destination (Pin / Terminal) | Electrical Function | Hardware Engineering Notes |
+| :--- | :--- | :--- | :--- | :--- |
+| **AC_LINE_IN** | Mains Terminal Block (L) | Fuse $F_1$ Input | 230V AC 50Hz single-phase grid input | 30A fast-acting ceramic fuse provides branch short-circuit protection. |
+| **AC_LINE_SW** | Fuse $F_1$ Output | $T_{P1}/T_{N1}$ Anodes, $T_{P4}/T_{N4}$ Cathodes, MOV1, $R_{zcd1}$ | Protected internal AC line feed | Distributes raw utility AC to both positive and negative converter legs. |
+| **AC_NEUT_IN** | Mains Terminal Block (N) | $T_{P3}/T_{N3}$ Anodes, $T_{P2}/T_{N2}$ Cathodes, MOV1, $R_{zcd2}$ | Mains neutral return bus | Kelvin connection to Zero-Crossing Detector (ZCD) for firing synchronization. |
+| **P_POS_BUS** | $T_{P1}, T_{P3}$ Cathodes | Snubber $R_{sp1}/C_{sp1}$, Reactor $L_{IPR1}$ Tap A | Positive converter output rail ($+V_P$) | Delivers positive load current during output half-cycles ($i_o > 0$). |
+| **P_NEG_BUS** | $T_{P4}, T_{P2}$ Anodes | Snubber $R_{sp2}/C_{sp2}$, Reactor $L_{IPR2}$ Tap A | Positive converter return rail | Completes the circuit for P-bank conduction back to AC lines. |
+| **N_POS_BUS** | $T_{N4}, T_{N2}$ Cathodes | Snubber $R_{sn2}/C_{sn2}$, Reactor $L_{IPR2}$ Tap B | Negative converter positive rail | Provides return path for negative load current ($i_o < 0$). |
+| **N_NEG_BUS** | $T_{N1}, T_{N3}$ Anodes | Snubber $R_{sn1}/C_{sn1}$, Reactor $L_{IPR1}$ Tap B | Negative converter negative rail ($-V_N$) | Sinks negative load current back into the utility mains. |
+| **LOAD_PHASE** | $L_{IPR1}$ Center Tap | LEM LA 25-NP Sensor Pin 1 (IN) | Synthesized variable-frequency AC line | Output frequency adjustable from 0 to 16.7 Hz with low sub-harmonic ripple. |
+| **LOAD_RET** | $L_{IPR2}$ Center Tap | Load Terminal 2 (Return) | Synthesized AC return line | Provides symmetrical impedance balance against line ground. |
+| **GATE_P1..P4** | Pulse XFMRs $TX_1 \dots TX_4$ | $T_{P1} \dots T_{P4}$ Gates/Cathodes | Galvanically isolated P-bank triggers | 1:1 pulse transformers with $3.75\,\text{kV}$ isolation driven by DSP PWM pulse trains. |
+| **GATE_N1..N4** | Pulse XFMRs $TX_5 \dots TX_8$ | $T_{N1} \dots T_{N4}$ Gates/Cathodes | Galvanically isolated N-bank triggers | Anti-parallel firing angle maintained at $\alpha_N = 180^\circ - \alpha_P$ in circulating mode. |
+| **LINE_SYNC** | HCPL-3700 Pin 6 (Vout) | DSP Timer Input Capture Pin | Grid zero-crossing synchronization pulse | Filters line noise and notches to establish exact $\alpha = 0^\circ$ reference point. |
+| **I_SENSE_FB** | LEM LA 25-NP Pin 3 (M) | Precision Resistor $R_m$ ($100\,\Omega$) to DSP ADC | Closed-loop load current measurement | High-bandwidth feedback used for seamless bank handover and circulating current control. |
+
+### 1.2 Component Bill of Materials & Parametric Specifications:
+
+| RefDes | Component Description | Manufacturer & Part Number | Key Electrical Specifications | Critical Design Constraint |
+| :--- | :--- | :--- | :--- | :--- |
+| **$T_{P1..P4}, T_{N1..N4}$** | Phase-Control Thyristors (8x) | Vishay Semiconductors 30TPS12 | $V_{RRM} = 1200\,\text{V}, I_{T(RMS)} = 30\,\text{A}, I_{T(AV)} = 20\,\text{A}, I_{GT} = 45\,\text{mA}, V_{TM} = 1.25\,\text{V}$ | $1200\,\text{V}$ rating accommodates inductive kickback and $2.5\times$ mains line transients. |
+| **$L_{IPR1}, L_{IPR2}$** | Center-Tapped Interphase Reactors | Custom Magnetics / Kool Mµ Core | $L = 10\,\text{mH}$ center-tapped, $I_{cont} = 25\,\text{A}_{RMS}, I_{sat} > 45\,\text{A}$, Toroidal Core | Mutual coupling factor $k > 0.98$ ensures load flux cancellation while offering $4L$ impedance to circulating current. |
+| **$TX_1 \dots TX_8$** | Gate Pulse Transformers (8x) | Pulse Electronics PE-65812NL | Turns Ratio 1:1, $V\cdot t = 50\,\text{V}\cdot\mu\text{s}, V_{iso} = 3750\,\text{V}_{RMS}, C_{ww} < 25\,\text{pF}$ | Ultra-low interwinding capacitance prevents $dv/dt$ transients from coupling into digital logic. |
+| **$R_s, C_s$** | RC Snubber Networks (4x) | TE Connectivity / KEMET PHE450 | $R = 47\,\Omega / 5\,\text{W}$ Wirewound, $C = 0.1\,\mu\text{F} / 630\,\text{V}$ Metallized Polypropylene | Restricts SCR turn-off rate $dv/dt < 200\,\text{V}/\mu\text{s}$ to prevent spurious re-triggering. |
+| **$CS_1$** | Closed-Loop Hall Current Sensor | LEM LA 25-NP | Nominal $I_{PN} = 25\,\text{A}_{RMS}$, Conversion Ratio 1:1000, Bandwidth DC to $150\,\text{kHz}$, Accuracy $\pm 0.5\%$ | Zero phase distortion is essential for detecting exact load current zero-crossings in blocking mode. |
+| **$U_{ZCD}$** | AC Line Voltage Threshold Optocoupler | Broadcom HCPL-3700 | Input threshold adjustable via external resistors, $V_{iso} = 3750\,\text{V}_{RMS}$, Hysteresis $0.2\,\text{V}$ | Provides clean, jitter-free zero-crossing interrupts to DSP despite grid harmonic distortion. |
+| **$MOV_1$** | AC Input Surge Varistor | Littelfuse V275LA20CP | $V_{RMS} = 275\,\text{V}, I_{max} = 6500\,\text{A}$ ($8/20\,\mu\text{s}$), Energy absorption $120\,\text{J}$ | Clamps incoming lightning surges and utility inductive switching transients below $710\,\text{V}$. |
 
 ### 1.1 Fundamental Commutation Mechanics:
 1. **Positive Half-Cycle of Output ($f_o$)**:
@@ -89,14 +246,32 @@ Where:
 ## 3. Circulating Current vs. Non-Circulating Current Modes
 
 ```text
-                 Interphase Reactor in Circulating Current Mode
-                  P-Bank ────┬──────────────┐
-                             │              │
-                           ( L_IPR1 )     ( L_IPR2 ) Interphase Reactor (IPR)
-                             │              │
-                             └───┬──────┬───┘
-                                 │      │
-                                Load   N-Bank
+============================================================================================
+     EQUIVALENT CIRCUIT: CIRCULATING CURRENT COMMUTATION & INTERPHASE REACTOR DYNAMICS
+============================================================================================
+
+          P-Bank Output (v_P) ─────────┐
+                                       │
+                                      ┌┴─────────────────────────────┐
+                                      │ WINDING 1: N1 Turns, L1      │
+                                      │ (Carries: i_P = io/2 + icirc)│
+                                      └┬─────────────────────────────┘
+                                       │ (Dot)
+                                       ├───┬─────────────> TO AC LOAD (Z_L)
+                                       │   │               (Load Current: io = i_P - i_N)
+                                       │ (Dot)
+                                      ┌┴─────────────────────────────┐
+                                      │ WINDING 2: N2 Turns, L2      │
+                                      │ (Carries: i_N = -io/2 + icirc)
+                                      └┬─────────────────────────────┘
+                                       │
+          N-Bank Output (v_N) ─────────┘
+
+     MAGNETIC CORE COUPLING & INDUCTANCE DYNAMICS:
+     - For Output Load Current (io): Fluxes oppose and cancel in the core (Φ_L1 = -Φ_L2)
+       ==> Presents only stray leakage inductance L_leak ≈ (1 - k)·L to the load (minimal voltage drop).
+     - For Circulating Current (icirc): Fluxes aid and reinforce in the core (Φ_c1 = +Φ_c2)
+       ==> Presents full mutual inductance L_circ = 2(L + M) ≈ 4L to high-frequency circulating ripple.
 ```
 
 ### 3.1 Non-Circulating Current (Blocking) Mode:

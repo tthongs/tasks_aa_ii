@@ -11,49 +11,106 @@ This guide explores single-phase and three-phase rectifier topologies, capacitor
 ### 1.1 Single-Phase Full-Wave Diode Bridge (Graetz Bridge):
 
 ```text
-                     Single-Phase Full-Wave Diode Bridge
-           AC Line ───┬───────────────────────────────┐
-                      │                               │
-                     ┌┴┐ D1                          ┌┴┐ D3
-                     │>│                             │>│
-                     └┬┘                             └┬┘
-                      ├─── Node DC+ ──────────────────┼───────┬───[ NTC / Fuse ]───┬───> +Vdc
-                      │                               │       │                    │
-                     ┌┴┐ D4                          ┌┴┐ D2  ┌┴┐                  ┌┴┐
-                     │>│                             │>│     │ │ C_bulk           │ │ R_load
-                     └┬┘                             └┬┘     └┬┘                  └┬┘
-                      │                               │       │                    │
-                      ├─── Node DC- ──────────────────┼───────┴────────────────────┴───> -Vdc (GND)
-                      │                               │
-         AC Neutral ──┴───────────────────────────────┘
+========================================================================================================================
+     DETAILED HARDWARE SCHEMATIC: SINGLE-PHASE AC-DC BRIDGE RECTIFIER WITH FRONTEND EMI & INRUSH PROTECTION
+========================================================================================================================
+
+    AC LINE (230V RMS) ──[ F1: 6.3A Time-Lag ]──[ NTC: 10Ω/5A Inrush ]──┬──────────────────┐
+                                                 (Relay K1 Bypass)      │                  │
+                                                                       ┌┴┐ MOV1           ┌┴┐ CX1: X2 Cap
+                                                                       │ │ 14D471K        │ │ 0.47µF / 310VAC
+                                                                       └┬┘ (Surge 4.5kA)  └┬┘ (Differential EMI)
+                                                                        │                  │
+    AC NEUT (0V RMS) ───────────────────────────────────────────────────┼──────────────────┴───+
+                                                                        │                      │
+                                                                        │  COMMON-MODE CHOKE   │
+                                                                        ├──[ CMC1: 2x 15mH ]───┼──────────┐
+                                                                        │  Wurth 744825315     │          │
+                                                                        │                      │          │
+                                                                       ┌┴┐ CY1                ┌┴┐ CY2     │
+                                                                       │ │ 2.2nF/400V Y2      │ │ 2.2nF   │
+                                                                       └┬┘                    └┬┘         │
+    EARTH (PE) ─────────────────────────────────────────────────────────┴──────────────────────┴───+      │
+                                                                                                   │      │
+                                            +---[ FULL-WAVE BRIDGE RECTIFIER (e.g. GBU808: 800V/8A) ]------+
+                                            |                                                              |
+                                            |     [ AC1: Pin 2 ] ------------------------------------------+
+                                            |     [ AC2: Pin 3 ] <-----------------------------------------+
+                                            |                                                              |
+                                            |     [ +DC: Pin 1 ] ──────────────┬───────────────────────────+
+                                            |     [ -DC: Pin 4 ] ──┐           │
+                                            +----------------------|-----------|---------------------------+
+                                                                   │           │
+                                                                   │           +=== +VDC BUS (+325V Peak DC)
+                                                                   │           │
+                                                                   │          ┌┴──────────────────┐
+                                                                   │          │ C_BULK BANK       │
+                                                                   │         ┌┴┐ 2x 470µF/450V   ┌┴┐ C_HF_CER
+                                                                   │         │ │ Aluminum Elec.  │ │ 2x 0.47µF/630V
+                                                                   │         └┬┘ (Low ESR)       └┬┘ Film / X7R
+                                                                   │          │                   │
+                                                                   │          │      +VDC         │
+                                                                   │          │        │          │
+                                                                   │          │     [ R_bleed1: 150kΩ / 1W ]
+                                                                   │          │     [ R_bleed2: 150kΩ / 1W ]
+                                                                   │          │        │          │
+                                                                   │          │     (Safety Discharge)
+                                                                   │          │        │          │
+                                                                   +──────────┴────────+──────────┴───> -VDC (DC Return GND)
 ```
 
-- **Positive Half-Cycle ($v_{ac} > 0$)**: Current flows from AC Line through diode $D_1$ into $C_{bulk}$ and returns through diode $D_2$ to AC Neutral.
-- **Negative Half-Cycle ($v_{ac} < 0$)**: Current flows from AC Neutral through diode $D_3$ into $C_{bulk}$ and returns through diode $D_4$ to AC Line.
-- **Diode Peak Inverse Voltage (PIV)**:
-  $$V_{PIV} = V_{pk} = \sqrt{2} \cdot V_{ac,rms}$$
-  *(For $230\,\text{V}_{rms}$ grid, $V_{PIV} = 325\,\text{V}$. Designers specify $600\,\text{V} \dots 800\,\text{V}$ rated bridge rectifiers to survive utility line surges).*
+### 1.1 Detailed Component Connection Netlist & Terminal Details:
+
+| Net Name | Source (Pin / Terminal) | Destination (Pin / Terminal) | Electrical Function | Hardware Engineering Notes |
+| :--- | :--- | :--- | :--- | :--- |
+| **AC_LINE_RAW** | AC Input IEC C14 Receptacle (L) | Fuse $F_1$ Input | 230V AC Live utility mains | Sized for 6.3A time-lag rating to survive startup capacitive charging surges. |
+| **AC_LINE_PROT** | Fuse $F_1$ Output | NTC Thermistor Pin 1, MOV1 Pin 1, $C_{X1}$ Pin 1 | Protected Live rail | MOV1 clamps line voltage spikes exceeding $385\,\text{V}_{\text{RMS}} / 505\,\text{V}_{\text{DC}}$. |
+| **AC1 (Bridge)** | Common Mode Choke Pin 2 | GBU808 Bridge Rectifier Pin 2 (AC1) | Filtered AC Line input | Input to leg formed by top diode $D_1$ and bottom diode $D_4$. |
+| **AC2 (Bridge)** | Common Mode Choke Pin 4 | GBU808 Bridge Rectifier Pin 3 (AC2) | Filtered AC Neutral input | Input to leg formed by top diode $D_3$ and bottom diode $D_2$. |
+| **+VDC (DC Bus)** | GBU808 Bridge Rectifier Pin 1 (+) | $C_{bulk}$ (+), Bleeder Resistors, Load (+) | Full-wave rectified pulsating DC bus | Peak voltage $V_{pk} = \sqrt{2} \cdot 230\,\text{V} \approx 325\,\text{V}$; double line frequency ripple ($100\,\text{Hz}$). |
+| **-VDC (GND)** | GBU808 Bridge Rectifier Pin 4 (-) | $C_{bulk}$ (-), Bleeder Return, Load Return | Rectifier zero-volt DC return | Common cathode-referenced return for downstream converters. |
+
+### 1.2 Component Bill of Materials & Parametric Specifications:
+
+| RefDes | Component Description | Manufacturer & Part Number | Key Electrical Specifications | Critical Design Constraint |
+| :--- | :--- | :--- | :--- | :--- |
+| **$BR_1$** | Glass Passivated Bridge | Diodes Inc. GBU808 | $V_{RRM} = 800\,\text{V}, I_{F(AV)} = 8.0\,\text{A}, I_{FSM} = 200\,\text{A}, V_F = 1.0\,\text{V}$ | $800\,\text{V}$ rating survives $2.5\,\text{kV}$ ring-wave surges; heatsink mounted for loads $> 3\,\text{A}$. |
+| **$C_{bulk}$** | Bulk Filter Capacitors | Nichicon LGU2W471MELY | $2 \times 470\,\mu\text{F}, 450\,\text{V}_{\text{DC}}, 105^\circ\text{C}, ESR = 0.22\,\Omega$ | Sized to ensure DC bus hold-up time $t_{hold} \ge 20\,\text{ms}$ during AC utility cycle dropouts. |
+| **$NTC_1$** | Inrush Current Limiter | TDK / EPCOS B57237S0100M000 | $R_{25} = 10.0\,\Omega, I_{max} = 5.0\,\text{A}, \text{Energy} = 55\,\text{J}$ | Limits cold-turn-on inrush current to $I_{inrush} = \frac{325\,\text{V}}{10\,\Omega} = 32.5\,\text{A}$. |
+| **$MOV_1$** | Metal Oxide Varistor | Littelfuse V275LA20CP | $V_{RMS} = 275\,\text{V}, V_{DC} = 369\,\text{V}, I_{peak} = 6500\,\text{A}, W_{max} = 120\,\text{J}$ | Clamps lightning and grid switching transients per IEC 61000-4-5 Class 3. |
+| **$CMC_1$** | Common-Mode Choke | Würth Elektronik 744825315 | $2 \times 15.0\,\text{mH}, I_{rated} = 3.5\,\text{A}, DCR = 82\,\text{m}\Omega$ | High common-mode impedance ($> 5\,\text{k}\Omega$ at $1\,\text{MHz}$) attenuates conducted EMI. |
+| **$C_{X1}, C_{Y1/2}$**| Safety EMI Filter Caps | Vishay F1772 (X2) / Murata (Y2) | $C_X = 0.47\,\mu\text{F} / 310\,\text{V}_{\text{AC}}, C_Y = 2.2\,\text{nF} / 400\,\text{V}_{\text{AC}}$ | Certified to UL/ENEC 60384-14 for direct across-the-line and line-to-earth suppression. |
 
 ---
 
-### 1.2 Three-Phase Six-Pulse Diode Bridge Rectifier:
+### 1.3 Three-Phase Six-Pulse Diode Bridge Rectifier:
 
 ```text
-                     Three-Phase 6-Pulse Diode Bridge Rectifier
-            Line L1 ───┬───────────────────────────────┐
-            Line L2 ───┼───────────────┬───────────────┼───────────────┐
-            Line L3 ───┼───────────────┼───────────────┼───────┬───────┼───────┐
-                       │               │               │       │       │       │
-                      ┌┴┐ D1          ┌┴┐ D3          ┌┴┐ D5   │       │       │
-                      │>│             │>│             │>│      │       │       │
-                      └┬┘             └┬┘             └┬┘      │       │       │
-                       ├───────────────┼───────────────┼───────┴───────┼───────┼───> +Vdc
-                       │               │               │               │       │     │
-                      ┌┴┐ D4          ┌┴┐ D6          ┌┴┐ D2           │       │    ┌┴┐
-                      │>│             │>│             │>│              │       │    │ │ C_bulk
-                      └┬┘             └┬┘             └┬┘              │       │    └┬┘
-                       ├───────────────┼───────────────┼───────────────┴───────┴───> -Vdc
-                       │               │               │
+========================================================================================================================
+     DETAILED HARDWARE SCHEMATIC: THREE-PHASE 6-PULSE DIODE BRIDGE RECTIFIER (400V LINE-LINE RMS -> 540V DC)
+========================================================================================================================
+
+    LINE L1 (R-Phase) ──[ F1: 20A ]──┬─────────────────────────────────────────────────────────────┐
+    LINE L2 (S-Phase) ──[ F2: 20A ]──┼───────────────┬─────────────────────────────────────────────┼──────────────┐
+    LINE L3 (T-Phase) ──[ F3: 20A ]──┼───────────────┼───────────────┬─────────────────────────────┼──────────────┼──────────────┐
+                                     │               │               │                             │              │              │
+                                    ┌┴┐ D1          ┌┴┐ D3          ┌┴┐ D5                         │              │              │
+                                    │>│ Diodes Inc. │>│ Diodes Inc. │>│ Diodes Inc.                │              │              │
+                                    │ │ 40TPS12     │ │ 40TPS12     │ │ 40TPS12                    │              │              │
+                                    └┬┘ (1200V/35A) └┬┘ (1200V/35A) └┬┘ (1200V/35A)                │              │              │
+                                     │               │               │                             │              │              │
+                                     +---------------+---------------+=== COMMON CATHODE BUS       │              │              │
+                                                                     |    (Positive DC Output)     │              │              │
+                                                                     |                             │              │              │
+                                                                     ├──[ L_dc: 2.5mH / 30A Choke ]┼──────────────┼──────────────┼───> +VDC (+540V)
+                                                                     |  (Damps 300Hz Ripple)       │              │              │     │
+                                                                    ┌┴┐ D4                        ┌┴┐ D6         ┌┴┐ D2          │    ┌┴────────────────┐
+                                                                    │>│ 40TPS12                   │>│ 40TPS12    │>│ 40TPS12     │    │ C_DC BANK       │
+                                                                    └┬┘ (Anode to DC-)            └┬┘            └┬┘             │   ┌┴┐ 2x 1000µF/450V │
+                                                                     │                             │              │              │   │ │ Series Paired  │
+                                                                     +─────────────────────────────+──────────────+──────────────┴───└┬┘ (ESR = 45mΩ)  │
+                                                                     |                                                                 │ (Bleeders 100k)│
+                                                                     +=================================================================+───> -VDC (GND)
 ```
 
 - Top diodes ($D_1, D_3, D_5$) conduct whichever phase has the **highest positive potential**.

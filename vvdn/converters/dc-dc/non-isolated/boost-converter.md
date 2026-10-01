@@ -11,17 +11,92 @@ This document explores the magnetic physics of boost energy transfer, derives th
 The **Boost Converter** steps up an input DC voltage $V_{IN}$ to a higher DC output voltage $V_o$ by utilizing an inductor to store energy from the source and discharge it in series with the source into the load:
 
 ```text
-                        Step-Up (Boost) DC-DC Converter
-                      Inductor L
-   +Vin DC ─────────────^^^^^^──────────────┬───────────────[>|] D1 (Boost Diode) ──┬───> +Vout
-                                            │                                       │
-                                        Drain (D)                                  ┌┴┐
-                                        ┌───┴───┐ Q1 (Low-Side Switch)             │ │ C_out
-                                        │  SW   │                                  └┬┘
-                                        └───┬───┘                                   │
-                                            │ Source (S)                            │
-   GND ─────────────────────────────────────┴───────────────────────────────────────┴─── GND
+========================================================================================
+         DETAILED HARDWARE SCHEMATIC: STEP-UP (BOOST) DC-DC CONVERTER (12V -> 24V/5A)
+========================================================================================
+
+    +VIN (+12V DC) ─────────────────────────────────────────────────────────────┐
+        │                                                                       │
+       [F1: 10A Fuse]                                                           │
+        │                                                                       │
+       ┌┴─────────────────┐                                                     │
+       │ CIN_BULK         │                                                     │
+      ┌┴┐ 220µF/25V Poly ┌┴┐ CIN_CER                                            │
+      │ │ (Low-ESR 12mΩ) │ │ 2x 10µF/25V X7R                                    │
+      └┬┘                └┬┘                                                    │
+       │                  │                                                     │
+       │                  │        BOOST POWER INDUCTOR                         │
+       │                  │    +---[ L1: 15µH / 12A Shielded ]---+              │
+       │                  │    |   Vishay IHLP-5050FD-01         |              │
+       │                  │    |   (DCR = 9.5mΩ, Isat = 14A)     |              │
+       │                  │    |                                 |              │
+       │                  │    +---------------------------------+              │
+       │                  │                                      │              │
+       │                  │                                      +=== SWITCHING NODE (SW)
+       │                  │                                      |    (0V to +24.7V pulse)
+       │                  │                                      |
+       │                  │          +---[ R_snub: 4.7Ω / 1W ]---+
+       │                  │          |
+       │                  │         ┌┴┐ C_snub: 470pF / 100V C0G
+       │                  │         └┬┘ (Suppresses high dv/dt overshoot)
+       │                  │          |
+       │                  │         PGND
+       │                  │          |
+       │                  │          │ Drain (D)             BOOST RECTIFIER DIODE
+       │                  │         ┌┴──────────────┐        +---[ D1: SiC Schottky ]---+
+       │                  │         │ Q1: N-MOSFET  │        |   Wolfspeed C3D04060A    |
+       │                  │         │ IPP045N10N5   │        |   (600V, 4A, Qrr = 0)    |
+       │                  │  +----->│ (100V, 4.5mΩ) │        +---[ Anode  ->|  Cath ]---+
+       │                  │  | Gate └┬──────────────┘                               │
+       │                  │  |       │ Source (S)                                   │
+       │                  │  |       │                                              +=== +VOUT (+24V/5A)
+       │                  │  |       +---[ Kelvin Sense CS+ ]                       │
+       │                  │  |       │                                             ┌┴──────────────────┐
+       │                  │  |      ┌┴┐ R_shunt: 5.0mΩ / 2W 1%                     │ COUT_BULK         │
+       │                  │  |      │ │ Metal Strip Shunt                         ┌┴┐ 2x 330µF/35V Poly ┌┴┐ COUT_CER
+       │                  │  |      └┬┘ (Current Sense)                           │ │ (ESR = 10mΩ)     │ │ 3x 10µF/50V
+       │                  │  |       │                                            └┬┘                  └┬┘ X7R 1210
+       │                  │  |       +---[ Kelvin Sense CS- ]                      │                    │
+       │                  │  |       │                                             │       +VOUT        │
+       │                  │  |      PGND                                           │         │          │
+       │                  │  |                                                     │      [ R_fb1: 28.7kΩ, 0.1% ]
+       │                  │  |  +---[ GATE DRIVER & CONTROLLER INTERFACE ]---+     │         │
+       │                  │  |  |                                            |     │         +---> V_FB (To Controller)
+       │                  │  +--+--[ R_g: 4.7Ω ]<-- OUT (Pin 7: UCC27517)    |     │         │     (V_ref = 1.000V)
+       │                  │     |                   VDD (Pin 6) <-- +12V_DRV |     │      [ R_fb2: 1.24kΩ, 0.1% ]
+       │                  │     |                   IN+ (Pin 2) <-- PWM_IN   |     │         │
+       │                  │     |                   GND (Pin 3) ---> PGND    |     │        AGND (Quiet Ground)
+       │                  │     +--------------------------------------------+     │         │
+       │                  │                                                        │      (Single Star Point)
+   PGND┴──────────────────┴────────────────────────────────────────────────────────┴─────────+────────> GND (Return)
 ```
+
+### 1.1 Detailed Component Connection Netlist & Terminal Details:
+
+| Net Name | Source (Pin / Terminal) | Destination (Pin / Terminal) | Electrical Function | Hardware Engineering Notes |
+| :--- | :--- | :--- | :--- | :--- |
+| **+VIN_FILT** | Fuse $F_1$ Output | $C_{in}$ bank (+), Inductor $L_1$ Terminal 1 | Filtered DC input supply bus | Solid copper pour rated for 12A continuous current. |
+| **SW (Switching Node)** | Inductor $L_1$ Pin 2, $Q_1$ Drain (Tab) | Diode $D_1$ Anode, Snubber $R_{snub}$ Pin 1 | Pulsating square-wave voltage node | Keep trace short and wide; place diode $D_1$ anode directly abutting $Q_1$ drain tab. |
+| **GATE_DRV** | Driver OUT (UCC27517 Pin 7) | Resistor $R_g$ Pin 1 -> $Q_1$ Gate (Pin 1) | High-speed gate charging output | Minimize loop area between GATE_DRV and PGND return to avoid spurious turn-on. |
+| **CS_P / CS_N** | $R_{shunt}$ Top / Bottom Kelvin Pads | PWM Controller Current Sense Pins | Peak current & overcurrent monitor | Route as balanced shielded twisted-pair trace directly to controller sense pins. |
+| **+VOUT** | Diode $D_1$ Cathode | $C_{out}$ bank (+), Feedback $R_{fb1}$, Load (+) | Stepped-up regulated +24V rail | Wide copper plane; output caps must absorb high pulsating reverse diode current ($I_{D,rms}$). |
+| **V_FB** | Divider $R_{fb1}/R_{fb2}$ Node | Controller FB Inverting Input | Output voltage regulation feedback | Place $R_{fb1}/R_{fb2}$ adjacent to controller IC; route sense line away from $L_1$ magnetic core. |
+| **PGND** | $C_{in}$ (-), $R_{shunt}$ (-), $C_{out}$ (-) | High-current power return plane | Power circulating loop ground | Continuous ground plane on internal PCB Layer 2. |
+| **AGND** | Controller Reference, $R_{fb2}$ (-) | Star Ground Tie at $C_{out}$ GND pad | Low-noise analog signal reference | Connects to PGND at exactly one quiet point to prevent ground-bounce jitter. |
+
+### 1.2 Component Bill of Materials & Parametric Specifications:
+
+| RefDes | Component Description | Manufacturer & Part Number | Key Electrical Specifications | Critical Design Constraint |
+| :--- | :--- | :--- | :--- | :--- |
+| **$Q_1$** | Low-Side N-MOSFET | Infineon IPP045N10N5 | $V_{DS} = 100\,\text{V}, I_D = 120\,\text{A}, R_{DS(on)} = 4.5\,\text{m}\Omega, Q_g = 44\,\text{nC}$ | $100\,\text{V}$ breakdown margin protects against inductive voltage spikes above $+24\,\text{V}$ rail. |
+| **$D_1$** | Boost Rectifier Diode | Wolfspeed C3D04060A | $V_{RRM} = 600\,\text{V}, I_F = 4\,\text{A}, V_F = 1.5\,\text{V}, Q_{rr} \approx 0\,\text{nC}$ | Silicon Carbide (SiC) eliminates reverse recovery current spike, eliminating diode turn-off losses. |
+| **$L_1$** | Boost Inductor | Vishay IHLP-5050FD-01 | $L = 15\,\mu\text{H}, I_{sat} = 14\,\text{A}, I_{rms} = 12\,\text{A}, DCR = 9.5\,\text{m}\Omega$ | Powdered composite core prevents thermal runaway saturation under high peak input current ($I_{in} \approx 11\,\text{A}$). |
+| **$C_{in,bulk}$**| Input Bulk Cap | Panasonic 25SVPF220M | $220\,\mu\text{F}, 25\,\text{V}, \text{OS-CON Polymer}, ESR = 12\,\text{m}\Omega$ | Smooths source ripple current; provides low input source impedance. |
+| **$C_{out,bulk}$**| Output Bulk Cap | Panasonic 35SVPF330M | $2 \times 330\,\mu\text{F}, 35\,\text{V}, \text{Polymer}, ESR = 10\,\text{m}\Omega$ | Absorbs full pulsating load current; specifies $I_{ripple,rms} \ge 6.5\,\text{A}$. |
+| **$C_{out,cer}$**| Output Ceramic MLCC | TDK C3225X7R1H106M | $3 \times 10\,\mu\text{F}, 50\,\text{V}, \text{X7R}, 1210$ package | Shunts high-frequency switching edges ($t_{fall} < 20\,\text{ns}$). |
+| **$R_{shunt}$**| Current Sense Resistor | Susumu KRL6432E-M-R005-F | $5.0\,\text{m}\Omega, 2.0\,\text{W}, 1\%, 4\text{-terminal Kelvin}$ | Ultra-low inductance metal foil construction for accurate sub-microsecond current trip. |
+| **$R_{snub}$ / $C_{snub}$** | SW RC Snubber Network | Vishay CRCW1206 / TDK C0G | $R = 4.7\,\Omega / 1\,\text{W}, C = 470\,\text{pF} / 100\,\text{V C0G}$ | Restricts ringing frequency to $< 50\,\text{MHz}$ for CISPR 32 Class B EMC compliance. |
+
 
 ### 1.1 Switching Intervals (CCM):
 1. **Interval 1: Switch ON ($0 < t \le D \cdot T_s$)**:
