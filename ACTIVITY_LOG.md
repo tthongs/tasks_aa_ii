@@ -2,28 +2,33 @@
 
 **Repository Location**: `/home/tthh0ngs/build_tthongs/tasks_aa_ii`  
 **Current Branch**: `master`  
-**Last Updated**: September 6, 2026  
+**Last Updated**: October 3, 2026  
 **Primary Maintainer**: `tthongs` (<sanskarsinghss123@gmail.com>)  
 
 ---
 
 ## 1. Executive Summary
 
-This directory (`tasks_aa_ii`) serves as a multi-disciplinary technical workspace combining hardware engineering (Verilog FPGA designs), digital signal processing (DSP) research, system administration & CachyOS Linux kernel diagnostics, Unix text processing automation, academic reporting, and multimedia/gaming utilities.
+This repository (`tasks_aa_ii`) serves as an advanced multi-disciplinary engineering workspace combining:
+- **Embedded Hardware & Systems Engineering (`vvdn/`)**: Industrial protocols, power electronics converters, semiconductor devices (MOSFETs, LDOs), EV charging systems, elevator dispatch logic, programmable power supplies, reliability standards, and interactive engineering calculators.
+- **Hardware FPGA & Digital Logic**: Verilog FPGA UART, 3-state Moore FSM, and gate-level dual lift controller.
+- **Digital Signal Processing (DSP) Research**: Core academic and mathematical formulations (ADC/DAC, modulation, FIR/IIR filters, sampling, quantization).
+- **System Administration & Linux Kernel Diagnostics (`issues/`)**: CachyOS / Arch Linux kernel modules, systemd boot optimization, NVIDIA drivers, and network scripts.
+- **Unix Automation & Scripting**: AWK/SED text processing utilities and KDE Plasma / KWin QML scripts.
+- **Freshers' Training 2026 Transcripts**: Chronologically organized transcript files for embedded hardware training sessions.
 
 ### Key Metrics
-- **Subdirectories**: 14 active modules
-- **Tracked Files**: ~50 files spanning Verilog (`.v`), Shell (`.sh`), Documentation (`.md`, `.pdf`, `.docx`), QML (`.qml`), Scripting (`.awk`, `.txt`), and Media (`.xlsx`, `.mp4`, `.srt`, `.jpg`)
-- **System Issues Logged**: 11 distinct system, driver, and application issues tracked and resolved.
+- **Subdirectories**: 15 active modules
+- **Tracked Files**: ~160+ files spanning Documentation (`.md`, `.docx`, `.pdf`), Python CLI calculators (`.py`), Verilog (`.v`), Shell (`.sh`), QML (`.qml`), Scripting (`.awk`, `.txt`), and Transcripts (`.txt`).
+- **System Issues Logged**: 23 distinct system, driver, and application issues tracked and resolved.
 
 ---
 
 ## 2. Directory Architecture & Subproject Overview
 
-Below is the complete architectural breakdown of all 14 subdirectories present in `tasks_aa_ii`:
-
-```
+```text
 tasks_aa_ii/
+├── ACTIVITY_LOG.md          # Central workspace activity, context, and agent guide
 ├── T8/                      # Tekken 8 combo extraction & spreadsheet generator
 ├── aujus_ug/                # Xilinx 7 Series FPGA official User Guides (UG470-UG474, UG888)
 ├── coffee/                  # Home coffee & cold brew recipes reference
@@ -36,252 +41,201 @@ tasks_aa_ii/
 ├── uart/                    # Verilog Hardware UART Receiver/Transmitter design
 ├── unix/                    # KDE Plasma / KWin / DBus interprocess communication (QML)
 ├── unix_scripting/          # AWK and SED text processing practice & scripts
-└── vlc/                     # VLC subtitle rendering and FreeType debug workspace
+├── vlc/                     # VLC subtitle rendering and FreeType debug workspace
+└── vvdn/                    # VVDN Engineering Hub & Protocol Knowledge Base
+    ├── README.md (.docx)    # Central dashboard, quick links & CLI tools cheatsheet
+    ├── active/              # In-progress hardware investigations & open issues
+    ├── resolved/            # Documented fixes, post-mortems, and Root Cause Analysis (RCA)
+    ├── templates/           # Device bring-up checklist & issue reporting template
+    ├── tools/               # 15 Python CLI calculators & document generator
+    ├── raw_transcripts/     # 12 Freshers' Training 2026 lecture transcripts (chronological)
+    ├── img/                 # Session screenshot references (Google Drive folders)
+    ├── protocols/           # Serial & vehicle protocols (UART, SPI, I2C, CAN, LIN, NFC)
+    ├── converters/          # 20 Power Electronic Converters (DC-DC, AC-DC, DC-AC, AC-AC)
+    ├── mosfets/             # MOSFET physics, 8-phase switching waveforms & 11 topologies
+    ├── ldo/                 # Low-Dropout Linear Regulators (PMOS vs NMOS, ESR, thermal)
+    ├── evse/                # Electric Vehicle Supply Equipment (AC Smart Charger & IoT)
+    ├── dual_lift_controller/# Gate-level nearest-lift dispatch logic (3 & 4 floors)
+    ├── smart_programmable_power_supply/ # 60W Universal AC-DC (85-265V AC -> 5-20V / 3A DC)
+    └── standards/           # Hardware compliance & reliability (RoHS, REACH, AEC, MSL)
 ```
+
+---
 
 ### Detailed Subproject Descriptions
 
-#### 1. `T8/` - Gaming Data Extraction & Analytics
-- **Purpose**: Extracted combo notations and input sequences for Fahkumram in *Tekken 8*.
-- **Workflow**: Derived from YouTube ReVanced video screenshots, processed using Tesseract OCR pre-filtering, Python Pillow image segmentation, and compiled into an Excel spreadsheet.
-- **Key Files**:
-  - [`T8/Fahkumram_Tekken_8_Combos.xlsx`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/T8/Fahkumram_Tekken_8_Combos.xlsx): Formatted Excel sheet containing Combo IDs, Launchers, Inputs, Just-Frame timings, and Notes.
-  - [`T8/GEMINI.md`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/T8/GEMINI.md): Technical notes on OCR, extraction methodology, and Tekken move legend.
+#### 1. `vvdn/` - VVDN Engineering Hub & Protocol Knowledge Base
+The central engineering knowledge base and embedded systems reference hub at VVDN:
+- **`protocols/`**: Master hubs, bit-level frame analysis, timing budgets, circuit schematics, and troubleshooting matrices for:
+  - **UART**: TTL, RS-232, RS-422, RS-485, 16x oversampling clock recovery, BRG divisors.
+  - **SPI**: 4 modes (CPOL/CPHA), AC timing budgets, round-trip delay, Star/Daisy-chain, QSPI/OSPI.
+  - **I2C**: Open-drain Wired-AND, pull-up sizing math ($R_{p(min)}, R_{p(max)}$), bus capacitance, clock stretching, 9-clock recovery.
+  - **CAN & CAN FD**: Differential signaling, non-destructive bitwise arbitration, TEC/REC fault confinement, J1939, CANopen, UDS over CAN-TP.
+  - **LIN**: Single-wire 12V bus, deterministic schedule tables, PID parity ($P0, P1$), Classic/Enhanced checksums, auto-baud sync (`0x55`).
+  - **NFC**: 13.56 MHz inductive coupling, 848 kHz load modulation, ISO 14443-3 anti-collision walk, NDEF framing, SPI transceivers (PN532, MFRC522, ST25R3916).
+- **`converters/`**: Complete 4-quadrant power electronic converters suite covering 20 topologies with connection netlists, BOMs, and component stress equations:
+  - **DC-DC Isolated**: Forward, Flyback, Dual Active Bridge (DAB), Full-Bridge (PSFB), Half-Bridge, Push-Pull, Resonant (SRC, PRC, LLC).
+  - **DC-DC Non-Isolated**: Buck, Boost, Buck-Boost (inverting & 4-switch synchronous), Cuk, SEPIC, Zeta.
+  - **AC-DC Rectifiers**: Uncontrolled diode bridges, controlled thyristor rectifiers, Active Boost PFC, Bridgeless Totem-Pole GaN, Vienna Rectifier.
+  - **DC-AC Inverters**: Single-Phase (bipolar/unipolar SPWM) and Three-Phase VSIs (180°/120° six-step, THIPWM, Space Vector PWM / SVPWM).
+  - **AC-AC Converters**: Line-commutated cycloconverters and AC voltage controllers (TRIAC / antiparallel SCR phase angle and burst firing).
+- **`mosfets/`**: Semiconductor physics, 8-phase dynamic switching waveforms, Zero-Voltage Switching (ZVS), Unclamped Inductive Switching (UIS) avalanche breakdown ($E_{AS}$), Safe Operating Area (SOA/Spirito), Miller clamps, Kelvin Source, and 11 distinct device categories (e-NMOS, e-PMOS, d-MOSFET, Trench UMOS/SGT, VDMOS, Superjunction CoolMOS, SiC, Logic-level, LDMOS RF, FinFET/GAAFET, Dual-gate tetrode).
+- **`ldo/`**: Low-Dropout Regulators covering PMOS (Common-Source, ESR stability tunnel) vs NMOS (Source-Follower, charge pump / $V_{BIAS}$), feedback networks, feedforward capacitors ($C_{FF}$), thermal dissipation networks, and hybrid SMPS pre-regulator + LDO post-regulator architecture.
+- **`evse/`**: AC Smart Charger architecture separating High-Voltage power distribution from Low-Voltage (SELV) Controller board. Features Control Pilot ($\pm 12\,\text{V}$ PWM state machine A-F), Proximity Pilot cable detection, $6\,\text{mA}$ DC / $30\,\text{mA}$ AC RCM leakage trip, contactor weld detection, and dual-processor IoT gateway running OCPP 1.6-J / 2.0.1.
+- **`dual_lift_controller/`**: Gate-level nearest-lift dispatch system for 3-floor and 4-floor buildings. Features absolute difference subtractors ($|R - A|, |R - B|$), 2-bit magnitude comparators, direction logic ($UP, DOWN, STOP$), 7400-series TTL IC schematics, and synthesizable Verilog modules (`dual_lift_controller.v`, `dual_lift_controller_tb.v`).
+- **`smart_programmable_power_supply/`**: $60\,\text{W}$ ($5\text{--}20\,\text{V}$ @ $3\,\text{A}$) programmable power supply module. Universal AC mains ($85\text{--}265\,\text{V}_{AC}$) input, QR Flyback intermediate stage ($+24\,\text{V}$), 4-switch Buck-Boost post-regulator, 12-bit DAC feedback summing, isolated dual-domain power metering, real-time efficiency ($\eta = P_{DC} / P_{AC}$ at 10 Hz), and FreeRTOS MicroSD FAT32 CSV logging.
+- **`standards/`**: Hardware regulatory compliance, quality, and reliability across the product lifecycle (RoHS, REACH, AEC-Q100/101/200, MSL 1–6).
+- **`tools/`**: 15 interactive Python CLI calculation tools (`uart_calc.py`, `baud_calc.py`, `spi_calc.py`, `i2c_calc.py`, `can_calc.py`, `lin_calc.py`, `nfc_calc.py`, `ldo_calc.py`, `mosfet_calc.py`, `evse_calc.py`, `lift_sim.py`, `psu_calc.py`, `md_to_docx.py`).
+- **`raw_transcripts/`**: Chronologically structured transcript files from the Freshers' Training 2026 series (see Section 6).
 
-#### 2. `aujus_ug/` - Xilinx 7 Series FPGA Reference Documentation
-- **Purpose**: Centralized technical repository for Xilinx Artix-7, Kintex-7, and Virtex-7 FPGA architectures and Vivado Design Suite.
-- **Key Files**:
-  - [`aujus_ug/ug470_7Series_Config.pdf`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/aujus_ug/ug470_7Series_Config.pdf): FPGA Configuration User Guide.
-  - [`aujus_ug/ug471_7Series_SelectIO.pdf`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/aujus_ug/ug471_7Series_SelectIO.pdf): SelectIO Resources & I/O Standards.
-  - [`aujus_ug/ug472_7Series_Clocking.pdf`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/aujus_ug/ug472_7Series_Clocking.pdf): Clocking Resources (MMCM, PLL, CMT).
-  - [`aujus_ug/ug473_7Series_Memory_Resources.pdf`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/aujus_ug/ug473_7Series_Memory_Resources.pdf): Block RAM, FIFO, and Memory.
-  - [`aujus_ug/ug474.pdf`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/aujus_ug/ug474.pdf): Configurable Logic Block (CLB), LUTs, Slices.
-  - [`aujus_ug/ug888-vivado-design-flows-overview-tutorial.pdf`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/aujus_ug/ug888-vivado-design-flows-overview-tutorial.pdf): Vivado Design Flow Tutorial.
-  - [`aujus_ug/UG888_Summary.md`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/aujus_ug/UG888_Summary.md): Concise student summary for UG888.
-  - [`aujus_ug/GEMINI.md`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/aujus_ug/GEMINI.md): Overview and cross-references.
+#### 2. `T8/` - Gaming Data Extraction & Analytics
+- Extracted combo notations and input sequences for Fahkumram in *Tekken 8*.
+- Derived from YouTube ReVanced video screenshots, processed via Tesseract OCR and Pillow image segmentation into an Excel spreadsheet (`Fahkumram_Tekken_8_Combos.xlsx`).
 
-#### 3. `coffee/` - Home Brewing Documentation
-- **Purpose**: Collection of coffee and cold brew concentrate recipes for home brewing.
-- **Key Files**:
-  - [`coffee/GEMINI.md`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/coffee/GEMINI.md): Recipe guides (Hot Simply Good Coffee, Cold Brew Concentrate, Nespresso Iced Coffee).
+#### 3. `aujus_ug/` - Xilinx 7 Series FPGA Reference Documentation
+- Official Xilinx Artix-7, Kintex-7, and Virtex-7 FPGA architecture user guides (UG470 configuration, UG471 SelectIO, UG472 clocking, UG473 memory, UG474 CLB, UG888 Vivado tutorial).
 
-#### 4. `dsp/` - Digital Signal Processing (DSP) Core Notes
-- **Purpose**: Academic notes and mathematical reference material covering key signal processing concepts.
-- **Key Files**:
-  - [`dsp/adc_dac_converters.md`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/dsp/adc_dac_converters.md): Analog-to-Digital and Digital-to-Analog conversion processes.
-  - [`dsp/analog_modulation.md`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/dsp/analog_modulation.md): AM, FM, PM modulation analysis.
-  - [`dsp/correlation.md`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/dsp/correlation.md): Auto-correlation and cross-correlation equations and applications.
-  - [`dsp/digital_filters.md`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/dsp/digital_filters.md): FIR vs IIR filter structures.
-  - [`dsp/digital_modulation.md`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/dsp/digital_modulation.md): ASK, FSK, PSK, QAM digital schemes.
-  - [`dsp/dsp_concepts.md`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/dsp/dsp_concepts.md): Core DSP principles.
-  - [`dsp/sampling_and_quantization.md`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/dsp/sampling_and_quantization.md): Nyquist-Shannon theorem, aliasing, quantization noise.
-  - [`dsp/signals_and_systems.md`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/dsp/signals_and_systems.md): Continuous vs discrete-time systems.
-  - [`dsp/spread_spectrum.md`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/dsp/spread_spectrum.md): DSSS and FHSS communications.
-  - [`dsp/windowing_and_stability.md`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/dsp/windowing_and_stability.md): Windowing functions (Hamming, Hanning, Blackman) and stability criteria.
-  - [`dsp/topics`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/dsp/topics): Topic index.
+#### 4. `coffee/` - Home Brewing Documentation
+- Coffee and cold brew concentrate recipes (Hot coffee, cold brew concentrate, Nespresso iced coffee).
 
-#### 5. `fsm/` - Hardware Finite State Machine (Verilog)
-- **Purpose**: A Verilog implementation of a 3-state Moore Finite State Machine (`STATE_A`, `STATE_B`, `STATE_C`).
-- **Key Files**:
-  - [`fsm/fsm.v`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/fsm/fsm.v): Verilog source file.
-  - [`fsm/GEMINI.md`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/fsm/GEMINI.md): Simulation instructions using Icarus Verilog (`iverilog`, `vvp`).
+#### 5. `dsp/` - Digital Signal Processing Core Notes
+- Theoretical and mathematical notes on ADC/DAC, analog/digital modulation (AM, FM, PM, ASK, FSK, PSK, QAM), auto/cross-correlation, FIR/IIR filters, sampling and quantization, spread spectrum (DSSS, FHSS), and windowing/stability.
 
-#### 6. `issues/` - System Diagnostics & Issue Management Hub
-- **Purpose**: Centralized log tracking Linux system issues, systemd optimizations, driver fixes, and shell scripts.
-- **Key Files**:
-  - [`issues/GEMINI.md`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/issues/GEMINI.md): Directory issue management standards and templates.
-  - [`issues/unix_issues_cmds.txt`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/issues/unix_issues_cmds.txt): Accumulated shell command reference log.
-  - Shell automation scripts: `fix_bluetooth_firmware.sh`, `fix_browser_shutdown.sh`, `fix_rquickshare.sh`, `fix_ssd_mount.sh`, `optimize_boot_services.sh`.
+#### 6. `fsm/` - Hardware Finite State Machine (Verilog)
+- Synthesizable Verilog implementation of a 3-state Moore Finite State Machine (`STATE_A`, `STATE_B`, `STATE_C`) with Icarus Verilog simulation workflow.
 
-#### 7. `project_report/` - Project Documentation
-- **Purpose**: Academic/technical project reports in Microsoft Word format.
-- **Key Files**:
-  - [`project_report/project_repo_ff_v5.docx`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/project_report/project_repo_ff_v5.docx): Finalized version 5 project report document with numeric table of contents.
+#### 7. `issues/` - System Diagnostics & Issue Management Hub
+- Centralized log tracking Linux system issues, systemd optimizations, driver fixes, and shell scripts (23 issues tracked).
 
-#### 8. `secure_boot_keys_help/` - Linux Secure Boot Key Management
-- **Purpose**: Operational reference guide for Linux Secure Boot, MOK enrollment, and DKMS module signing.
-- **Key Files**:
-  - [`secure_boot_keys_help/GEMINI.md`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/secure_boot_keys_help/GEMINI.md): Guide covering PK, KEK, db, dbx, MOK, `mokutil`, and `sbctl` tools.
+#### 8. `project_report/` - Project Documentation
+- Academic project report in Microsoft Word format (`project_repo_ff_v5.docx`).
 
-#### 9. `sshh/` - SSH Configuration Guide
-- **Purpose**: Setup guide for Secure Shell authentication and server connection workflows.
-- **Key Files**:
-  - [`sshh/Instructions_SSH.md`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/sshh/Instructions_SSH.md): Detailed SSH key generation, config file management, and server authorization steps.
-  - [`sshh/GEMINI.md`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/sshh/GEMINI.md): Context notes.
+#### 9. `secure_boot_keys_help/` - Linux Secure Boot Key Management
+- Operational reference guide for Linux Secure Boot, MOK enrollment, and DKMS module signing using `sbctl` and `mokutil`.
 
-#### 10. `uart/` - Hardware UART Core (Verilog)
-- **Purpose**: Verilog hardware implementation of a parameterized UART interface for FPGAs.
-- **Key Files**:
-  - [`uart/uart.v`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/uart/uart.v): Top-level UART wrapper module.
-  - [`uart/uart_tx.v`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/uart/uart_tx.v): UART Transmitter module.
-  - [`uart/uart_rx.v`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/uart/uart_rx.v): UART Receiver module.
-  - [`uart/README.md`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/uart/README.md): Architecture description, timing diagrams, and simulation guide.
+#### 10. `sshh/` - SSH Configuration Guide
+- Secure Shell authentication, keygen, and server connection workflows.
 
-#### 11. `unix/` - Desktop Engine & Interprocess Scripting
-- **Purpose**: QML test scripts for KDE Plasma, KWin window manager, and DBus interprocess communication.
-- **Key Files**:
-  - [`unix/test_dbus.qml`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/unix/test_dbus.qml): DBus interface test script.
-  - [`unix/test_kwin.qml`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/unix/test_kwin.qml): KWin window management script.
-  - [`unix/test_kwin_engine.qml`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/unix/test_kwin_engine.qml): KWin engine diagnostic script.
-  - [`unix/test_vd.qml`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/unix/test_vd.qml): Virtual desktop QML script.
+#### 11. `uart/` - Hardware UART Core (Verilog)
+- Parameterized Verilog hardware implementation of UART transmitter, receiver, and baud rate generator for FPGAs.
 
-#### 12. `unix_scripting/` - AWK & SED Text Automation Practices
-- **Purpose**: Scripts and reference material for text manipulation using AWK and SED.
-- **Key Files**:
-  - [`unix_scripting/README.txt`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/unix_scripting/README.txt): Comprehensive Unix scripting reference.
-  - [`unix_scripting/awk_command/indx.awk`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/unix_scripting/awk_command/indx.awk): Index lookup AWK script.
-  - [`unix_scripting/awk_command/smallest.awk`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/unix_scripting/awk_command/smallest.awk): Minimum value finding script.
-  - [`unix_scripting/awk_command/smallest_n.awk`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/unix_scripting/awk_command/smallest_n.awk): N-smallest numbers extraction script.
-  - [`unix_scripting/awk_command/test.awk`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/unix_scripting/awk_command/test.awk): AWK testing logic.
+#### 12. `unix/` - Desktop Engine & Interprocess Scripting
+- QML test scripts for KDE Plasma, KWin window manager, and DBus interprocess communication.
 
-#### 13. `vlc/` - Video & Subtitle Rendering Troubleshooting
-- **Purpose**: Environment designed to isolate and resolve VLC subtitle rendering issues on Arch/CachyOS Linux.
-- **Key Files**:
-  - [`vlc/test.mp4`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/vlc/test.mp4): Minimal 5-second black video stream generated via FFmpeg.
-  - [`vlc/test.srt`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/vlc/test.srt): Standard SubRip subtitle file for text overlay verification.
-  - [`vlc/GEMINI.md`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/vlc/GEMINI.md): Diagnostic report on FreeType, libass, and font cache dependencies.
+#### 13. `unix_scripting/` - AWK & SED Text Automation Practices
+- Reference guides and practice scripts for text manipulation using AWK and SED.
+
+#### 14. `vlc/` - Video & Subtitle Rendering Troubleshooting
+- Test environment isolating VLC subtitle rendering issues on Arch/CachyOS Linux.
 
 ---
 
 ## 3. Log of Tracked System Issues (`issues/`)
 
-The repository actively tracks system issues encountered across Linux installations, hardware setups, and software environments:
-
 | Issue ID | Subject / Summary | Status | Resolution / Artifacts |
 | :--- | :--- | :---: | :--- |
-| **ISSUE_002** | Chrome/Brave "did not shut down properly" error | **Resolved** | `fix_browser_shutdown.sh`, `fix_browser_shutdown.desktop`, `REPORT_002_browser_restore_fix.md` |
+| **ISSUE_002** | Chrome/Brave "did not shut down properly" error | **Resolved** | `fix_browser_shutdown.sh`, `REPORT_002_browser_restore_fix.md` |
 | **ISSUE_003** | Systemd boot service latency & bottleneck optimization | **Resolved** | `optimize_boot_services.sh`, `ISSUE_003_further_boot_optimization.md` |
 | **ISSUE_004** | Bootloader (GRUB/loader) phase bottleneck | **Resolved** | `boot_optimization_summary.txt`, `ISSUE_004_loader_boot_optimization.md` |
 | **ISSUE_005** | Arch/CachyOS package maintenance & kernel sync | **Resolved** | System upgrades & kernel module refresh |
-| **ISSUE_006** | AUR Malware Audit & Security Vulnerability Scan | **Resolved** | Security audit notes in `ISSUE_006_aur_malware_audit.md` |
-| **ISSUE_007** | NTFS SSD Mount Failure & Intermittent Disconnects | **In Progress** | `fix_ssd_mount.sh`, `ntfs_f.txt`, `ISSUE_007_ssd_mount_issues.md` |
+| **ISSUE_006** | AUR Malware Audit & Security Vulnerability Scan | **Resolved** | `ISSUE_006_aur_malware_audit.md` |
+| **ISSUE_007** | NTFS SSD Mount Failure & Intermittent Disconnects | **In Progress** | `fix_ssd_mount.sh`, `ISSUE_007_ssd_mount_issues.md` |
 | **ISSUE_008** | RQuickShare BLE Advertiser Interference on Android | **Resolved** | `fix_rquickshare.sh`, `ISSUE_008_rquickshare_discovery_failure.md` |
 | **ISSUE_009** | MediaTek MT7922 Bluetooth Firmware Loading Failure | **Resolved** | `fix_bluetooth_firmware.sh`, `ISSUE_009_bluetooth_firmware_failure.md` |
-| **ISSUE_010** | Tekken 8 Stutter/Lag on Hybrid NVIDIA/Intel Laptop | **Resolved** | `ISSUE_010_fix_tekken_8_lag.md` (VKD3D & DXVK cache fixes) |
-| **ISSUE_011** | Microphone Static Noise & Audio Gain Calibration | **Resolved** | `ISSUE_011_microphone_driver_and_gain_fix.md` (PipeWire/WirePlumber gain filter) |
+| **ISSUE_010** | Tekken 8 Stutter/Lag on Hybrid NVIDIA/Intel Laptop | **Resolved** | `ISSUE_010_fix_tekken_8_lag.md` |
+| **ISSUE_011** | Microphone Static Noise & Audio Gain Calibration | **Resolved** | `ISSUE_011_microphone_driver_and_gain_fix.md` |
 | **ISSUE_012** | KDE Connect Availability & UFW Firewall Configuration | **Resolved** | `fix_kdeconnect.sh`, `ISSUE_012_kde_connect_firewall_enable.md` |
-| **ISSUE_013** | Automatic Git Repository Push on Logged Issue | **Resolved** | `auto_push_issue.sh`, `.githooks/post-commit`, `ISSUE_013_auto_push_on_logged_issue.md` |
-| **ISSUE_014** | Update GRUB Bootloader Timeout to 50 Seconds | **Resolved** | `/etc/default/grub` updated, `ISSUE_014_update_grub_timeout_to_50s.md` |
+| **ISSUE_013** | Automatic Git Repository Push on Logged Issue | **Resolved** | `auto_push_issue.sh`, `.githooks/post-commit` |
+| **ISSUE_014** | Update GRUB Bootloader Timeout to 50 Seconds | **Resolved** | `/etc/default/grub`, `ISSUE_014_update_grub_timeout_to_50s.md` |
 | **ISSUE_015** | Add Custom Power Off Entry to GRUB Menu | **Resolved** | `/etc/grub.d/40_custom`, `ISSUE_015_add_grub_poweroff_entry.md` |
-| **ISSUE_016** | NVIDIA Open Driver Deadlock & Boot Crash Recovery | **Resolved** | `nvidia-open-dkms` rebuild, `REPORT_004_nvidia_driver_and_system_audit.md` |
+| **ISSUE_016** | NVIDIA Open Driver Deadlock & Boot Crash Recovery | **Resolved** | `nvidia-open-dkms`, `REPORT_004_nvidia_driver_and_system_audit.md` |
 | **ISSUE_017** | Fix Locale Encoding & XKB Compose Table Warning | **Resolved** | `fix_locale_utf8.sh`, `ISSUE_017_fix_locale_utf8_compose_table.md` |
 | **ISSUE_018** | Systemd Modules Load Stall & Early Boot Start Job Hang | **Resolved** | `fix_kernel_modules_boot.sh`, `REPORT_005_kernel_module_boot_stalls_fix.md` |
 | **ISSUE_019** | Configure /etc/fstab for OS NTFS Partition Automount | **Resolved** | `fix_os_ntfs_automount.sh`, `ISSUE_019_configure_ntfs_os_fstab_automount.md` |
 | **ISSUE_020** | Configure Bash-Insulter on Every Command Not Found | **Resolved** | `/etc/bash.bashrc` hook, `ISSUE_020_configure_bash_insulter_every_command.md` |
 | **ISSUE_021** | Rename GRUB Windows Boot Manager to Windows 11 | **Resolved** | `fix_grub_windows_entry.sh`, `ISSUE_021_rename_grub_windows_boot_manager.md` |
-| **ISSUE_022** | Configure OpenSSH Server, UFW Firewall, and Remote Access | **Resolved** | `setup_remote_ssh.sh`, `REPORT_006_openssh_remote_access_setup.md` |
+| **ISSUE_022** | Configure OpenSSH Server, UFW Firewall, Remote Access | **Resolved** | `setup_remote_ssh.sh`, `REPORT_006_openssh_remote_access_setup.md` |
+| **ISSUE_023** | Disable EFI BootNext Entries & GRUB Override Fix | **Resolved** | `fix_grub_efi_bootnext.sh`, `ISSUE_023_disable_grub_efi_bootnext_entries.md` |
 
 ---
 
 ## 4. Complete Git Commit Activity Log
 
-Below is the chronological history of git commits performed within this repository:
-
-| Commit Hash | Date | Author | Commit Message & Affected Components |
+| Commit Hash | Date | Author | Summary & Key Affected Components |
 | :--- | :--- | :--- | :--- |
+| `59101d0` | 2026-10-01 | tthongs | `new transcript files made for processing` (Staging Freshers' training transcript files) |
+| `54a51dc` | 2026-10-01 | tthongs | `feat(converters): add detailed hardware schematics, netlists & BOMs across all 20 converter topologies` |
+| `94c2e9b` | 2026-10-01 | tthongs | `chore(ssh): auto-update active remote SSH command to port 28636` |
+| `3fcaa18` | 2026-09-29 | tthongs | `chore(ssh): auto-update active remote SSH command to port 14156` |
+| `fdecc74` | 2026-09-29 | tthongs | `feat(converters): add comprehensive power electronic converters knowledge base across DC-DC, AC-AC, DC-AC, AC-DC` |
+| `3308b4a` | 2026-09-29 | tthongs | `feat(spps): add Smart Programmable Power Supply engineering design suite, schematics, and calculation tool` |
+| `f55232e` | 2026-09-29 | tthongs | `docs(mosfets): add detailed static, dynamic switching, and fault waveforms across all working regions` |
+| `c22646b` | 2026-09-29 | tthongs | `docs(power-electronics): add comprehensive Power MOSFET and LDO power electronics guides and schematics` |
+| `6b4cd25` | 2026-09-29 | tthongs | `docs(protocols): add circuit connection guides and ASCII schematics for UART, SPI, I2C, LIN, and CAN` |
+| `1e5cf96` | 2026-09-29 | tthongs | `docs(protocols): complete UART and SPI master hubs, frame analysis, and calculators` |
+| `bbabdd0` | 2026-09-29 | tthongs | `feat(mosfets): add comprehensive MOSFET study modules, calculators, and documentation suite` |
+| `698ff0d` | 2026-09-28 | tthongs | `docs(grub): add ISSUE_023 to disable EFI BootNext entries and fix script` |
+| `966c87c` | 2026-09-28 | tthongs | `feat(evse): add EVSE low voltage controller architecture, IoT subsystem, and hardware guides` |
+| `b0335ba` | 2026-09-27 | tthongs | `feat(i2c): add I2C protocol guides, frame analysis, timing specs, and calculation suite` |
+| `2226fb3` | 2026-09-27 | tthongs | `nfc added` (Near Field Communication suite, ISO 14443-3/4, SPI frontends, NDEF) |
+| `03b40a9` | 2026-09-27 | tthongs | `feat(spi): add SPI protocol guides, timing calculations, and frame analysis suite` |
 | `6132b1e` | 2026-07-25 | tthongs | `ggs` - Cleanup of Maggi documentation files |
 | `0c617e7` | 2026-07-04 | tthongs | `fix(bluetooth): resolve RQuickShare background BLE advertiser interference [ISSUE_008]` |
-| `b070889` | 2026-06-30 | tthongs | `docs(t8): document black screen resolution and prefix cleanup [ISSUE_010]` |
 | `730b7ad` | 2026-06-30 | tthongs | `fix(t8): resolve Tekken 8 lag on hybrid graphics laptop [ISSUE_010]` |
 | `acb15fd` | 2026-06-30 | tthongs | `Resolve ISSUE_009: Bluetooth Firmware Loading Failure (MT7922)` |
 | `55e10a2` | 2026-06-29 | tthongs | `feat(T8): extract and compile Tekken 8 Fahkumram combos into a styled Excel sheet` |
 | `9dfd7b4` | 2026-06-23 | tthongs | `fix(ssd): add configuration script and documentation for SSD mount issues [ISSUE_007]` |
 | `4e47751` | 2026-06-17 | tthongs | `docs: document AUR malware audit and system scan results [ISSUE_006]` |
-| `520d0bd` | 2026-05-29 | tthongs | `tasks_aa_ii updated` - Browser restore fix & boot optimization scripts |
-| `87e8507` | 2026-05-29 | tthongs | `docs: generate comprehensive GEMINI.md for issues directory` |
-| `8c25e29` | 2026-05-26 | tthongs | `docs: add simplified student summary for UG888` |
 | `456154e` | 2026-05-26 | tthongs | `docs: initialize project with Xilinx 7 Series documentation and GEMINI.md` |
-| `c3ee9d3` | 2026-05-26 | tthongs | `gh` - Added Secure Boot keys guide and project report update |
-| `55b5748` | 2026-05-04 | tthongs | `docs: finalize project report with strictly numeric TOC and body cleanup` |
-| `ca0b450` | 2026-05-01 | tthongs | `Generate comprehensive GEMINI.md for project context` |
-| `372fa3b` | 2026-05-01 | tthongs | `Update Table of Contents to include headings up to x.xx.xx depth` |
-| `d7b0089` | 2026-05-01 | tthongs | `Restore and add finalized project report with Appendix and updated TOC` |
-| `a93ba50` | 2026-05-01 | tthongs | `Add Appendix with List of Figures/Tables and update Table of Contents` |
-| `934263b` | 2026-05-01 | tthongs | `Add captions to previously unlabeled figures in project report` |
 | `c19896a` | 2026-04-05 | tthongs | `ggs` - Initial commit of KDE/QML scripts (`unix/`) |
 
 ---
 
-## 5. File Inventory & Manifest
+## 5. Freshers' Training 2026 Transcripts (`vvdn/raw_transcripts/`)
 
-| File Path | Subdirectory | Type | Description |
-| :--- | :--- | :--- | :--- |
-| `T8/Fahkumram_Tekken_8_Combos.xlsx` | `T8/` | Excel (`.xlsx`) | Formatted combo sheet for Tekken 8 character Fahkumram |
-| `T8/GEMINI.md` | `T8/` | Markdown (`.md`) | OCR combo extraction workflow documentation |
-| `aujus_ug/UG888_Summary.md` | `aujus_ug/` | Markdown (`.md`) | Simplified student summary for UG888 Vivado tutorial |
-| `aujus_ug/ug470_7Series_Config.pdf` | `aujus_ug/` | PDF | Xilinx 7 Series Configuration User Guide |
-| `aujus_ug/ug471_7Series_SelectIO.pdf` | `aujus_ug/` | PDF | Xilinx 7 Series SelectIO Resources Guide |
-| `aujus_ug/ug472_7Series_Clocking.pdf` | `aujus_ug/` | PDF | Xilinx 7 Series Clocking Resources Guide |
-| `aujus_ug/ug473_7Series_Memory_Resources.pdf` | `aujus_ug/` | PDF | Xilinx 7 Series Memory Resources Guide |
-| `aujus_ug/ug474.pdf` | `aujus_ug/` | PDF | Xilinx 7 Series CLB User Guide |
-| `aujus_ug/ug888-vivado-design-flows-overview-tutorial.pdf` | `aujus_ug/` | PDF | Vivado Design Flows Tutorial |
-| `dsp/adc_dac_converters.md` | `dsp/` | Markdown (`.md`) | Analog-to-Digital & Digital-to-Analog conversion guide |
-| `dsp/analog_modulation.md` | `dsp/` | Markdown (`.md`) | Comprehensive notes on AM, FM, PM analog modulation |
-| `dsp/correlation.md` | `dsp/` | Markdown (`.md`) | Auto-correlation and cross-correlation reference |
-| `dsp/digital_filters.md` | `dsp/` | Markdown (`.md`) | FIR and IIR digital filter design fundamentals |
-| `dsp/digital_modulation.md` | `dsp/` | Markdown (`.md`) | ASK, FSK, PSK, and QAM modulation notes |
-| `dsp/dsp_concepts.md` | `dsp/` | Markdown (`.md`) | Fundamental DSP terms and theorems |
-| `dsp/sampling_and_quantization.md` | `dsp/` | Markdown (`.md`) | Nyquist sampling theorem & quantization noise analysis |
-| `dsp/signals_and_systems.md` | `dsp/` | Markdown (`.md`) | Continuous and discrete time system classification |
-| `dsp/spread_spectrum.md` | `dsp/` | Markdown (`.md`) | DSSS and FHSS communications notes |
-| `dsp/windowing_and_stability.md` | `dsp/` | Markdown (`.md`) | Window functions and BIBO system stability |
-| `fsm/fsm.v` | `fsm/` | Verilog (`.v`) | 3-state Moore Finite State Machine implementation |
-| `issues/ISSUE_002_browser_restore_fix.md` | `issues/` | Markdown (`.md`) | Chrome/Brave clean shutdown issue resolution |
-| `issues/ISSUE_003_further_boot_optimization.md` | `issues/` | Markdown (`.md`) | Systemd user service boot optimization log |
-| `issues/ISSUE_004_loader_boot_optimization.md` | `issues/` | Markdown (`.md`) | Bootloader loader phase bottleneck analysis |
-| `issues/ISSUE_006_aur_malware_audit.md` | `issues/` | Markdown (`.md`) | AUR package security audit results |
-| `issues/ISSUE_007_ssd_mount_issues.md` | `issues/` | Markdown (`.md`) | NTFS volume dirtiness & mounting issue log |
-| `issues/ISSUE_008_rquickshare_discovery_failure.md` | `issues/` | Markdown (`.md`) | Bluetooth LE advertiser collision fix |
-| `issues/ISSUE_009_bluetooth_firmware_failure.md` | `issues/` | Markdown (`.md`) | MT7922 Bluetooth kernel firmware fix |
-| `issues/ISSUE_010_fix_tekken_8_lag.md` | `issues/` | Markdown (`.md`) | Tekken 8 VKD3D shader cache & hybrid GPU fix |
-| `issues/ISSUE_011_microphone_driver_and_gain_fix.md` | `issues/` | Markdown (`.md`) | PipeWire microphone noise filter configuration |
-| `issues/ISSUE_012_kde_connect_firewall_enable.md` | `issues/` | Markdown (`.md`) | KDE Connect UFW port rules log |
-| `issues/ISSUE_013_auto_push_on_logged_issue.md` | `issues/` | Markdown (`.md`) | Git post-commit hook auto-push setup |
-| `issues/ISSUE_014_update_grub_timeout_to_50s.md` | `issues/` | Markdown (`.md`) | GRUB timeout reconfiguration to 50s |
-| `issues/ISSUE_015_add_grub_poweroff_entry.md` | `issues/` | Markdown (`.md`) | GRUB poweroff menuentry creation |
-| `issues/ISSUE_016_nvidia_driver_deadlock_and_boot_crash.md` | `issues/` | Markdown (`.md`) | NVIDIA driver deadlock diagnosis and DKMS fix |
-| `issues/ISSUE_017_fix_locale_utf8_compose_table.md` | `issues/` | Markdown (`.md`) | Locale UTF-8 calibration and XKB compose table fix |
-| `issues/ISSUE_018_fix_start_job_kernel_modules_hang.md` | `issues/` | Markdown (`.md`) | Early boot kernel module race condition fix |
-| `issues/ISSUE_019_configure_ntfs_os_fstab_automount.md` | `issues/` | Markdown (`.md`) | NTFS OS partition fstab automount configuration |
-| `issues/ISSUE_020_configure_bash_insulter_every_command.md` | `issues/` | Markdown (`.md`) | Bash-Insulter configuration on command-not-found |
-| `issues/ISSUE_021_rename_grub_windows_boot_manager.md` | `issues/` | Markdown (`.md`) | Rename GRUB Windows Boot Manager to Windows 11 |
-| `issues/ISSUE_022_setup_openssh_remote_access.md` | `issues/` | Markdown (`.md`) | OpenSSH server, UFW firewall, and Tailscale setup |
-| `issues/REPORT_002_browser_restore_fix.md` | `issues/` | Markdown (`.md`) | Browser shutdown crash recovery report |
-| `issues/REPORT_003_system_driver_and_git_config_log.md` | `issues/` | Markdown (`.md`) | Audio driver calibration & global git config report |
-| `issues/REPORT_004_nvidia_driver_and_system_audit.md` | `issues/` | Markdown (`.md`) | NVIDIA driver recovery & system audit report |
-| `issues/REPORT_005_kernel_module_boot_stalls_fix.md` | `issues/` | Markdown (`.md`) | Boot kernel module stalls resolution report |
-| `issues/REPORT_006_openssh_remote_access_setup.md` | `issues/` | Markdown (`.md`) | OpenSSH remote access & Windows 11 client report |
-| `issues/auto_push_issue.sh` | `issues/` | Shell (`.sh`) | Automated git commit and push wrapper |
-| `issues/fix_bluetooth_firmware.sh` | `issues/` | Shell (`.sh`) | Automated MT7922 bluetooth firmware update script |
-| `issues/fix_browser_shutdown.desktop` | `issues/` | Desktop (`.desktop`) | Systemd shutdown trigger desktop launcher |
-| `issues/fix_browser_shutdown.sh` | `issues/` | Shell (`.sh`) | Clean browser termination bash script |
-| `issues/fix_grub_windows_entry.sh` | `issues/` | Shell (`.sh`) | Script to rename GRUB Windows entry to Windows 11 |
-| `issues/fix_kdeconnect.sh` | `issues/` | Shell (`.sh`) | Script to configure KDE Connect firewall ports |
-| `issues/fix_kernel_modules_boot.sh` | `issues/` | Shell (`.sh`) | Early boot kernel module deadlock fix script |
-| `issues/fix_locale_utf8.sh` | `issues/` | Shell (`.sh`) | System locale UTF-8 calibration script |
-| `issues/fix_os_ntfs_automount.sh` | `issues/` | Shell (`.sh`) | Script to configure NTFS OS partition fstab automount |
-| `issues/fix_rquickshare.sh` | `issues/` | Shell (`.sh`) | Script to fix BLE advertising for QuickShare |
-| `issues/fix_ssd_mount.sh` | `issues/` | Shell (`.sh`) | NTFS repair & automount script |
-| `issues/optimize_boot_services.sh` | `issues/` | Shell (`.sh`) | Systemd service disablement script |
-| `issues/setup_remote_ssh.sh` | `issues/` | Shell (`.sh`) | OpenSSH server & Tailscale remote access setup script |
-| `issues/unix_issues_cmds.txt` | `issues/` | Text (`.txt`) | Central command line execution log |
-| `project_report/project_repo_ff_v5.docx` | `project_report/` | Word (`.docx`) | Finalized project report document |
-| `secure_boot_keys_help/GEMINI.md` | `secure_boot_keys_help/` | Markdown (`.md`) | Linux Secure Boot & sbctl setup manual |
-| `sshh/Instructions_SSH.md` | `sshh/` | Markdown (`.md`) | SSH keygen & configuration walkthrough |
-| `uart/uart.v` | `uart/` | Verilog (`.v`) | Top-level UART transmitter & receiver module |
-| `uart/uart_rx.v` | `uart/` | Verilog (`.v`) | UART receiver module with baud rate generator |
-| `uart/uart_tx.v` | `uart/` | Verilog (`.v`) | UART transmitter module with serializer |
-| `unix/test_dbus.qml` | `unix/` | QML (`.qml`) | DBus IPC test script |
-| `unix/test_kwin.qml` | `unix/` | QML (`.qml`) | KWin window manager test script |
-| `unix/test_kwin_engine.qml` | `unix/` | QML (`.qml`) | KWin script engine diagnostic |
-| `unix/test_vd.qml` | `unix/` | QML (`.qml`) | Virtual desktop switcher QML script |
-| `unix_scripting/README.txt` | `unix_scripting/` | Text (`.txt`) | Detailed reference for AWK and SED commands |
-| `unix_scripting/awk_command/indx.awk` | `unix_scripting/` | AWK (`.awk`) | AWK script for index extraction |
-| `unix_scripting/awk_command/smallest.awk` | `unix_scripting/` | AWK (`.awk`) | AWK script for finding minimum value |
-| `unix_scripting/awk_command/smallest_n.awk` | `unix_scripting/` | AWK (`.awk`) | AWK script for N-smallest numbers |
-| `vlc/test.mp4` | `vlc/` | MP4 (`.mp4`) | Black test video for VLC subtitle verification |
-| `vlc/test.srt` | `vlc/` | SRT (`.srt`) | Sample subtitle file for rendering verification |
+Derived from Google Drive session folders ([`vvdn/img/Screenshot 2026-10-03 163025.png`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/vvdn/img/Screenshot%202026-10-03%20163025.png)), these 12 files are ordered **chronologically from earliest to latest** using the naming format `number_topicname_sessionname.txt`:
+
+| # | Date & Time | Topic Name | Trainer / Speaker | File Path |
+|---|:---|:---|:---|:---|
+| **01** | 11 Sep 2026 (14:23 IST) | PCB Basics | Ragul Rajamani | [`vvdn/raw_transcripts/01_pcb_basics_ragul_rajamani.txt`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/vvdn/raw_transcripts/01_pcb_basics_ragul_rajamani.txt) |
+| **02** | 16 Sep 2026 (16:55 IST) | Introduction to Embedded Hardware | Vignesh Ananthan | [`vvdn/raw_transcripts/02_introduction_to_embedded_hardware_vignesh_ananthan.txt`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/vvdn/raw_transcripts/02_introduction_to_embedded_hardware_vignesh_ananthan.txt) |
+| **03** | 18 Sep 2026 (09:25 IST) | Power Design & Analysis | Karpagamoorthy R | [`vvdn/raw_transcripts/03_power_design_and_analysis_karpagamoorthy_r.txt`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/vvdn/raw_transcripts/03_power_design_and_analysis_karpagamoorthy_r.txt) |
+| **04** | 23 Sep 2026 (11:00 IST) | PRD Sample Walkthrough | Gaurav Gupta | [`vvdn/raw_transcripts/04_prd_sample_walkthrough_gaurav_gupta.txt`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/vvdn/raw_transcripts/04_prd_sample_walkthrough_gaurav_gupta.txt) |
+| **05** | 24 Sep 2026 (09:43 IST) | Component Selection | Vignesh Anandhan | [`vvdn/raw_transcripts/05_component_selection_vignesh_anandhan.txt`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/vvdn/raw_transcripts/05_component_selection_vignesh_anandhan.txt) |
+| **06** | 25 Sep 2026 | Hardware Architecture Walk Through | Vignesh Anandhan | [`vvdn/raw_transcripts/06_hardware_architecture_walkthrough_vignesh_anandhan.txt`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/vvdn/raw_transcripts/06_hardware_architecture_walkthrough_vignesh_anandhan.txt) |
+| **07** | 28 Sep 2026 | HW Architecture Sample Walk Through | Shivam Saxena | [`vvdn/raw_transcripts/07_hw_architecture_sample_walkthrough_shivam_saxena.txt`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/vvdn/raw_transcripts/07_hw_architecture_sample_walkthrough_shivam_saxena.txt) |
+| **08** | 29 Sep 2026 | Component Selection - Processor & MCU | Ansar Sulaimaan | [`vvdn/raw_transcripts/08_component_selection_processor_and_microcontroller_ansar_sulaimaan.txt`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/vvdn/raw_transcripts/08_component_selection_processor_and_microcontroller_ansar_sulaimaan.txt) |
+| **09** | 30 Sep 2026 | HDD Sample Walk Through (Session 1) | Mathan Kumar | [`vvdn/raw_transcripts/09_hdd_sample_walkthrough_session1_mathan_kumar.txt`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/vvdn/raw_transcripts/09_hdd_sample_walkthrough_session1_mathan_kumar.txt) |
+| **10** | 01 Oct 2026 (09:14 IST) | Memories, Clock & Reset | Vibesh Kumar V | [`vvdn/raw_transcripts/10_memories_clock_and_reset_vibesh_kumar_v.txt`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/vvdn/raw_transcripts/10_memories_clock_and_reset_vibesh_kumar_v.txt) |
+| **11** | 01 Oct 2026 (11:00 IST) | HDD Sample Walk Through (Session 2) | Mathan Kumar | [`vvdn/raw_transcripts/11_hdd_sample_walkthrough_session2_mathan_kumar.txt`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/vvdn/raw_transcripts/11_hdd_sample_walkthrough_session2_mathan_kumar.txt) |
+| **12** | 01 Oct 2026 | Component Selection General | Shivam Pandey & Chandan Kumar | [`vvdn/raw_transcripts/12_component_selection_general_shivam_pandey_chandan_kumar.txt`](file:///home/tthh0ngs/build_tthongs/tasks_aa_ii/vvdn/raw_transcripts/12_component_selection_general_shivam_pandey_chandan_kumar.txt) |
+
+Each file is initialized with standard metadata headers and a transcript/notes placeholder.
 
 ---
 
-*This document was automatically compiled by Antigravity based on repository activity, git history, and local file analysis.*
+## 6. Antigravity CLI & AI Agent Workspace Guide
+
+When loading this repository in an **Antigravity CLI (`agy`)** or AI pair-programming agent session on Linux:
+
+1. **Context Discovery**:
+   - Read this document (`ACTIVITY_LOG.md`) first to understand the workspace structure, active modules, and issues.
+   - For embedded hardware, protocols, power electronics, and converters, navigate to `vvdn/README.md`.
+2. **Document Synchronization**:
+   - Whenever any `.md` file in `vvdn/` is added or modified, compile its `.docx` counterpart using:
+     ```bash
+     python3 vvdn/tools/md_to_docx.py <path/to/file.md>
+     ```
+   - To batch-synchronize all dossiers across protocols and standards:
+     ```bash
+     python3 vvdn/tools/md_to_docx.py
+     ```
+3. **Hardware Calculators**:
+   - Access CLI calculation utilities under `vvdn/tools/` for bit timings, baud rates, pull-up resistors, power loss, and thermal margins.
+4. **Issue Tracking Workflow**:
+   - For hardware peripherals: Instantiate `vvdn/templates/issue-template.md` in `vvdn/active/`, follow `vvdn/templates/device-bringup-checklist.md`, and move resolved cases to `vvdn/resolved/`.
+   - For Linux host/driver issues: Follow the tracking format in `issues/GEMINI.md`.
+
+---
+
+*This document is continuously updated to maintain full synchronization between local Linux workstations and Antigravity CLI environments.*
