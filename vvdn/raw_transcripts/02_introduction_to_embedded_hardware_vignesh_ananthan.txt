@@ -1,0 +1,11 @@
+================================================================================
+SESSION METADATA: 02_introduction_to_embedded_hardware_vignesh_ananthan
+================================================================================
+Topic:          Introduction to Embedded Hardware
+Program:        Freshers' Training 2026
+Trainer:        Vignesh Ananthan
+Date & Time:    16 Sep 2026 - 16:55 IST
+Original Title: Introduction to Embedded Hardware || Freshers' Training 2026 || Vignesh Ananthan || 16 Sep - 2026/09/16 16:55 IST
+================================================================================
+
+[TRANSCRIPT / SESSION NOTES PLACEHOLDER]
