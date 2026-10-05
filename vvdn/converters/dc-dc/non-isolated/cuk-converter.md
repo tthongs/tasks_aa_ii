@@ -8,7 +8,7 @@ This document explores the circuit topology, derives the volt-second and charge-
 
 ## 1. Operating Principle & Ćuk Topology
 
-The **Ćuk Converter** comprises two inductors ($L_1, L_2$), an active switch ($Q_1$), a diode ($D_1$), an energy-transfer coupling capacitor ($C_1$), and an output filter capacitor ($C_o$):
+The **Ćuk Converter** comprises two inductors (L_1, L_2), an active switch (Q_1), a diode (D_1), an energy-transfer coupling capacitor (C_1), and an output filter capacitor (C_o):
 
 ```text
 ========================================================================================================================
@@ -88,35 +88,37 @@ The **Ćuk Converter** comprises two inductors ($L_1, L_2$), an active switch ($
 
 | Net Name | Source (Pin / Terminal) | Destination (Pin / Terminal) | Electrical Function | Hardware Engineering Notes |
 | :--- | :--- | :--- | :--- | :--- |
-| **+VIN_FILT** | Fuse $F_1$ Output | $C_{in}$ bank (+), Inductor $L_1$ Pin 1 | Filtered positive input DC bus | Carries smooth DC current with minimal ripple due to input inductor $L_1$. |
-| **SW1 (Switch Node 1)** | Inductor $L_1$ Pin 2, $Q_1$ Drain | Transfer Capacitor $C_1$ Left Plate, Snubber | High-voltage switching node ($0\,\text{V} \dots V_{IN} + \|V_o\|$) | Trace must withstand $V_{IN} + \|V_o\| = 24\,\text{V}$ plus inductive spike. |
-| **SW2 (Switch Node 2)** | Transfer Capacitor $C_1$ Right Plate | Diode $D_1$ Cathode, Inductor $L_2$ Pin 1 | Negative-swinging switching node | Swings between $-(V_{IN} + \|V_o\|)$ when $Q_1$ is ON and $0\,\text{V}$ when $Q_1$ is OFF. |
-| **-VOUT (Negative Rail)** | Inductor $L_2$ Pin 2 | $C_{out}$ Negative terminal, Load (-) | Continuous-current regulated negative rail | Because $L_2$ is in series with output, output ripple current is pure triangular and very low. |
-| **PGND** | $C_{in}$ (-), $R_{shunt}$ (-), Diode $D_1$ Anode, $C_{out}$ (+) | System power ground return | Common zero-volt reference | Diode $D_1$ anode connects directly to PGND; carries continuous freewheeling return current. |
+| **+VIN_FILT** | Fuse F_1 Output | C_in bank (+), Inductor L_1 Pin 1 | Filtered positive input DC bus | Carries smooth DC current with minimal ripple due to input inductor L_1. |
+| **SW1 (Switch Node 1)** | Inductor L_1 Pin 2, Q_1 Drain | Transfer Capacitor C_1 Left Plate, Snubber | High-voltage switching node (0 V ... V_IN + \|V_o\|) | Trace must withstand V_IN + \|V_o\| = 24 V plus inductive spike. |
+| **SW2 (Switch Node 2)** | Transfer Capacitor C_1 Right Plate | Diode D_1 Cathode, Inductor L_2 Pin 1 | Negative-swinging switching node | Swings between -(V_IN + \|V_o\|) when Q_1 is ON and 0 V when Q_1 is OFF. |
+| **-VOUT (Negative Rail)** | Inductor L_2 Pin 2 | C_out Negative terminal, Load (-) | Continuous-current regulated negative rail | Because L_2 is in series with output, output ripple current is pure triangular and very low. |
+| **PGND** | C_in (-), R_shunt (-), Diode D_1 Anode, C_out (+) | System power ground return | Common zero-volt reference | Diode D_1 anode connects directly to PGND; carries continuous freewheeling return current. |
 
 ### 1.2 Component Bill of Materials & Parametric Specifications:
 
 | RefDes | Component Description | Manufacturer & Part Number | Key Electrical Specifications | Critical Design Constraint |
 | :--- | :--- | :--- | :--- | :--- |
-| **$Q_1$** | Low-Side N-MOSFET | Infineon BSC040N10NS5 | $V_{DS} = 100\,\text{V}, I_D = 100\,\text{A}, R_{DS(on)} = 4.0\,\text{m}\Omega, Q_g = 27\,\text{nC}$ | Low ground-referenced driver complexity; $V_{DS}$ stress equals $V_{IN} + \|V_o\| = 24\,\text{V}$. |
-| **$D_1$** | Catch Schottky Diode | Vishay V30100P | $V_{RRM} = 100\,\text{V}, I_F = 30\,\text{A}, V_F = 0.55\,\text{V}, t_{rr} < 20\,\text{ns}$ | Anode grounded; cathode tied to $C_1/L_2$. Must handle combined current $I_{L1} + I_{L2}$. |
-| **$C_1$** | Energy Transfer Capacitor | TDK C3225X7R1H106M | $10\,\mu\text{F}, 50\,\text{V}, \text{X7R Ceramic}, 1210$ package | **Crucial Component**: Carries full AC load current ripple ($I_{C1,rms} \approx 4.5\,\text{A}$); must use low-loss MLCC or film. |
-| **$L_1, L_2$** | Coupled / Dual Inductors | Würth Elektronik 7443320330 | $2 \times 33\,\mu\text{H}, I_{sat} = 6.2\,\text{A}, DCR = 16\,\text{m}\Omega$ | Can be wound on a single shared core to steer ripple to zero on either input or output side! |
-| **$C_{out,bulk}$** | Output Bulk Capacitor | Panasonic 25SVPF220M | $2 \times 220\,\mu\text{F}, 25\,\text{V}, \text{OS-CON Polymer}, ESR = 12\,\text{m}\Omega$ | Positive terminal grounded; negative terminal connected to $-V_{OUT}$. |
+| **Q_1** | Low-Side N-MOSFET | Infineon BSC040N10NS5 | V_DS = 100 V, I_D = 100 A, R_DS(on) = 4.0 mΩ, Q_g = 27 nC | Low ground-referenced driver complexity; V_DS stress equals V_IN + \|V_o\| = 24 V. |
+| **D_1** | Catch Schottky Diode | Vishay V30100P | V_RRM = 100 V, I_F = 30 A, V_F = 0.55 V, t_rr < 20 ns | Anode grounded; cathode tied to C_1/L_2. Must handle combined current I_L1 + I_L2. |
+| **C_1** | Energy Transfer Capacitor | TDK C3225X7R1H106M | 10 µF, 50 V, X7R Ceramic, 1210 package | **Crucial Component**: Carries full AC load current ripple (I_C1,rms ≈ 4.5 A); must use low-loss MLCC or film. |
+| **L_1, L_2** | Coupled / Dual Inductors | Würth Elektronik 7443320330 | 2 * 33 µH, I_sat = 6.2 A, DCR = 16 mΩ | Can be wound on a single shared core to steer ripple to zero on either input or output side! |
+| **C_out,bulk** | Output Bulk Capacitor | Panasonic 25SVPF220M | 2 * 220 µF, 25 V, OS-CON Polymer, ESR = 12 mΩ | Positive terminal grounded; negative terminal connected to -V_OUT. |
 
 
 ### 1.1 Conduction Intervals:
-1. **Interval 1: Switch OFF ($D \cdot T_s < t \le T_s$)**:
-   - Switch $Q_1$ is OFF. Diode $D_1$ is forward-biased.
-   - Input inductor $L_1$ charges coupling capacitor $C_1$ via diode $D_1$.
-   - Output inductor $L_2$ delivers stored energy through diode $D_1$ into output capacitor $C_{out}$ and the load.
-   - The voltage across $C_1$ in steady state settles to:
-     $$V_{C1} = V_{IN} + |V_o|$$
-2. **Interval 2: Switch ON ($0 < t \le D \cdot T_s$)**:
-   - Switch $Q_1$ turns ON, pulling the left terminal of $C_1$ to GND ($0\,\text{V}$).
-   - The right terminal of $C_1$ drops to $-(V_{IN} + |V_o|)$, reverse-biasing diode $D_1$.
-   - Energy stored in $C_1$ is transferred directly into output inductor $L_2$ and the load.
-   - Concurrently, input inductor $L_1$ draws energy directly from $V_{IN}$ to GND.
+1. **Interval 1: Switch OFF (D * T_s < t <= T_s)**:
+   - Switch Q_1 is OFF. Diode D_1 is forward-biased.
+   - Input inductor L_1 charges coupling capacitor C_1 via diode D_1.
+   - Output inductor L_2 delivers stored energy through diode D_1 into output capacitor C_out and the load.
+   - The voltage across C_1 in steady state settles to:
+     ```
+V_C1 = V_IN + |V_o|
+```
+2. **Interval 2: Switch ON (0 < t <= D * T_s)**:
+   - Switch Q_1 turns ON, pulling the left terminal of C_1 to GND (0 V).
+   - The right terminal of C_1 drops to -(V_IN + |V_o|), reverse-biasing diode D_1.
+   - Energy stored in C_1 is transferred directly into output inductor L_2 and the load.
+   - Concurrently, input inductor L_1 draws energy directly from V_IN to GND.
 
 ---
 
@@ -142,32 +144,46 @@ The **Ćuk Converter** comprises two inductors ($L_1, L_2$), an active switch ($
 ## 3. Mathematical Formulations & Transfer Function
 
 ### 3.1 Voltage Conversion Ratio:
-Applying volt-second balance to input inductor $L_1$:
-$$V_{IN} \cdot D + (V_{IN} - V_{C1}) \cdot (1 - D) = 0 \implies V_{C1} = \frac{V_{IN}}{1 - D}$$
+Applying volt-second balance to input inductor L_1:
+```
+V_IN * D + (V_IN - V_C1) * (1 - D) = 0 => V_C1 = V_IN / (1 - D)
+```
 
-Applying volt-second balance to output inductor $L_2$:
-$$(V_{C1} - |V_o|) \cdot D + (-|V_o|) \cdot (1 - D) = 0 \implies V_{C1} \cdot D - |V_o| = 0 \implies |V_o| = D \cdot V_{C1}$$
+Applying volt-second balance to output inductor L_2:
+```
+(V_C1 - |V_o|) * D + (-|V_o|) * (1 - D) = 0 => V_C1 * D - |V_o| = 0 => |V_o| = D * V_C1
+```
 
-Substituting $V_{C1}$:
-$$|V_o| = V_{IN} \cdot \frac{D}{1 - D} \implies V_o = -V_{IN} \cdot \frac{D}{1 - D}$$
+Substituting V_C1:
+```
+|V_o| = V_IN * D / (1 - D) => V_o = -V_IN * D / (1 - D)
+```
 
 ### 3.2 Component Sizing Equations:
-1. **Input Inductor ($L_1$)**:
-   $$L_1 = \frac{V_{IN} \cdot D}{f_s \cdot \Delta I_{L1}}$$
-2. **Output Inductor ($L_2$)**:
-   $$L_2 = \frac{|V_o| \cdot (1 - D)}{f_s \cdot \Delta I_{L2}}$$
-3. **Energy Transfer Capacitor ($C_1$)**:
-   $C_1$ carries the full load current during switch ON time. To restrict capacitor ripple to $\Delta V_{C1}$:
-   $$C_1 = \frac{I_o \cdot D}{f_s \cdot \Delta V_{C1}}$$
+1. **Input Inductor (L_1)**:
+   ```
+L_1 = (V_IN * D) / (f_s * Δ I_L1)
+```
+2. **Output Inductor (L_2)**:
+   ```
+L_2 = (|V_o| * (1 - D)) / (f_s * Δ I_L2)
+```
+3. **Energy Transfer Capacitor (C_1)**:
+   C_1 carries the full load current during switch ON time. To restrict capacitor ripple to Δ V_C1:
+   ```
+C_1 = (I_o * D) / (f_s * Δ V_C1)
+```
 4. **Switch & Diode Stresses**:
-   Both the MOSFET $Q_1$ and diode $D_1$ must withstand the combined rail voltage:
-   $$V_{DS,max} = V_{diode,rev} = V_{IN} + |V_o|$$
+   Both the MOSFET Q_1 and diode D_1 must withstand the combined rail voltage:
+   ```
+V_DS,max = V_diode,rev = V_IN + |V_o|
+```
 
 ---
 
 ## 4. The Coupled-Inductor Zero-Ripple Phenomenon
 
-Because both inductors $L_1$ and $L_2$ experience identical AC voltage waveforms across their terminals ($(V_{IN} - V_{C1})$ and $-|V_o|$), they can be **wound onto a single magnetic core**:
+Because both inductors L_1 and L_2 experience identical AC voltage waveforms across their terminals ((V_IN - V_C1) and -|V_o|), they can be **wound onto a single magnetic core**:
 
 ```text
                      Coupled-Inductor Ćuk Configuration
@@ -180,12 +196,16 @@ Because both inductors $L_1$ and $L_2$ experience identical AC voltage waveforms
 ```
 
 ### 4.1 Ripple Steering Mechanism:
-With mutual inductance $M = k \sqrt{L_1 L_2}$ between the two windings:
-$$\frac{di_{L1}}{dt} = \frac{v_1 \cdot (L_2 - M)}{L_1 L_2 - M^2}, \quad \frac{di_{L2}}{dt} = \frac{v_2 \cdot (L_1 - M)}{L_1 L_2 - M^2}$$
+With mutual inductance M = k sqrt(L_1 L_2) between the two windings:
+```
+di_L1 / dt = (v_1 * (L_2 - M)) / (L_1 L_2 - M^2), di_L2 / dt = (v_2 * (L_1 - M)) / (L_1 L_2 - M^2)
+```
 If the turns ratio is selected such that:
-$$M = L_2 \implies k \sqrt{\frac{L_1}{L_2}} = 1 \implies \frac{N_1}{N_2} = \frac{1}{k}$$
-The AC ripple current in inductor $L_2$ is **driven identically to zero ($\Delta i_{L2} = 0$)**!
-All AC switching ripple is "steered" into the input inductor $L_1$, yielding **completely DC, ripple-free current at the output** without requiring a massive electrolytic capacitor!
+```
+M = L_2 => k sqrt(L_1 / L_2) = 1 => N_1 / N_2 = 1 / k
+```
+The AC ripple current in inductor L_2 is **driven identically to zero (Δ i_L2 = 0)**!
+All AC switching ripple is "steered" into the input inductor L_1, yielding **completely DC, ripple-free current at the output** without requiring a massive electrolytic capacitor!
 
 ---
 
@@ -195,5 +215,5 @@ All AC switching ripple is "steered" into the input inductor $L_1$, yielding **c
 | :--- | :--- |
 | **Continuous currents at both input and output** (ultra-low conducted EMI). | Inverted output voltage polarity. |
 | **Zero output ripple** achievable via magnetic coupling. | High component count: 2 inductors + 2 capacitors. |
-| Non-pulsating currents extend battery and capacitor lifetime. | High voltage stress ($V_{IN} + |V_o|$) on semiconductor switches. |
-| Ideal for ultra-low noise instrumentation, audio amplifiers, RF PA bias. | Coupling capacitor $C_1$ carries high AC RMS ripple current ($I_{C1,rms} \approx I_o \sqrt{D}$). |
+| Non-pulsating currents extend battery and capacitor lifetime. | High voltage stress (V_IN + |V_o|) on semiconductor switches. |
+| Ideal for ultra-low noise instrumentation, audio amplifiers, RF PA bias. | Coupling capacitor C_1 carries high AC RMS ripple current (I_C1,rms ≈ I_o sqrt(D)). |

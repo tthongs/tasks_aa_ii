@@ -1,6 +1,6 @@
 # Buck-Boost DC-DC Converters: Inverting vs 4-Switch Non-Inverting Architecture
 
-Welcome to the **VVDN Engineering Hub Technical Dossier on Buck-Boost DC-DC Converters**. When the input DC voltage can be higher, equal to, or lower than the desired regulated output rail—such as automotive battery cranking ($6\,\text{V} \dots 28\,\text{V}$ to $12\,\text{V}$), lithium-ion battery discharge profiles ($2.7\,\text{V} \dots 4.2\,\text{V}$ to $3.3\,\text{V}$), or USB Power Delivery ($5\,\text{V} \dots 20\,\text{V}$)—the Buck-Boost topology is mandatory.
+Welcome to the **VVDN Engineering Hub Technical Dossier on Buck-Boost DC-DC Converters**. When the input DC voltage can be higher, equal to, or lower than the desired regulated output rail—such as automotive battery cranking (6 V ... 28 V to 12 V), lithium-ion battery discharge profiles (2.7 V ... 4.2 V to 3.3 V), or USB Power Delivery (5 V ... 20 V)—the Buck-Boost topology is mandatory.
 
 This guide provides an exhaustive hardware analysis of the classic **Inverting Buck-Boost Converter** and the modern industrial workhorse: the **4-Switch Synchronous Non-Inverting Buck-Boost Converter (FSBB)**.
 
@@ -83,49 +83,59 @@ The classic single-switch Buck-Boost converter produces an output voltage whose 
 
 | Net Name | Source (Pin / Terminal) | Destination (Pin / Terminal) | Electrical Function | Hardware Engineering Notes |
 | :--- | :--- | :--- | :--- | :--- |
-| **+VIN_FILT** | Fuse $F_1$ Terminal 2 | $C_{in}$ bank (+), $Q_1$ Source (Pins 1-3) | Positive input voltage rail | High-side P-channel configuration uses Source at $+V_{IN}$. |
-| **SW (Switching Node)** | $Q_1$ Drain (Pins 5-8) | Inductor $L_1$ Pin 1, Diode $D_1$ Cathode, Snubber | High-voltage bidirectional swinging node | Maximum voltage stress across $Q_1$ is $V_{IN} + \|V_o\| = 12\,\text{V} + 12\,\text{V} = 24\,\text{V}$. |
-| **INDUCTOR_RET** | Inductor $L_1$ Pin 2 | System GND (0V Common Plane) | Inductor current discharge return | Connects to central GND plane; carries total sum of input and output average currents. |
-| **-VOUT (Negative Rail)**| Diode $D_1$ Anode | $C_{out}$ Negative terminal, Load (-) | Inverted negative DC output rail | Polarity is inverted: $C_{out}$ positive terminal must connect to GND, negative terminal to $-V_{OUT}$. |
-| **V_FB_INV** | Inverting Op-Amp Output | PWM Controller Feedback (FB) Pin | Inverted sense voltage ($+1.2\,\text{V}$) | Negative voltage cannot connect directly to standard positive PWM controller; requires op-amp or PNP level-shifter. |
-| **GND** | System Ground Return | Inductor $L_1$ Pin 2, $C_{in}$ (-), $C_{out}$ (+) | Reference zero volt plane | Heavy copper pour; serves as positive reference for the output load. |
+| **+VIN_FILT** | Fuse F_1 Terminal 2 | C_in bank (+), Q_1 Source (Pins 1-3) | Positive input voltage rail | High-side P-channel configuration uses Source at +V_IN. |
+| **SW (Switching Node)** | Q_1 Drain (Pins 5-8) | Inductor L_1 Pin 1, Diode D_1 Cathode, Snubber | High-voltage bidirectional swinging node | Maximum voltage stress across Q_1 is V_IN + \|V_o\| = 12 V + 12 V = 24 V. |
+| **INDUCTOR_RET** | Inductor L_1 Pin 2 | System GND (0V Common Plane) | Inductor current discharge return | Connects to central GND plane; carries total sum of input and output average currents. |
+| **-VOUT (Negative Rail)**| Diode D_1 Anode | C_out Negative terminal, Load (-) | Inverted negative DC output rail | Polarity is inverted: C_out positive terminal must connect to GND, negative terminal to -V_OUT. |
+| **V_FB_INV** | Inverting Op-Amp Output | PWM Controller Feedback (FB) Pin | Inverted sense voltage (+1.2 V) | Negative voltage cannot connect directly to standard positive PWM controller; requires op-amp or PNP level-shifter. |
+| **GND** | System Ground Return | Inductor L_1 Pin 2, C_in (-), C_out (+) | Reference zero volt plane | Heavy copper pour; serves as positive reference for the output load. |
 
 ### 1.2 Component Bill of Materials & Parametric Specifications:
 
 | RefDes | Component Description | Manufacturer & Part Number | Key Electrical Specifications | Critical Design Constraint |
 | :--- | :--- | :--- | :--- | :--- |
-| **$Q_1$** | High-Side P-MOSFET | ON Semi FDS4685 | $V_{DS} = -40\,\text{V}, I_D = -8.2\,\text{A}, R_{DS(on)} = 27\,\text{m}\Omega, Q_g = 29\,\text{nC}$ | $V_{DS}$ rating must exceed $V_{IN} + \|V_o\| = 24\,\text{V}$ with minimum $40\%$ safety margin. |
-| **$D_1$** | Inverting Rectifier Diode | Vishay V30100P | $V_{RRM} = 100\,\text{V}, I_F = 30\,\text{A}, V_F = 0.52\,\text{V}, t_{rr} < 25\,\text{ns}$ | High reverse voltage rating required: sees $V_{IN} + \|V_o\| = 24\,\text{V}$ plus inductive spike. |
-| **$L_1$** | Power Choke Inductor | Bourns SRR1260-220M | $L = 22\,\mu\text{H}, I_{sat} = 7.0\,\text{A}, I_{rms} = 4.2\,\text{A}, DCR = 40\,\text{m}\Omega$ | Must handle combined input and load currents: $I_{L,avg} = I_{in} + I_o = 3\,\text{A} + 3\,\text{A} = 6\,\text{A}$. |
-| **$C_{in,bulk}$**| Input Bulk Cap | Panasonic 35SVPF150M | $150\,\mu\text{F}, 35\,\text{V}, \text{OS-CON Polymer}, ESR = 15\,\text{m}\Omega$ | Withstands discontinuous pulsating input current waveforms. |
-| **$C_{out,bulk}$**| Output Bulk Cap | Panasonic 25SVPF220M | $2 \times 220\,\mu\text{F}, 25\,\text{V}, \text{Polymer}, ESR = 14\,\text{m}\Omega$ | **Observe Polarity**: Positive terminal to GND, negative terminal to $-V_{OUT}$. |
-| **$C_{out,cer}$**| Output Ceramic MLCC | Murata GRM32ER71E106K | $3 \times 10\,\mu\text{F}, 25\,\text{V}, \text{X7R}, 1210$ package | Shunts high-frequency discontinuous current pulses delivered by $D_1$. |
-| **$U_1$ (Level Shift)**| Inverting Sense Op-Amp | TI TLV9061IDBVR | $V_{DD} = 5\,\text{V}, \text{Rail-to-Rail I/O}, GBW = 10\,\text{MHz}$ | Inverts and attenuates negative output to positive controller reference ($0 \dots 1.2\,\text{V}$). |
+| **Q_1** | High-Side P-MOSFET | ON Semi FDS4685 | V_DS = -40 V, I_D = -8.2 A, R_DS(on) = 27 mΩ, Q_g = 29 nC | V_DS rating must exceed V_IN + \|V_o\| = 24 V with minimum 40\% safety margin. |
+| **D_1** | Inverting Rectifier Diode | Vishay V30100P | V_RRM = 100 V, I_F = 30 A, V_F = 0.52 V, t_rr < 25 ns | High reverse voltage rating required: sees V_IN + \|V_o\| = 24 V plus inductive spike. |
+| **L_1** | Power Choke Inductor | Bourns SRR1260-220M | L = 22 µH, I_sat = 7.0 A, I_rms = 4.2 A, DCR = 40 mΩ | Must handle combined input and load currents: I_L,avg = I_in + I_o = 3 A + 3 A = 6 A. |
+| **C_in,bulk**| Input Bulk Cap | Panasonic 35SVPF150M | 150 µF, 35 V, OS-CON Polymer, ESR = 15 mΩ | Withstands discontinuous pulsating input current waveforms. |
+| **C_out,bulk**| Output Bulk Cap | Panasonic 25SVPF220M | 2 * 220 µF, 25 V, Polymer, ESR = 14 mΩ | **Observe Polarity**: Positive terminal to GND, negative terminal to -V_OUT. |
+| **C_out,cer**| Output Ceramic MLCC | Murata GRM32ER71E106K | 3 * 10 µF, 25 V, X7R, 1210 package | Shunts high-frequency discontinuous current pulses delivered by D_1. |
+| **U_1 (Level Shift)**| Inverting Sense Op-Amp | TI TLV9061IDBVR | V_DD = 5 V, Rail-to-Rail I/O, GBW = 10 MHz | Inverts and attenuates negative output to positive controller reference (0 ... 1.2 V). |
 
 
 ### 1.1 Operating Mechanism:
-1. **Switch ON ($0 < t \le D \cdot T_s$)**:
-   - $Q_1$ is ON; Diode $D_1$ is reverse-biased by $-V_o$ and $V_{IN}$.
-   - Inductor $L$ is connected directly between $V_{IN}$ and GND. Inductor current ramps up:
-     $$\frac{di_L}{dt} = \frac{V_{IN}}{L}$$
-   - Energy is stored in inductor $L$. Capacitor $C_{out}$ independently supplies the load.
-2. **Switch OFF ($D \cdot T_s < t \le T_s$)**:
-   - $Q_1$ turns OFF. The inductor forces node $SW$ negative to maintain continuous current flow.
-   - Diode $D_1$ is forward-biased, pulling current out of the negative output rail through the inductor to GND.
+1. **Switch ON (0 < t <= D * T_s)**:
+   - Q_1 is ON; Diode D_1 is reverse-biased by -V_o and V_IN.
+   - Inductor L is connected directly between V_IN and GND. Inductor current ramps up:
+     ```
+di_L / dt = V_IN / L
+```
+   - Energy is stored in inductor L. Capacitor C_out independently supplies the load.
+2. **Switch OFF (D * T_s < t <= T_s)**:
+   - Q_1 turns OFF. The inductor forces node SW negative to maintain continuous current flow.
+   - Diode D_1 is forward-biased, pulling current out of the negative output rail through the inductor to GND.
    - Inductor current decays:
-     $$\frac{di_L}{dt} = \frac{-|V_o|}{L}$$
+     ```
+di_L / dt = (-|V_o|) / L
+```
    - Output voltage is **strictly negative** with respect to GND.
 
 ### 1.2 Transfer Function & Volt-Second Balance:
-$$\int_0^{T_s} v_L(t) \, dt = V_{IN} \cdot D \cdot T_s + (-|V_o|) \cdot (1 - D) \cdot T_s = 0$$
-$$|V_o| = V_{IN} \cdot \frac{D}{1 - D} \implies V_o = -V_{IN} \cdot \frac{D}{1 - D}$$
-- When $D < 0.5 \implies |V_o| < V_{IN}$ (Step-Down / Buck Mode)
-- When $D = 0.5 \implies |V_o| = V_{IN}$ (Unity Gain)
-- When $D > 0.5 \implies |V_o| > V_{IN}$ (Step-Up / Boost Mode)
+```
+int_0^T_s v_L(t) dt = V_IN * D * T_s + (-|V_o|) * (1 - D) * T_s = 0
+```
+```
+|V_o| = V_IN * D / (1 - D) => V_o = -V_IN * D / (1 - D)
+```
+- When D < 0.5 => |V_o| < V_IN (Step-Down / Buck Mode)
+- When D = 0.5 => |V_o| = V_IN (Unity Gain)
+- When D > 0.5 => |V_o| > V_IN (Step-Up / Boost Mode)
 
 ### 1.3 Severe Switch Stress:
-Both the switch $Q_1$ and the diode $D_1$ see a peak reverse voltage equal to the **sum of input and output voltages**:
-$$V_{stress} = V_{IN} + |V_o|$$
+Both the switch Q_1 and the diode D_1 see a peak reverse voltage equal to the **sum of input and output voltages**:
+```
+V_stress = V_IN + |V_o|
+```
 *Engineering Drawback*: The negative output polarity and severe switch voltage stress make the classic topology inconvenient for standard single-rail consumer and automotive electronics.
 
 ---
@@ -237,30 +247,30 @@ The **4-Switch Buck-Boost (FSBB)** combines a synchronous buck leg and a synchro
 
 | Net Name | Source (Pin / Terminal) | Destination (Pin / Terminal) | Electrical Function | Hardware Engineering Notes |
 | :--- | :--- | :--- | :--- | :--- |
-| **+VIN_FILT** | Fuse $F_1$ Output | $C_{in}$ bank (+), $Q_A$ Drain (Pins 5-8) | Filtered wide-range input rail ($6\,\text{V} \dots 36\,\text{V}$) | Ceramic capacitors $C_{in,cer}$ must bridge directly to $Q_B$ source ground pad. |
-| **SW1 (Buck Node)** | $Q_A$ Source, $Q_B$ Drain | Inductor $L_1$ Pin 1, Controller SW1, $C_{boot1}$ (-) | Pulsating buck switching node | High $dv/dt$ rectangular node; keep surface area small to mitigate capacitive coupling. |
-| **INDUCTOR_CS** | Inductor $L_1$ Pin 2 | Shunt $R_{sense}$ Terminal 1 | Filtered inter-stage inductor rail | Inductor carries continuous DC current with triangular AC ripple in all modes. |
-| **SW2 (Boost Node)** | Shunt $R_{sense}$ Terminal 2 | $Q_C$ Drain, $Q_D$ Source, Controller SW2, $C_{boot2}$ (-) | Pulsating boost switching node | Symmetrical layout with SW1 to ensure matched parasitic loop inductances. |
-| **+VOUT** | $Q_D$ Drain (Pins 5-8) | $C_{out}$ bank (+), Feedback $R_{fb1}$, Load (+) | Regulated +12V DC output bus | Low-impedance plane pour; $C_{out,cer}$ placed directly at $Q_D$ drain and $Q_C$ source. |
-| **BOOT1 / BOOT2** | $D_{boot1/2}$ Cathodes | Controller BOOT1 / BOOT2 Pins | High-side floating gate supplies | Refreshed whenever low-side switches ($Q_B / Q_C$) conduct and pull SW nodes to GND. |
-| **PGND** | $Q_B$ Source, $Q_C$ Source, Filter caps (-) | Power ground plane | Circulating power stage ground | Solid ground plane; provides high thermal heat-sinking for MOSFET packages. |
+| **+VIN_FILT** | Fuse F_1 Output | C_in bank (+), Q_A Drain (Pins 5-8) | Filtered wide-range input rail (6 V ... 36 V) | Ceramic capacitors C_in,cer must bridge directly to Q_B source ground pad. |
+| **SW1 (Buck Node)** | Q_A Source, Q_B Drain | Inductor L_1 Pin 1, Controller SW1, C_boot1 (-) | Pulsating buck switching node | High dv/dt rectangular node; keep surface area small to mitigate capacitive coupling. |
+| **INDUCTOR_CS** | Inductor L_1 Pin 2 | Shunt R_sense Terminal 1 | Filtered inter-stage inductor rail | Inductor carries continuous DC current with triangular AC ripple in all modes. |
+| **SW2 (Boost Node)** | Shunt R_sense Terminal 2 | Q_C Drain, Q_D Source, Controller SW2, C_boot2 (-) | Pulsating boost switching node | Symmetrical layout with SW1 to ensure matched parasitic loop inductances. |
+| **+VOUT** | Q_D Drain (Pins 5-8) | C_out bank (+), Feedback R_fb1, Load (+) | Regulated +12V DC output bus | Low-impedance plane pour; C_out,cer placed directly at Q_D drain and Q_C source. |
+| **BOOT1 / BOOT2** | D_boot1/2 Cathodes | Controller BOOT1 / BOOT2 Pins | High-side floating gate supplies | Refreshed whenever low-side switches (Q_B / Q_C) conduct and pull SW nodes to GND. |
+| **PGND** | Q_B Source, Q_C Source, Filter caps (-) | Power ground plane | Circulating power stage ground | Solid ground plane; provides high thermal heat-sinking for MOSFET packages. |
 
 ### 2.2 Component Bill of Materials & Parametric Specifications:
 
 | RefDes | Component Description | Manufacturer & Part Number | Key Electrical Specifications | Critical Design Constraint |
 | :--- | :--- | :--- | :--- | :--- |
-| **$Q_A, Q_B$** | Buck Leg N-MOSFETs | Infineon BSC035N10NS5 | $V_{DS} = 100\,\text{V}, I_D = 100\,\text{A}, R_{DS(on)} = 3.5\,\text{m}\Omega, Q_g = 28\,\text{nC}$ | Low figure-of-merit ($R_{DS(on)} \cdot Q_g$) for high efficiency in Buck mode. |
-| **$Q_C, Q_D$** | Boost Leg N-MOSFETs | Infineon BSC035N10NS5 | $V_{DS} = 100\,\text{V}, I_D = 100\,\text{A}, R_{DS(on)} = 3.5\,\text{m}\Omega, Q_g = 28\,\text{nC}$ | Symmetrical quad-FET selection simplifies thermal design and inventory management. |
-| **$L_1$** | High-Current Power Choke | Würth Elektronik 74435561100 | $L = 10\,\mu\text{H}, I_{sat} = 14\,\text{A}, I_{rms} = 11.5\,\text{A}, DCR = 8.2\,\text{m}\Omega$ | Flat-wire wound core minimizes skin effect AC copper losses at $300\,\text{kHz} \dots 500\,\text{kHz}$. |
-| **$R_{sense}$** | Inductor Current Shunt | Vishay WSL2512R0050FEA | $5.0\,\text{m}\Omega, 2.0\,\text{W}, 1\%, \text{Kelvin 4-Terminal}$ | Ultra-low thermal EMF ($< 3\,\mu\text{V}/^\circ\text{C}$) ensures accurate current loop stability. |
-| **$C_{in,bulk}$** | Input Bulk Capacitor | Panasonic 50SVPF150M | $150\,\mu\text{F}, 50\,\text{V}, \text{OS-CON Polymer}, ESR = 18\,\text{m}\Omega$ | $50\,\text{V}$ rating safely absorbs automotive load-dump surges up to $36\,\text{V}$. |
-| **$C_{out,cer}$** | Output Ceramic MLCC | TDK C3225X7R1E226M | $4 \times 22\,\mu\text{F}, 25\,\text{V}, \text{X7R}, 1210$ package | Provides low output impedance across wide dynamic load range ($0.1\,\text{A} \dots 5\,\text{A}$). |
-| **$U_1$ (Controller)** | Synchronous FSBB IC | TI LM5176PWPR | Wide $V_{IN}$ ($3.5\,\text{V} \dots 55\,\text{V}$), integrated 2A drivers | Automatically transitions smoothly between Buck, Buck-Boost, and Boost operating regimes. |
+| **Q_A, Q_B** | Buck Leg N-MOSFETs | Infineon BSC035N10NS5 | V_DS = 100 V, I_D = 100 A, R_DS(on) = 3.5 mΩ, Q_g = 28 nC | Low figure-of-merit (R_DS(on) * Q_g) for high efficiency in Buck mode. |
+| **Q_C, Q_D** | Boost Leg N-MOSFETs | Infineon BSC035N10NS5 | V_DS = 100 V, I_D = 100 A, R_DS(on) = 3.5 mΩ, Q_g = 28 nC | Symmetrical quad-FET selection simplifies thermal design and inventory management. |
+| **L_1** | High-Current Power Choke | Würth Elektronik 74435561100 | L = 10 µH, I_sat = 14 A, I_rms = 11.5 A, DCR = 8.2 mΩ | Flat-wire wound core minimizes skin effect AC copper losses at 300 kHz ... 500 kHz. |
+| **R_sense** | Inductor Current Shunt | Vishay WSL2512R0050FEA | 5.0 mΩ, 2.0 W, 1\%, Kelvin 4-Terminal | Ultra-low thermal EMF (< 3 µV/°C) ensures accurate current loop stability. |
+| **C_in,bulk** | Input Bulk Capacitor | Panasonic 50SVPF150M | 150 µF, 50 V, OS-CON Polymer, ESR = 18 mΩ | 50 V rating safely absorbs automotive load-dump surges up to 36 V. |
+| **C_out,cer** | Output Ceramic MLCC | TDK C3225X7R1E226M | 4 * 22 µF, 25 V, X7R, 1210 package | Provides low output impedance across wide dynamic load range (0.1 A ... 5 A). |
+| **U_1 (Controller)** | Synchronous FSBB IC | TI LM5176PWPR | Wide V_IN (3.5 V ... 55 V), integrated 2A drivers | Automatically transitions smoothly between Buck, Buck-Boost, and Boost operating regimes. |
 
 
 ### 2.1 The Three Control Regimes:
 
-To maximize efficiency ($> 98\%$), modern FSBB controllers (e.g., LM5176, LT8390, TPS55288) do not switch all 4 FETs simultaneously. Instead, they dynamically switch between three operating regions:
+To maximize efficiency (> 98\%), modern FSBB controllers (e.g., LM5176, LT8390, TPS55288) do not switch all 4 FETs simultaneously. Instead, they dynamically switch between three operating regions:
 
 ```text
                FSBB Operating Modes Across Input Voltage Sweep
@@ -274,16 +284,16 @@ To maximize efficiency ($> 98\%$), modern FSBB controllers (e.g., LM5176, LT8390
                 [Pure Boost]    [Buck-Boost]    [Pure Buck]
 ```
 
-1. **Pure Buck Mode ($V_{IN} > 1.15 \cdot V_o$)**:
-   - $Q_D$ is held continuously **ON** ($100\%$ duty cycle).
-   - $Q_C$ is held continuously **OFF**.
-   - $Q_A$ and $Q_B$ switch as a standard synchronous buck converter.
+1. **Pure Buck Mode (V_IN > 1.15 * V_o)**:
+   - Q_D is held continuously **ON** (100\% duty cycle).
+   - Q_C is held continuously **OFF**.
+   - Q_A and Q_B switch as a standard synchronous buck converter.
    - Only 2 switches toggle; switching losses are minimal.
-2. **Pure Boost Mode ($V_{IN} < 0.85 \cdot V_o$)**:
-   - $Q_A$ is held continuously **ON** ($100\%$ duty cycle).
-   - $Q_B$ is held continuously **OFF**.
-   - $Q_C$ and $Q_D$ switch as a standard synchronous boost converter.
-3. **Buck-Boost Mode ($0.85 \cdot V_o \le V_{IN} \le 1.15 \cdot V_o$)**:
+2. **Pure Boost Mode (V_IN < 0.85 * V_o)**:
+   - Q_A is held continuously **ON** (100\% duty cycle).
+   - Q_B is held continuously **OFF**.
+   - Q_C and Q_D switch as a standard synchronous boost converter.
+3. **Buck-Boost Mode (0.85 * V_o <= V_IN <= 1.15 * V_o)**:
    - Both legs switch to provide seamless, monotonic output voltage regulation across the transition boundary without control loop instability or output voltage glitching.
 
 ---
@@ -292,14 +302,22 @@ To maximize efficiency ($> 98\%$), modern FSBB controllers (e.g., LM5176, LT8390
 
 ### 3.1 Inductor Sizing Formula:
 The worst-case inductor ripple occurs in Boost mode at minimum input voltage:
-$$L \ge \frac{V_{IN,min}^2 \cdot (V_o - V_{IN,min})}{f_s \cdot \Delta I_L \cdot V_o^2}$$
-Choosing ripple current ratio $r = 0.3 \dots 0.4$ relative to maximum average inductor current:
-$$I_{L,max} = \frac{V_o \cdot I_{o,max}}{\eta \cdot V_{IN,min}}$$
-$$L = \frac{V_{IN,min} \cdot (V_o - V_{IN,min})}{f_s \cdot (r \cdot I_{L,max}) \cdot V_o}$$
+```
+L >= (V_IN,min^2 * (V_o - V_IN,min)) / (f_s * Δ I_L * V_o^2)
+```
+Choosing ripple current ratio r = 0.3 ... 0.4 relative to maximum average inductor current:
+```
+I_L,max = (V_o * I_o,max) / (η * V_IN,min)
+```
+```
+L = (V_IN,min * (V_o - V_IN,min)) / (f_s * (r * I_L,max) * V_o)
+```
 
 ### 3.2 Output Capacitor Sizing:
-In boost and buck-boost modes, output current is discontinuous. $C_{out}$ must support the load current during switch ON time:
-$$C_{out} \ge \frac{I_{o,max} \cdot D_{boost}}{f_s \cdot \Delta V_{o,allowable}}$$
+In boost and buck-boost modes, output current is discontinuous. C_out must support the load current during switch ON time:
+```
+C_out >= (I_o,max * D_boost) / (f_s * Δ V_o,allowable)
+```
 
 ---
 
@@ -309,6 +327,6 @@ $$C_{out} \ge \frac{I_{o,max} \cdot D_{boost}}{f_s \cdot \Delta V_{o,allowable}}
 | :--- | :--- | :--- |
 | **Output Polarity** | Negative (Inverted) | Positive (Common Ground) |
 | **Component Count** | 1 Switch, 1 Diode, 1 Inductor | 4 MOSFETs, 1 Inductor, Dual Drivers |
-| **Switch Voltage Stress** | $V_{IN} + |V_o|$ | $\max(V_{IN}, V_o)$ |
-| **Peak Efficiency** | $82\% \dots 88\%$ | $96\% \dots 98.5\%$ |
+| **Switch Voltage Stress** | V_IN + |V_o| | max(V_IN, V_o) |
+| **Peak Efficiency** | 82\% ... 88\% | 96\% ... 98.5\% |
 | **Primary Applications** | Low-cost negative bias rails (Op-Amps, LCDs) | USB-PD (5-20V), Automotive Infotainment, Drone ESCs |

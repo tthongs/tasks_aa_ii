@@ -111,46 +111,55 @@ The **Flyback Converter** is an isolated, buck-boost-derived switched-mode power
 
 | Net Name | Source (Pin / Terminal) | Destination (Pin / Terminal) | Electrical Function | Hardware Engineering Notes |
 | :--- | :--- | :--- | :--- | :--- |
-| **+VBULK** | Input Bridge Rectifier (+) | $C_{bulk}$ (+), Transformer Primary Pin 1, RCD Snubber | High-voltage rectified DC input rail | Trace clearance must satisfy IEC 62368-1 high-voltage spacing ($\ge 2.5\,\text{mm}$). |
-| **DRAIN_PRI** | Transformer Primary Pin 2 | $Q_1$ Drain, Diode $D_{snub}$ Cathode | Primary switching node ($0\,\text{V} \dots 650\,\text{V}$) | Keep copper loop from Primary Pin 2 through $D_{snub}$ and $C_{snub}$ extremely short to suppress leakage ringing. |
-| **CS_PRI** | $Q_1$ Source | Sense Resistor $R_{sense}$ Top Pad, $R_{cs}$ Filter | Primary peak current sensing | Low-inductance resistor layout; Kelvin sense trace to controller CS comparator pin. |
-| **VCC_AUX** | Aux Winding $N_{aux}$ Pin 2 | Diode $D_{aux}$ Anode -> $C_{aux}$ (+), Controller VCC | Controller primary bootstrap bias rail | Delivers steady $+14\,\text{V}$ DC to controller after initial startup resistor charges $C_{aux}$. |
+| **+VBULK** | Input Bridge Rectifier (+) | C_bulk (+), Transformer Primary Pin 1, RCD Snubber | High-voltage rectified DC input rail | Trace clearance must satisfy IEC 62368-1 high-voltage spacing (>= 2.5 mm). |
+| **DRAIN_PRI** | Transformer Primary Pin 2 | Q_1 Drain, Diode D_snub Cathode | Primary switching node (0 V ... 650 V) | Keep copper loop from Primary Pin 2 through D_snub and C_snub extremely short to suppress leakage ringing. |
+| **CS_PRI** | Q_1 Source | Sense Resistor R_sense Top Pad, R_cs Filter | Primary peak current sensing | Low-inductance resistor layout; Kelvin sense trace to controller CS comparator pin. |
+| **VCC_AUX** | Aux Winding N_aux Pin 2 | Diode D_aux Anode -> C_aux (+), Controller VCC | Controller primary bootstrap bias rail | Delivers steady +14 V DC to controller after initial startup resistor charges C_aux. |
 | **OPTO_COL** | PC817 Optocoupler Pin 4 | Controller FB Pin | Isolated closed-loop feedback signal | Modulates controller internal current setpoint; optocoupler emitter connects to GND_PRI. |
-| **+VOUT (SELV)**| Diode $D_{sec}$ Cathode | $C_{out}$ bank (+), Opto Pullup, Feedback $R_{fb1}$ | Regulated +12V SELV isolated DC output rail | Complies with Safety Extra Low Voltage limits ($< 60\,\text{V}$ DC touchable). |
-| **TL431_REF** | Divider $R_{fb1}/R_{fb2}$ Node | TL431 Shunt Regulator Reference (Pin 1) | Output voltage error sense | Precision reference node ($2.500\,\text{V}$); TL431 sinks cathode current to drive Opto LED. |
-| **GND_PRI / GND_SEC**| Primary GND / Secondary GND | Safety Capacitor $C_{Y1}$ bridging barrier | Galvanically isolated ground planes | Minimum $6.4\,\text{mm}$ creepage slot milled through PCB laminate beneath optocoupler and transformer. |
+| **+VOUT (SELV)**| Diode D_sec Cathode | C_out bank (+), Opto Pullup, Feedback R_fb1 | Regulated +12V SELV isolated DC output rail | Complies with Safety Extra Low Voltage limits (< 60 V DC touchable). |
+| **TL431_REF** | Divider R_fb1/R_fb2 Node | TL431 Shunt Regulator Reference (Pin 1) | Output voltage error sense | Precision reference node (2.500 V); TL431 sinks cathode current to drive Opto LED. |
+| **GND_PRI / GND_SEC**| Primary GND / Secondary GND | Safety Capacitor C_Y1 bridging barrier | Galvanically isolated ground planes | Minimum 6.4 mm creepage slot milled through PCB laminate beneath optocoupler and transformer. |
 
 ### 1.2 Component Bill of Materials & Parametric Specifications:
 
 | RefDes | Component Description | Manufacturer & Part Number | Key Electrical Specifications | Critical Design Constraint |
 | :--- | :--- | :--- | :--- | :--- |
-| **$Q_1$** | Primary High-Voltage FET | Infineon IPB80R290P7 | $V_{DS} = 800\,\text{V}, I_D = 17\,\text{A}, R_{DS(on)} = 290\,\text{m}\Omega, Q_g = 23\,\text{nC}$ | $800\,\text{V}$ rating absorbs $V_{bulk,max} + V_{reflect} + V_{spike} = 375\,\text{V} + 96\,\text{V} + 150\,\text{V} = 621\,\text{V}$. |
-| **$T_1$** | Flyback Coupled Inductor | Custom PQ26/20 Core (3C95) | $L_p = 220\,\mu\text{H}, N_p:N_s:N_{aux} = 48:6:7, L_{lk} < 4.0\,\mu\text{H}$ | Gapped core prevents magnetic saturation at $I_{pk} = 2.4\,\text{A}$; triple-insulated wire (TIW) for secondary. |
-| **$D_{snub}$** | RCD Snubber Diode | Diodes Inc. US1M | $V_{RRM} = 1000\,\text{V}, I_F = 1\,\text{A}, t_{rr} < 75\,\text{ns}, C_j = 15\,\text{pF}$ | Fast recovery prevents reverse charge dumping into $C_{snub}$. |
-| **$R_{snub}, C_{snub}$**| RCD Snubber Resistor/Cap | Vishay AC03 / Vishay MKP385 | $R = 47\,\text{k}\Omega / 3\,\text{W}, C = 2.2\,\text{nF} / 630\,\text{V Film}$ | Clamps leakage spike below $700\,\text{V}$; dissipates $P_{snub} \approx 1.8\,\text{W}$ at full load. |
-| **$D_{sec}$** | Secondary Output Rectifier | Vishay V30100P | $V_{RRM} = 100\,\text{V}, I_F = 30\,\text{A}, V_F = 0.52\,\text{V}$ | Trench MOS barrier Schottky handles peak inverse voltage $V_{PIV} = V_o + V_{bulk} \cdot (N_s/N_p) = 60\,\text{V}$. |
-| **$C_{out,bulk}$** | Output Bulk Capacitor | Panasonic 25SVPF470M | $2 \times 470\,\mu\text{F}, 25\,\text{V}, \text{OS-CON Polymer}, ESR = 10\,\text{m}\Omega$ | Absorbs large secondary discontinuous triangular current pulses ($I_{sec,rms} \approx 6.2\,\text{A}$). |
-| **$U_1$ (Opto)** | Safety Optocoupler | Everlight EL817(B) | $V_{IOTV} = 5000\,\text{V}_{RMS}, CTR = 130\% \dots 260\%$ | Connects isolated output error amplifier to primary PWM controller across safety barrier. |
-| **$U_2$ (Ref)** | Precision Shunt Reference | TI TL431AQDBZR | $V_{ref} = 2.495\,\text{V} \pm 0.5\%, I_k = 1\,\text{mA} \dots 100\,\text{mA}$ | Closes voltage loop with high gain; includes Type-II compensation across Cathode and Ref. |
-| **$C_{Y1}$** | Safety Y1 Barrier Cap | Murata DE1E3KX222MA4BP01F | $2.2\,\text{nF}, 400\,\text{V}_{\text{AC}}, \text{Class Y1} (Reinforced)$ | Provides low-impedance return path for common-mode displacement currents; minimizes EMI emissions. |
+| **Q_1** | Primary High-Voltage FET | Infineon IPB80R290P7 | V_DS = 800 V, I_D = 17 A, R_DS(on) = 290 mΩ, Q_g = 23 nC | 800 V rating absorbs V_bulk,max + V_reflect + V_spike = 375 V + 96 V + 150 V = 621 V. |
+| **T_1** | Flyback Coupled Inductor | Custom PQ26/20 Core (3C95) | L_p = 220 µH, N_p:N_s:N_aux = 48:6:7, L_lk < 4.0 µH | Gapped core prevents magnetic saturation at I_pk = 2.4 A; triple-insulated wire (TIW) for secondary. |
+| **D_snub** | RCD Snubber Diode | Diodes Inc. US1M | V_RRM = 1000 V, I_F = 1 A, t_rr < 75 ns, C_j = 15 pF | Fast recovery prevents reverse charge dumping into C_snub. |
+| **R_snub, C_snub**| RCD Snubber Resistor/Cap | Vishay AC03 / Vishay MKP385 | R = 47 kΩ / 3 W, C = 2.2 nF / 630 V Film | Clamps leakage spike below 700 V; dissipates P_snub ≈ 1.8 W at full load. |
+| **D_sec** | Secondary Output Rectifier | Vishay V30100P | V_RRM = 100 V, I_F = 30 A, V_F = 0.52 V | Trench MOS barrier Schottky handles peak inverse voltage V_PIV = V_o + V_bulk * (N_s/N_p) = 60 V. |
+| **C_out,bulk** | Output Bulk Capacitor | Panasonic 25SVPF470M | 2 * 470 µF, 25 V, OS-CON Polymer, ESR = 10 mΩ | Absorbs large secondary discontinuous triangular current pulses (I_sec,rms ≈ 6.2 A). |
+| **U_1 (Opto)** | Safety Optocoupler | Everlight EL817(B) | V_IOTV = 5000 V_RMS, CTR = 130\% ... 260\% | Connects isolated output error amplifier to primary PWM controller across safety barrier. |
+| **U_2 (Ref)** | Precision Shunt Reference | TI TL431AQDBZR | V_ref = 2.495 V ± 0.5\%, I_k = 1 mA ... 100 mA | Closes voltage loop with high gain; includes Type-II compensation across Cathode and Ref. |
+| **C_Y1** | Safety Y1 Barrier Cap | Murata DE1E3KX222MA4BP01F | 2.2 nF, 400 V_AC, Class Y1 (Reinforced) | Provides low-impedance return path for common-mode displacement currents; minimizes EMI emissions. |
 
 
 ### 1.1 Conduction Cycle Breakdown:
-1. **Interval 1: Switch ON ($0 < t \le D \cdot T_s$)**:
-   - Primary switch Q1 turns ON. Input DC voltage $V_{IN}$ is applied across primary winding $N_p$.
-   - Due to the inverted dot polarity, secondary winding $N_s$ generates a negative potential at the anode of $D_{sec}$.
-   - Secondary diode $D_{sec}$ is **reverse-biased**; no current flows to the secondary.
+1. **Interval 1: Switch ON (0 < t <= D * T_s)**:
+   - Primary switch Q1 turns ON. Input DC voltage V_IN is applied across primary winding N_p.
+   - Due to the inverted dot polarity, secondary winding N_s generates a negative potential at the anode of D_sec.
+   - Secondary diode D_sec is **reverse-biased**; no current flows to the secondary.
    - Energy is stored in the transformer's core air gap as magnetic flux:
-     $$E_{stored} = \frac{1}{2} L_p \cdot I_{pk}^2$$
-   - Primary current ramps up linearly: $\frac{di_p}{dt} = \frac{V_{IN}}{L_p}$.
-   - The output load current is supplied entirely by the output capacitor bank $C_{out}$.
-2. **Interval 2: Switch OFF ($D \cdot T_s < t \le T_s$)**:
+     ```
+E_stored = 0.5 * Lp * I_pk^2
+```
+
+Where:
+- E_stored: Magnetic energy stored in coupled inductor core per switching cycle (J)
+- Lp: Primary magnetizing inductance (H)
+- I_pk: Peak primary drain current reached at end of switch on-time (A)
+   - Primary current ramps up linearly: di_p / dt = V_IN / L_p.
+   - The output load current is supplied entirely by the output capacitor bank C_out.
+2. **Interval 2: Switch OFF (D * T_s < t <= T_s)**:
    - Q1 turns OFF. Primary current ceases.
    - By Faraday's and Lenz's laws, the collapsing magnetic field reverses the polarity of all windings.
-   - Secondary winding potential jumps positive, forward-biasing $D_{sec}$.
-   - The stored magnetic energy discharges into output capacitor $C_{out}$ and the load:
-     $$\frac{di_s}{dt} = -\frac{V_{OUT} + V_F}{L_s}$$
-   - Primary voltage rings up to $V_{IN} + n(V_{OUT} + V_F) + V_{spike}$, clamped by the RCD snubber.
+   - Secondary winding potential jumps positive, forward-biasing D_sec.
+   - The stored magnetic energy discharges into output capacitor C_out and the load:
+     ```
+di_s / dt = -(V_OUT + V_F) / L_s
+```
+   - Primary voltage rings up to V_IN + n(V_OUT + V_F) + V_spike, clamped by the RCD snubber.
 
 ---
 
@@ -174,13 +183,13 @@ The **Flyback Converter** is an isolated, buck-boost-derived switched-mode power
 
 ### 2.1 Comparative Analysis:
 1. **Continuous Conduction Mode (CCM)**:
-   - Magnetizing energy does not fall to zero before the next cycle ($I_{ped} > 0$).
-   - **Advantages**: Lower peak current ($I_{pk}$), lower RMS conduction losses in MOSFET and capacitor, lower output voltage ripple.
-   - **Drawbacks**: Slower dynamic response due to **Right-Half-Plane (RHP) Zero** in the control loop; secondary diode experiences hard-switching reverse recovery ($Q_{rr}$).
+   - Magnetizing energy does not fall to zero before the next cycle (I_ped > 0).
+   - **Advantages**: Lower peak current (I_pk), lower RMS conduction losses in MOSFET and capacitor, lower output voltage ripple.
+   - **Drawbacks**: Slower dynamic response due to **Right-Half-Plane (RHP) Zero** in the control loop; secondary diode experiences hard-switching reverse recovery (Q_rr).
 2. **Discontinuous Conduction Mode (DCM)**:
-   - Stored energy completely discharges to zero during every cycle ($I_{ped} = 0$).
+   - Stored energy completely discharges to zero during every cycle (I_ped = 0).
    - **Advantages**: Diode turns off at zero current (**Zero Reverse Recovery**); no RHP zero, enabling wide loop bandwidth and ultra-fast load step response.
-   - **Drawbacks**: High peak currents ($2\times$ to $3\times$ higher than CCM), higher $I_{rms}$ resistive losses, larger bulk capacitors needed.
+   - **Drawbacks**: High peak currents (2* to 3* higher than CCM), higher I_rms resistive losses, larger bulk capacitors needed.
 3. **Quasi-Resonant (QR) / Critical Conduction Mode (CrCM)**:
    - Detects the zero-current point and waits for the drain voltage to resonate down to its lowest valley before triggering turn-on, combining DCM advantages with low switching losses.
 
@@ -189,26 +198,36 @@ The **Flyback Converter** is an isolated, buck-boost-derived switched-mode power
 ## 3. Mathematical Design Formulations
 
 ### 3.1 Voltage Conversion Ratio (CCM):
-$$V_{OUT} = V_{IN} \cdot \left(\frac{N_s}{N_p}\right) \cdot \left(\frac{D}{1 - D}\right)$$
+```
+V_OUT = V_IN * (N_s / N_p) * (D / (1 - D))
+```
 
-### 3.2 Primary Inductance ($L_p$) Sizing:
+### 3.2 Primary Inductance (L_p) Sizing:
 For boundary conduction mode (BCM) between CCM and DCM at minimum input voltage:
-$$L_p = \frac{V_{IN(min)}^2 \cdot D_{max}^2}{2 \cdot P_{in} \cdot f_{sw}}$$
+```
+L_p = (V_IN(min)^2 * D_max^2) / (2 * P_in * f_sw)
+```
 Primary peak current:
-$$I_{pk} = \frac{2 \cdot P_{in}}{V_{IN(min)} \cdot D_{max}}$$
+```
+I_pk = (2 * P_in) / (V_IN(min) * D_max)
+```
 
 ### 3.3 Semiconductor Voltage Stress Calculations:
-1. **Primary Switch Maximum Voltage Stress ($V_{DS(max)}$)**:
-   $$V_{DS(max)} = V_{IN(max)} + n(V_{OUT} + V_F) + V_{spike}$$
-   where $n = N_p / N_s$ is the primary-to-secondary turns ratio, and $V_{spike}$ is the unabsorbed leakage spike ($50\,\text{V} \dots 100\,\text{V}$).
-2. **Secondary Diode Reverse Voltage Stress ($V_{rev(sec)}$)**:
-   $$V_{rev(sec)} = V_{OUT} + \frac{V_{IN(max)}}{n}$$
+1. **Primary Switch Maximum Voltage Stress (V_DS(max))**:
+   ```
+V_DS(max) = V_IN(max) + n(V_OUT + V_F) + V_spike
+```
+   where n = N_p / N_s is the primary-to-secondary turns ratio, and V_spike is the unabsorbed leakage spike (50 V ... 100 V).
+2. **Secondary Diode Reverse Voltage Stress (V_rev(sec))**:
+   ```
+V_rev(sec) = V_OUT + V_IN(max) / n
+```
 
 ---
 
 ## 4. Primary RCD Clamp Snubber Design
 
-During primary switch turn-off, the energy trapped in the transformer's **primary leakage inductance ($L_{lk}$)** cannot couple to the secondary. It rings violently with the MOSFET output capacitance ($C_{oss}$), threatening overvoltage breakdown:
+During primary switch turn-off, the energy trapped in the transformer's **primary leakage inductance (L_lk)** cannot couple to the secondary. It rings violently with the MOSFET output capacitance (C_oss), threatening overvoltage breakdown:
 
 ```text
                         RCD Snubber Clamping Action
@@ -227,14 +246,22 @@ During primary switch turn-off, the energy trapped in the transformer's **primar
 
 ### 4.1 Step-by-Step Sizing Equations:
 1. **Leakage Energy per Cycle**:
-   $$E_{leak} = \frac{1}{2} L_{lk} \cdot I_{pk}^2$$
+   ```
+E_leak = 1 / 2 L_lk * I_pk^2
+```
 2. **Power Dissipated in Snubber Resistor**:
-   $$P_{snub} = E_{leak} \cdot f_{sw} \cdot \left(\frac{V_{clamp}}{V_{clamp} - n(V_{OUT} + V_F)}\right)$$
-3. **Snubber Resistor ($R_{snub}$)**:
-   $$R_{snub} = \frac{V_{clamp}^2}{P_{snub}}$$
-4. **Snubber Capacitor ($C_{snub}$)** (constraining ripple to $\Delta V_{clamp} \le 10\% V_{clamp}$):
-   $$C_{snub} = \frac{V_{clamp}}{\Delta V_{clamp} \cdot R_{snub} \cdot f_{sw}}$$
-5. **Snubber Diode Selection**: Must be an **ultrafast recovery diode** ($t_{rr} \le 50\,\text{ns}$, e.g., US1M, ES1J) rated for $> 1.2 \times V_{DS(max)}$.
+   ```
+P_snub = E_leak * f_sw * (V_clamp / (V_clamp - n(V_OUT + V_F)))
+```
+3. **Snubber Resistor (R_snub)**:
+   ```
+R_snub = V_clamp^2 / P_snub
+```
+4. **Snubber Capacitor (C_snub)** (constraining ripple to Δ V_clamp <= 10\% V_clamp):
+   ```
+C_snub = V_clamp / (Δ V_clamp * R_snub * f_sw)
+```
+5. **Snubber Diode Selection**: Must be an **ultrafast recovery diode** (t_rr <= 50 ns, e.g., US1M, ES1J) rated for > 1.2 * V_DS(max).
 
 ---
 
@@ -263,5 +290,5 @@ The Flyback topology is uniquely suited for multi-rail auxiliary supplies becaus
 ```
 
 ### The Cross-Regulation Challenge:
-Only the main output ($+5\,\text{V}$) is enclosed within the optocoupler feedback loop. Auxiliary rails ($+15\,\text{V}, -15\,\text{V}$) rely on magnetic coupling. Imperfect winding coupling (leakage flux) causes auxiliary rails to sag under load or spike during light loads.
+Only the main output (+5 V) is enclosed within the optocoupler feedback loop. Auxiliary rails (+15 V, -15 V) rely on magnetic coupling. Imperfect winding coupling (leakage flux) causes auxiliary rails to sag under load or spike during light loads.
 - **Solution**: Sandwich winding geometry, bifilar auxiliary winding, or post-regulation using linear LDOs.

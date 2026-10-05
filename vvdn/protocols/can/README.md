@@ -45,7 +45,7 @@ The CAN protocol has continuously evolved to meet soaring automotive data bandwi
 | **Max Payload Size** | **8 Bytes** | **8 Bytes** | **Up to 64 Bytes** | **Up to 2048 Bytes** |
 | **Arbitration Bitrate** | Up to 1.0 Mbps | Up to 1.0 Mbps | Up to 1.0 Mbps | Up to 1.0 Mbps |
 | **Data Phase Bitrate** | Identical (Up to 1 Mbps) | Identical (Up to 1 Mbps) | **2.0 to 5.0+ Mbps** | **10.0 to 20.0+ Mbps** |
-| **CRC Security** | CRC-15 | CRC-15 | CRC-17 ($\le 16$B) / CRC-21 ($>16$B) | CRC-32C + CRC-13 |
+| **CRC Security** | CRC-15 | CRC-15 | CRC-17 (<= 16B) / CRC-21 (>16B) | CRC-32C + CRC-13 |
 | **Bit Stuffing Method** | Dynamic (1 bit / 5 bits) | Dynamic (1 bit / 5 bits) | Dynamic + Fixed in CRC field | Dynamic + Fixed stuffing |
 | **Primary Industry** | Industrial, Body ECUs | Heavy Duty (J1939), Fleet | Powertrain, ADAS, Gateway | Software-Defined Vehicle, Ethernet bridge |
 
@@ -66,7 +66,7 @@ To assist hardware system architects in selecting the optimal vehicle and board 
 | **Arbitration** | **Non-destructive CSMA/CR** | **None (Master Schedule)** | Time-triggered TDMA | CSMA/CD or Full-duplex switch | Wired-AND bit-by-bit | Dedicated chip selects |
 | **Error Handling** | CRC, Stuff, Form, Bit, ACK | Checksum, Parity | 24-bit CRC, Slot monitor | Ethernet FCS (32-bit CRC) | ACK / NACK bit | None inherent |
 | **Fault Confinement**| **Automatic (TEC/REC Bus-Off)**| None (Slave ignores frame)| Node isolation via Guardian | Link drops / PHY auto-neg | Software bus-clear (9 clocks) | Software timeout |
-| **Relative Cost** | Medium | Very Low ($<0.5x$ CAN) | High ($2x-3x$ CAN) | Very High ($4x-8x$ CAN) | Lowest (Silicon native) | Lowest (Silicon native) |
+| **Relative Cost** | Medium | Very Low (<0.5x CAN) | High (2x-3x CAN) | Very High (4x-8x CAN) | Lowest (Silicon native) | Lowest (Silicon native) |
 | **Primary Domain** | Powertrain, Chassis, BCM | Seats, Mirrors, Wipers, HVAC | Steer-by-wire, Brake-by-wire | Autonomous driving, Radar, Infotainment | Board-level sensors, PMIC | Board-level Flash, IMU, ADC |
 
 ---
@@ -85,9 +85,9 @@ protocols/can/
 ```
 
 ### [1. Working Mechanism & Electrical Architecture](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/can/can-working-and-architecture.md)
-- Differential signaling physics: $V_{CAN\_H}$, $V_{CAN\_L}$, Recessive (2.5V diff 0V) vs Dominant (3.5V/1.5V diff 2.0V).
-- Physical transceiver architecture (TJA1042, TCAN1042, isolated ISO1050), TXD dominant clamp, loopback delay ($t_{loop}$).
-- Split termination ($60\,\Omega + 60\,\Omega$ with $4.7\,\text{nF}$ filter) vs standard $120\,\Omega$ parallel termination.
+- Differential signaling physics: V_CAN_H, V_CAN_L, Recessive (2.5V diff 0V) vs Dominant (3.5V/1.5V diff 2.0V).
+- Physical transceiver architecture (TJA1042, TCAN1042, isolated ISO1050), TXD dominant clamp, loopback delay (t_loop).
+- Split termination (60 Ω + 60 Ω with 4.7 nF filter) vs standard 120 Ω parallel termination.
 - Non-destructive bitwise arbitration mechanics and preemption latency.
 - The 5 CAN error detection mechanisms (Bit, Stuff, CRC, Form, ACK).
 - Fault confinement state machine: Error Active, Error Passive, and Bus-Off transitions via Transmit and Receive Error Counters (TEC, REC).
@@ -105,19 +105,19 @@ protocols/can/
 - Linux SocketCAN ecosystem: `candump`, `cansend`, `cangen`, `vcan`, and C socket programming.
 
 ### [3. Hardware Connections & Circuit Schematics](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/can/can-circuit-and-hardware-connections.md)
-- High-speed CAN / CAN FD transceiver (TJA1051/TCAN1042) with $V_{IO}$ logic translation pin (3.3V MCU directly to 5V bus).
-- Split termination network ($60.4\,\Omega + 60.4\,\Omega$ + $4.7\,\text{nF}$ center filter) for common-mode noise suppression.
-- High-reliability automotive EMC & surge protection: Common Mode Choke ($51\,\mu\text{H}$) and TVS diode array (PESD2CAN/NUP2105L).
+- High-speed CAN / CAN FD transceiver (TJA1051/TCAN1042) with V_IO logic translation pin (3.3V MCU directly to 5V bus).
+- Split termination network (60.4 Ω + 60.4 Ω + 4.7 nF center filter) for common-mode noise suppression.
+- High-reliability automotive EMC & surge protection: Common Mode Choke (51 µH) and TVS diode array (PESD2CAN/NUP2105L).
 - Galvanically isolated CAN node architecture (TI ISO1042 / ADI ADM3053) for 400V/800V EV traction and BMS.
-- Linear multi-node bus wiring topology and stub length constraints ($< 0.3\,\text{m}$).
+- Linear multi-node bus wiring topology and stub length constraints (< 0.3 m).
 
 ### [4. Timing Calculations, Bitrates & Hardware Engineering](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/can/can-timing-bitrates-and-hardware.md)
-- Bit timing theory: Nominal Bit Time ($NBT$), Time Quanta ($t_q$), $Sync\_Seg$, $Prop\_Seg$, $Phase\_Seg1$, $Phase\_Seg2$.
-- Sample point optimization formulas ($75\% - 87.5\%$ per CiA recommendations) and clock divisor integer math.
-- Resynchronization Jump Width ($SJW$), hard synchronization, resynchronization rules, and oscillator tolerance ($\Delta f$).
+- Bit timing theory: Nominal Bit Time (NBT), Time Quanta (t_q), Sync_Seg, Prop_Seg, Phase_Seg1, Phase_Seg2.
+- Sample point optimization formulas (75\% - 87.5\% per CiA recommendations) and clock divisor integer math.
+- Resynchronization Jump Width (SJW), hard synchronization, resynchronization rules, and oscillator tolerance (Δ f).
 - Dual bitrate timing in CAN FD and Transmitter Delay Compensation (TDC) with Secondary Sample Point (SSP).
-- Physical bus length vs bitrate limitations, propagation delay ($\tau \approx 5\,\text{ns/m}$), and stub length rules.
-- PCB routing: differential $120\,\Omega$ impedance, common-mode chokes, TVS diode layout, and isolation barriers.
+- Physical bus length vs bitrate limitations, propagation delay (τ ≈ 5 ns/m), and stub length rules.
+- PCB routing: differential 120 Ω impedance, common-mode chokes, TVS diode layout, and isolation barriers.
 - Root Cause Analysis (RCA) troubleshooting matrix for real-world bench and production failures.
 
 ---

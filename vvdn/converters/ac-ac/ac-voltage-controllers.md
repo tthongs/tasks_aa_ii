@@ -75,25 +75,25 @@ Utilizing back-to-back (anti-parallel) Silicon Controlled Rectifiers (SCRs) or T
 
 | Net Name | Source (Pin / Terminal) | Destination (Pin / Terminal) | Electrical Function | Hardware Engineering Notes |
 | :--- | :--- | :--- | :--- | :--- |
-| **AC_LINE_IN** | Input Terminal Block (L) | Fuse $F_1$ Input | 230V AC 50Hz utility input line | Time-lag ceramic fuse accommodates inrush current of inductive loads. |
-| **AC_LINE_SW** | Fuse $F_1$ Output | $T_1$ Anode, $T_2$ Cathode, Snubber, MOV1 | Protected input AC rail | Direct input to the back-to-back anti-parallel SCR module. |
-| **AC_CONTROLLED** | $T_1$ Cathode, $T_2$ Anode | Snubber, Load Terminal 1 | Phase-chopped AC output voltage | Waveform is sliced at firing angle $\alpha$; fundamental voltage is continuously variable. |
-| **GATE_TRIG** | MOC3052 Opto-TRIAC Pin 4 | $T_1 / T_2$ Gate Terminals | Optically isolated firing pulses | Zero-crossing or random-phase triggering depending on phase-angle vs burst mode. |
+| **AC_LINE_IN** | Input Terminal Block (L) | Fuse F_1 Input | 230V AC 50Hz utility input line | Time-lag ceramic fuse accommodates inrush current of inductive loads. |
+| **AC_LINE_SW** | Fuse F_1 Output | T_1 Anode, T_2 Cathode, Snubber, MOV1 | Protected input AC rail | Direct input to the back-to-back anti-parallel SCR module. |
+| **AC_CONTROLLED** | T_1 Cathode, T_2 Anode | Snubber, Load Terminal 1 | Phase-chopped AC output voltage | Waveform is sliced at firing angle α; fundamental voltage is continuously variable. |
+| **GATE_TRIG** | MOC3052 Opto-TRIAC Pin 4 | T_1 / T_2 Gate Terminals | Optically isolated firing pulses | Zero-crossing or random-phase triggering depending on phase-angle vs burst mode. |
 | **LOAD_RETURN** | Load Terminal 2 | AC Neutral Terminal Block (N) | AC mains neutral return path | Heavy-gauge line wiring sized for 16A continuous current. |
 
 ### 1.2 Component Bill of Materials & Parametric Specifications:
 
 | RefDes | Component Description | Manufacturer & Part Number | Key Electrical Specifications | Critical Design Constraint |
 | :--- | :--- | :--- | :--- | :--- |
-| **$T_1, T_2$** | Phase-Control Thyristor Pair | Vishay Semiconductors 25TTS12 | $V_{RRM} = 1200\,\text{V}, I_{T(AV)} = 16\,\text{A}, I_{GT} = 45\,\text{mA}, V_{TM} = 1.25\,\text{V}$ | $1200\,\text{V}$ rating ensures safe margins during inductive turn-off voltage kickback. |
-| **$R_{snub}, C_{snub}$**| AC Power Snubber Network | TE Connectivity / KEMET | $R = 47\,\Omega / 5\,\text{W Wirewound}, C = 0.1\,\mu\text{F} / 630\,\text{V Polypropylene}$ | Essential for inductive loads ($\cos \phi < 1$); limits $\frac{dv}{dt} < 200\,\text{V}/\mu\text{s}$ at current zero-crossing. |
-| **$U_1$ (Opto)** | Random-Phase Optoisolator | ON Semiconductor MOC3052M | $V_{DRM} = 600\,\text{V}, I_{FT} = 10\,\text{mA}, V_{ISO} = 5000\,\text{V}_{RMS}$ | Non-zero-crossing bilateral triac driver allows arbitrary firing angles $\alpha \in [0^\circ, 180^\circ]$. |
-| **$MOV_1$** | Line Surge Varistor | Littelfuse V275LA20CP | $V_{RMS} = 275\,\text{V}, I_{max} = 6500\,\text{A}, W_{max} = 120\,\text{J}$ | Protects thyristors and optotriac driver against lightning and grid switching transients. |
+| **T_1, T_2** | Phase-Control Thyristor Pair | Vishay Semiconductors 25TTS12 | V_RRM = 1200 V, I_T(AV) = 16 A, I_GT = 45 mA, V_TM = 1.25 V | 1200 V rating ensures safe margins during inductive turn-off voltage kickback. |
+| **R_snub, C_snub**| AC Power Snubber Network | TE Connectivity / KEMET | R = 47 Ω / 5 W Wirewound, C = 0.1 µF / 630 V Polypropylene | Essential for inductive loads (cos φ < 1); limits dv / dt < 200 V/µs at current zero-crossing. |
+| **U_1 (Opto)** | Random-Phase Optoisolator | ON Semiconductor MOC3052M | V_DRM = 600 V, I_FT = 10 mA, V_ISO = 5000 V_RMS | Non-zero-crossing bilateral triac driver allows arbitrary firing angles α in [0°, 180°]. |
+| **MOV_1** | Line Surge Varistor | Littelfuse V275LA20CP | V_RMS = 275 V, I_max = 6500 A, W_max = 120 J | Protects thyristors and optotriac driver against lightning and grid switching transients. |
 
 
 ### 1.1 Switching Devices:
-- **Anti-Parallel Thyristor Pair ($T_1, T_2$)**: Dominates high-power industrial systems ($> 1\,\text{kW} \dots 500\,\text{kW}$). Independent gate terminals allow asymmetric control and high $dv/dt$ immunity.
-- **TRIAC (Triode for Alternating Current)**: Integrated bidirectional semiconductor switch used in low-to-medium power consumer applications ($< 2\,\text{kW}$, such as ceiling fan speed regulators and incandescent lamp dimmers).
+- **Anti-Parallel Thyristor Pair (T_1, T_2)**: Dominates high-power industrial systems (> 1 kW ... 500 kW). Independent gate terminals allow asymmetric control and high dv/dt immunity.
+- **TRIAC (Triode for Alternating Current)**: Integrated bidirectional semiconductor switch used in low-to-medium power consumer applications (< 2 kW, such as ceiling fan speed regulators and incandescent lamp dimmers).
 
 ---
 
@@ -126,33 +126,47 @@ Utilizing back-to-back (anti-parallel) Silicon Controlled Rectifiers (SCRs) or T
 
 ## 3. Phase Angle Control: Derivations & R-L Load Dynamics
 
-In Phase Angle Control, gate pulses are delayed by firing angle $\alpha$ ($0 \le \alpha \le \pi$) relative to the AC line zero crossings:
+In Phase Angle Control, gate pulses are delayed by firing angle α (0 <= α <= π) relative to the AC line zero crossings:
 
-### 3.1 Resistive Load ($R$):
+### 3.1 Resistive Load (R):
 For a purely resistive load, the current waveform exactly matches the voltage waveform:
-- Conduction angle per half-cycle: $\theta_{cond} = \pi - \alpha$.
-- **RMS Output Voltage ($V_{o,rms}$)**:
-  $$V_{o,rms} = \sqrt{\frac{1}{\pi} \int_{\alpha}^{\pi} \left( V_m \sin \omega t \right)^2 d(\omega t)} = V_{in,rms} \cdot \sqrt{\frac{1}{\pi} \left( \pi - \alpha + \frac{\sin(2\alpha)}{2} \right)}$$
-- **Output Power ($P_o$)**:
-  $$P_o = \frac{V_{o,rms}^2}{R} = \frac{V_{in,rms}^2}{R} \cdot \frac{1}{\pi} \left( \pi - \alpha + \frac{\sin(2\alpha)}{2} \right)$$
-- **Input Power Factor ($\text{PF}$)**:
-  $$\text{PF} = \frac{P_o}{S} = \frac{V_{o,rms} \cdot I_{o,rms}}{V_{in,rms} \cdot I_{in,rms}} = \frac{V_{o,rms}}{V_{in,rms}} = \sqrt{\frac{1}{\pi} \left( \pi - \alpha + \frac{\sin(2\alpha)}{2} \right)}$$
+- Conduction angle per half-cycle: θ_cond = π - α.
+- **RMS Output Voltage (V_o,rms)**:
+  ```
+V_o,rms = sqrt(1 / π Integral(α to π) ( V_m sin ω t )^2 d(ω t)) = V_in,rms * sqrt(1 / π ( π - α + sin(2α) / 2 ))
+```
+- **Output Power (P_o)**:
+  ```
+P_o = V_o,rms^2 / R = V_in,rms^2 / R * 1 / π ( π - α + sin(2α) / 2 )
+```
+- **Input Power Factor (PF)**:
+  ```
+PF = P_o / S = (V_o,rms * I_o,rms) / (V_in,rms * I_in,rms) = V_o,rms / V_in,rms = sqrt(1 / π ( π - α + sin(2α) / 2 ))
+```
 
-### 3.2 Inductive Load ($R-L$ Load):
+### 3.2 Inductive Load (R-L Load):
 Inductive loads (such as induction motors) delay the current decay. The load impedance angle is:
-$$\phi = \arctan\left(\frac{\omega L}{R}\right)$$
-- When thyristor $T_1$ is fired at angle $\alpha$, current continues to flow **past the voltage zero-crossing ($\pi$)** due to stored magnetic field energy in $L$:
-  $$i_o(\omega t) = \frac{V_m}{Z} \left[ \sin(\omega t - \phi) - \sin(\alpha - \phi) \cdot e^{-\frac{R}{\omega L} (\omega t - \alpha)} \right]$$
-- Current terminates at the **Extinction Angle ($\beta$)**, where $i_o(\beta) = 0$:
-  $$\sin(\beta - \phi) = \sin(\alpha - \phi) \cdot e^{-\frac{R}{\omega L} (\beta - \alpha)}$$
-- Total conduction angle is $\gamma = \beta - \alpha$.
+```
+φ = arctan((ω L) / R)
+```
+- When thyristor T_1 is fired at angle α, current continues to flow **past the voltage zero-crossing (π)** due to stored magnetic field energy in L:
+  ```
+i_o(ω t) = V_m / Z [ sin(ω t - φ) - sin(α - φ) * e^-R / (ω L) (ω t - α) ]
+```
+- Current terminates at the **Extinction Angle (β)**, where i_o(β) = 0:
+  ```
+sin(β - φ) = sin(α - φ) * e^-R / (ω L) (β - α)
+```
+- Total conduction angle is γ = β - α.
 
-#### Critical Operational Rule for R-L Loads ($\alpha \ge \phi$):
-If the firing angle is chosen smaller than the load impedance angle ($\alpha < \phi$):
+#### Critical Operational Rule for R-L Loads (α >= φ):
+If the firing angle is chosen smaller than the load impedance angle (α < φ):
 - The conducting thyristor does not turn off before the incoming anti-parallel thyristor receives its firing pulse.
 - One thyristor stays permanently on, inducing asymmetric DC saturation in the supply transformer.
 - *Strict Rule*: The firing angle must satisfy:
-  $$\alpha \ge \phi$$
+  ```
+α >= φ
+```
 
 ---
 
@@ -160,22 +174,28 @@ If the firing angle is chosen smaller than the load impedance angle ($\alpha < \
 
 For heating loads with large thermal time constants (e.g., electric boilers, drying ovens), switching on every half-cycle causes unnecessary line harmonics. **Integral Cycle Control** delivers blocks of complete sinusoidal AC cycles:
 
-- Number of conduction cycles: $n$
-- Number of idle cycles: $m$
-- Control Period: $T_c = (n + m) \cdot T_{line}$
-- Duty Cycle: $k = \frac{n}{n + m}$
+- Number of conduction cycles: n
+- Number of idle cycles: m
+- Control Period: T_c = (n + m) * T_line
+- Duty Cycle: k = n / (n + m)
 
 ### 4.1 Formulations:
 - **RMS Output Voltage**:
-  $$V_{o,rms} = V_{in,rms} \cdot \sqrt{k} = V_{in,rms} \cdot \sqrt{\frac{n}{n + m}}$$
+  ```
+V_o,rms = V_in,rms * sqrt(k) = V_in,rms * sqrt(n / (n + m))
+```
 - **Power Delivered**:
-  $$P = k \cdot P_{max} = \frac{n}{n + m} \cdot \frac{V_{in,rms}^2}{R}$$
+  ```
+P = k * P_max = n / (n + m) * V_in,rms^2 / R
+```
 - **Input Power Factor**:
-  $$\text{PF} = \sqrt{k} = \sqrt{\frac{n}{n + m}}$$
+  ```
+PF = sqrt(k) = sqrt(n / (n + m))
+```
 
 ### 4.2 Major Engineering Advantage:
-Thyristors are triggered and commutated exclusively at **zero line-voltage crossings ($V = 0$)**:
-- $dv/dt = 0$ at turn-on $\implies$ **Virtually zero radio frequency interference (RFI) / EMI**.
+Thyristors are triggered and commutated exclusively at **zero line-voltage crossings (V = 0)**:
+- dv/dt = 0 at turn-on => **Virtually zero radio frequency interference (RFI) / EMI**.
 - No acoustic switching noise or line notch distortions.
 
 ---
@@ -193,13 +213,15 @@ Thyristors are triggered and commutated exclusively at **zero line-voltage cross
 ```
 
 ### 5.1 Induction Motor Soft-Starting Principle:
-Direct-on-line (DOL) starting draws $6 \dots 8 \times$ rated full-load current ($I_{FLA}$) and induces severe mechanical shock torque.
-1. The soft-starter ramps firing angle $\alpha$ smoothly from $120^\circ$ down to $0^\circ$ over $3 \dots 30\,\text{seconds}$.
-2. RMS voltage ramps smoothly from $30\% \cdot V_{line}$ to $100\% \cdot V_{line}$.
-3. Inrush current is restricted to $2.0 \dots 3.0 \times I_{FLA}$, preventing substation voltage sags.
-4. Once full speed is reached ($\alpha = 0^\circ$), an internal **Bypass Contactor** closes across the SCRs, eliminating thyristor conduction heat losses during normal operation.
+Direct-on-line (DOL) starting draws 6 ... 8 * rated full-load current (I_FLA) and induces severe mechanical shock torque.
+1. The soft-starter ramps firing angle α smoothly from 120° down to 0° over 3 ... 30 seconds.
+2. RMS voltage ramps smoothly from 30\% * V_line to 100\% * V_line.
+3. Inrush current is restricted to 2.0 ... 3.0 * I_FLA, preventing substation voltage sags.
+4. Once full speed is reached (α = 0°), an internal **Bypass Contactor** closes across the SCRs, eliminating thyristor conduction heat losses during normal operation.
 
 ### 5.2 Critical Snubber Protection:
-- **$dv/dt$ Snubber ($R_s - C_s$)**: Prevents rapid line transient spikes from capacitively charging the thyristor gate and causing false turn-on ($dv/dt > 1000\,\text{V}/\mu\text{s}$).
-  $$C_s \approx \frac{I_{RMS}}{V_{RMS}} \cdot 10^{-6}, \quad R_s = 2 \cdot \zeta \sqrt{\frac{L_{source}}{C_s}}$$
-- **$di/dt$ Inductor**: Prevents localized silicon hot-spot destruction during the first microsecond of SCR turn-on ($di/dt > 200\,\text{A}/\mu\text{s}$).
+- **dv/dt Snubber (R_s - C_s)**: Prevents rapid line transient spikes from capacitively charging the thyristor gate and causing false turn-on (dv/dt > 1000 V/µs).
+  ```
+C_s ≈ I_RMS / V_RMS * 10^-6, R_s = 2 * ζ sqrt(L_source / C_s)
+```
+- **di/dt Inductor**: Prevents localized silicon hot-spot destruction during the first microsecond of SCR turn-on (di/dt > 200 A/µs).

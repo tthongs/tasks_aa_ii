@@ -21,7 +21,7 @@ Unlike UART (asynchronous) or I2C (synchronous, half-duplex, multi-master bus wi
 | **Duplex** | Full Duplex | Half Duplex | Full Duplex |
 | **Physical Lines** | 2 (TX, RX) + GND | 2 (SDA, SCL) + GND | 4 (SCLK, MOSI, MISO, CS) + GND |
 | **Typical Speeds** | 9.6 kbps – 1.5 Mbps | 100 kbps, 400 kbps, 1–3.4 Mbps | 1 Mbps – 50+ Mbps |
-| **Addressing** | Point-to-point (None) | In-band 7-bit / 10-bit address | Dedicated hardware Chip Select ($\overline{\text{CS}}$) |
+| **Addressing** | Point-to-point (None) | In-band 7-bit / 10-bit address | Dedicated hardware Chip Select (NOT(CS)) |
 | **Bus Arbitration** | None | Multi-master arbitration | Single Controller (Multi-CS or Daisy-chain) |
 | **Flow Control** | Optional RTS/CTS or XON/XOFF | Hardware clock stretching (Wait states) | None inherent (Controller controls clock pacing) |
 | **Overhead** | Start/Stop/Parity bits (~20%) | ACK/NACK, Start/Stop bits, Address | Near zero (data shifts directly into registers) |
@@ -51,7 +51,7 @@ Unlike UART (asynchronous) or I2C (synchronous, half-duplex, multi-master bus wi
 3. **MISO / SDI / CIPO (Controller In Peripheral Out)**:
    - Carries serial data from the Peripheral to the Controller.
    - Driven by the Peripheral only when its Chip Select is asserted (active LOW). When deselected, the Peripheral's MISO pin enters a **High-Impedance (High-Z / tri-state)** condition.
-4. **$\overline{\text{CS}}$ / $\overline{\text{SS}}$ / NSS (Chip Select / Slave Select)**:
+4. **NOT(CS) / NOT(SS) / NSS (Chip Select / Slave Select)**:
    - Dedicated active-LOW control line driven by the Controller.
    - Asserting CS (driving it LOW) wakes the target Peripheral, enables its MISO output buffer, and synchronizes the transaction frame.
    - Deasserting CS (returning it HIGH) terminates the transaction, resets the peripheral's internal bit counter, and tri-states its MISO pin.
@@ -70,7 +70,7 @@ Unlike UART (asynchronous) or I2C (synchronous, half-duplex, multi-master bus wi
 Unlike I2C where all devices sit on two shared wires, SPI handles multiple peripherals using one of two physical wiring schemes:
 
 #### Topology A: Independent / Parallel Chip Select (Star Topology)
-This is the **most common and robust industrial configuration**. SCLK, MOSI, and MISO are shared across all devices in parallel. The Controller allocates one dedicated GPIO pin for each target's $\overline{\text{CS}}$.
+This is the **most common and robust industrial configuration**. SCLK, MOSI, and MISO are shared across all devices in parallel. The Controller allocates one dedicated GPIO pin for each target's NOT(CS).
 
 ```text
                    +------------------------ SCLK
@@ -96,10 +96,10 @@ This is the **most common and robust industrial configuration**. SCLK, MOSI, and
   - Independent addressing: Peripherals can operate at different clock speeds and different SPI modes (e.g. Target 1 at 10 MHz Mode 0; Target 2 at 2 MHz Mode 3).
   - High fault isolation: Failure of one peripheral does not block communication with others.
 - **Disadvantages**:
-  - Pin count scales linearly with the number of peripherals ($N$ devices require $3 + N$ pins).
+  - Pin count scales linearly with the number of peripherals (N devices require 3 + N pins).
 
 #### Topology B: Cascaded / Daisy-Chain Topology
-Certain devices (e.g., multi-channel ADCs, LED matrix drivers like MAX7219, shift registers like 74HC595) support cascading. All devices share a single $\overline{\text{CS}}$ and a single SCLK. Data ripples from one device to the next:
+Certain devices (e.g., multi-channel ADCs, LED matrix drivers like MAX7219, shift registers like 74HC595) support cascading. All devices share a single NOT(CS) and a single SCLK. Data ripples from one device to the next:
 
 ```text
   +------------+       +----------+       +----------+
@@ -112,7 +112,7 @@ Certain devices (e.g., multi-channel ADCs, LED matrix drivers like MAX7219, shif
   +------------+       +----------+       +----------+
 ```
 
-- **Operation**: The Controller outputs $N \times 8$ clock cycles. Data pushed into Target 1 overflows through its SDO pin into Target 2's SDI pin. When $\overline{\text{CS}}$ rises HIGH, both chips latch their internal shift registers simultaneously.
+- **Operation**: The Controller outputs N * 8 clock cycles. Data pushed into Target 1 overflows through its SDO pin into Target 2's SDI pin. When NOT(CS) rises HIGH, both chips latch their internal shift registers simultaneously.
 - **Trade-off**: Reduces GPIO pin count to exactly 4 pins regardless of device count, but all devices must support daisy-chain mode, share identical SPI modes, and tolerate latency.
 
 ---
@@ -145,7 +145,7 @@ Together, these form the **Four Universal SPI Modes (0, 1, 2, 3)**.
 
 #### Mode 0 (CPOL=0, CPHA=0) — *The Global Standard for Flash & Sensors*
 - SCLK sits at **0** when idle.
-- When $\overline{\text{CS}}$ drops LOW, the first data bit is driven onto MOSI immediately.
+- When NOT(CS) drops LOW, the first data bit is driven onto MOSI immediately.
 - The receiver samples on the **Rising edge** (first edge).
 - The transmitter transitions the next bit on the **Falling edge** (second edge).
 
@@ -165,7 +165,7 @@ DATA (MOSI/MISO)  ───< D7  >─< D6  >─< D5  >─< D4  >─< D3  >─< D
 
 #### Mode 3 (CPOL=1, CPHA=1) — *The Alternative Flash Standard*
 - SCLK sits at **1** when idle.
-- When $\overline{\text{CS}}$ drops LOW, SCLK remains High.
+- When NOT(CS) drops LOW, SCLK remains High.
 - The first clock transition is a **Falling edge**, which causes both sides to shift/setup the first bit.
 - The receiver samples on the **Rising edge** (trailing edge).
 
@@ -208,7 +208,7 @@ Under the hood, an SPI transfer is fundamentally a **circular byte exchange** be
 ```
 
 1. Before the transfer starts, the Controller loads its byte (e.g. command `0x9F`) into its shift register, and the Peripheral loads its byte (e.g. status `0x00`) into its shift register.
-2. The Controller asserts $\overline{\text{CS}}$ LOW and starts toggling SCLK.
+2. The Controller asserts NOT(CS) LOW and starts toggling SCLK.
 3. On every clock cycle:
    - The Controller pushes 1 bit out of MOSI into the Peripheral's register.
    - The Peripheral pushes 1 bit out of MISO into the Controller's register.
@@ -237,13 +237,13 @@ SPI lines use standard single-ended CMOS push-pull logic:
 
 > [!CAUTION]
 > **Direct Interconnection Warning**: Connecting a 3.3V MCU directly to a 1.8V SPI sensor will destroy the sensor's input electrostatic discharge (ESD) protection diodes. Always use unidirectional or dedicated high-speed level translators (e.g., TI TXU0304 or NXP 74LVC4245).
-> **Avoid passive bidirectional level translators** (such as TXS0108E with internal pull-ups) for SPI frequencies $> 10\,\text{MHz}$ due to edge distortion caused by internal one-shot rise-time accelerators.
+> **Avoid passive bidirectional level translators** (such as TXS0108E with internal pull-ups) for SPI frequencies > 10 MHz due to edge distortion caused by internal one-shot rise-time accelerators.
 
 ---
 
 ### 5.2 Signal Integrity & High-Speed Edge Termination
 
-At frequencies above 10 MHz, SPI signals (especially SCLK) exhibit high-frequency transmission line behaviors. Fast edge rates ($t_r < 1.5\,\text{ns}$) cause **ringing, voltage overshoot, and ground bounce**:
+At frequencies above 10 MHz, SPI signals (especially SCLK) exhibit high-frequency transmission line behaviors. Fast edge rates (t_r < 1.5 ns) cause **ringing, voltage overshoot, and ground bounce**:
 
 ```text
 Severe Clock Ringing (Unterminated)       Clean Terminated Clock (Series Resistor)
@@ -254,22 +254,24 @@ Severe Clock Ringing (Unterminated)       Clean Terminated Clock (Series Resisto
 ```
 
 #### Mitigations:
-1. **Series Source Termination**: Place a **$22\,\Omega\text{ to }47\,\Omega$ resistor** in series on the SCLK and MOSI lines immediately adjacent to the Controller's output pins. This absorbs signal reflections from high-impedance receiver inputs.
-2. **$\overline{\text{CS}}$ Pull-Up Resistor**: Install a **$10\,\text{k}\Omega$ pull-up resistor** to $V_{DD}$ on every $\overline{\text{CS}}$ line. When the Controller is in reset or booting, its GPIO pins float in High-Z mode; the pull-up keeps all peripherals safely deselected, preventing bus corruption.
-3. **MISO Pull-Up/Pull-Down**: A high-impedance $100\,\text{k}\Omega$ pull-up or pull-down prevents MISO from floating when all slaves are deselected, eliminating stray capacitive switching currents in the Controller's input buffer.
+1. **Series Source Termination**: Place a **22 Ω to 47 Ω resistor** in series on the SCLK and MOSI lines immediately adjacent to the Controller's output pins. This absorbs signal reflections from high-impedance receiver inputs.
+2. **NOT(CS) Pull-Up Resistor**: Install a **10 kΩ pull-up resistor** to V_DD on every NOT(CS) line. When the Controller is in reset or booting, its GPIO pins float in High-Z mode; the pull-up keeps all peripherals safely deselected, preventing bus corruption.
+3. **MISO Pull-Up/Pull-Down**: A high-impedance 100 kΩ pull-up or pull-down prevents MISO from floating when all slaves are deselected, eliminating stray capacitive switching currents in the Controller's input buffer.
 
 ---
 
 ### 5.3 Maximum Frequency & Bus Timing Constraints
 The maximum theoretical clock speed is dictated by the **round-trip propagation delay**:
-$$T_{SCLK, min} > 2 \times t_{propagation\_trace} + t_{CO\_slave} + t_{SU\_master}$$
+```
+T_SCLK, min > 2 * t_propagation_trace + t_CO_slave + t_SU_master
+```
 
 Where:
-- $t_{CO\_slave}$ = Slave clock-to-output valid delay (typically $6 - 15\,\text{ns}$).
-- $t_{SU\_master}$ = Controller input setup time (typically $2 - 5\,\text{ns}$).
-- $t_{propagation\_trace}$ = PCB trace delay ($\approx 6\,\text{ps/mm}$ on standard FR4).
+- t_CO_slave = Slave clock-to-output valid delay (typically 6 - 15 ns).
+- t_SU_master = Controller input setup time (typically 2 - 5 ns).
+- t_propagation_trace = PCB trace delay (≈ 6 ps/mm on standard FR4).
 
-If $T_{SCLK}$ is too short, the Peripheral's MISO data bit will arrive at the Controller **after** the sampling clock edge has already passed, resulting in bit errors.
+If T_SCLK is too short, the Peripheral's MISO data bit will arrive at the Controller **after** the sampling clock edge has already passed, resulting in bit errors.
 
 ---
 
@@ -530,11 +532,11 @@ int main(int argc, char *argv[]) {
 
 | Symptom | Probable Root Cause | Verification & Diagnostic Action |
 | :--- | :--- | :--- |
-| **All Bytes Read as `0xFF` or `0x00`** | 1. MISO line floating.<br>2. Peripheral not powered.<br>3. Wrong Chip Select pin driven.<br>4. MOSI/MISO swapped. | Probe $\overline{\text{CS}}$ on scope: Does it transition to $0\,\text{V}$ during transfer? If $\overline{\text{CS}}$ is HIGH, slave MISO buffer remains tri-stated. |
+| **All Bytes Read as `0xFF` or `0x00`** | 1. MISO line floating.<br>2. Peripheral not powered.<br>3. Wrong Chip Select pin driven.<br>4. MOSI/MISO swapped. | Probe NOT(CS) on scope: Does it transition to 0 V during transfer? If NOT(CS) is HIGH, slave MISO buffer remains tri-stated. |
 | **Data Shifted by Exactly 1 Bit**<br>(e.g. Expected `0x9F`, read `0x3E` or `0x4F`) | **Clock Phase (CPHA) Mismatch**: Controller sampling on wrong edge before data has stabilized. | Switch between **Mode 0** and **Mode 1** (or Mode 2 and Mode 3). Check peripheral datasheet for exact CPOL/CPHA timing. |
-| **First Byte Always Corrupted** | $\overline{\text{CS}}$ asserted too late relative to SCLK ($t_{CSS}$ violated), or line capacitance delaying edge. | Ensure Controller firmware inserts a minimum setup delay ($t_{CSS} \ge 20\,\text{ns}$) between driving $\overline{\text{CS}}$ LOW and first SCLK edge. |
-| **Communication Works at 1 MHz, Fails at 20 MHz** | 1. Excessive capacitive loading ($C_L > 50\,\text{pF}$).<br>2. SCLK signal reflections / ringing.<br>3. Round-trip propagation delay exceeding $T_{SCLK}/2$. | Inspect SCLK with 500 MHz scope probe. Check for double-clocking ringing. Add $33\,\Omega$ series resistors at Controller output. |
-| **Corrupted Data During Multi-Slave Access** | Multiple slaves driving MISO simultaneously due to slow tri-state disable time ($t_{DIS}$) or overlapping $\overline{\text{CS}}$. | Add a short delay ($t_{CS\_HIGH} \ge 50\,\text{ns}$) between deasserting Slave 1 and asserting Slave 2. |
+| **First Byte Always Corrupted** | NOT(CS) asserted too late relative to SCLK (t_CSS violated), or line capacitance delaying edge. | Ensure Controller firmware inserts a minimum setup delay (t_CSS >= 20 ns) between driving NOT(CS) LOW and first SCLK edge. |
+| **Communication Works at 1 MHz, Fails at 20 MHz** | 1. Excessive capacitive loading (C_L > 50 pF).<br>2. SCLK signal reflections / ringing.<br>3. Round-trip propagation delay exceeding T_SCLK/2. | Inspect SCLK with 500 MHz scope probe. Check for double-clocking ringing. Add 33 Ω series resistors at Controller output. |
+| **Corrupted Data During Multi-Slave Access** | Multiple slaves driving MISO simultaneously due to slow tri-state disable time (t_DIS) or overlapping NOT(CS). | Add a short delay (t_CS_HIGH >= 50 ns) between deasserting Slave 1 and asserting Slave 2. |
 | **Read Operations Return Stale or Blank Data** | **Dummy Byte Omission**: Software called read API without providing clocking TX bytes. | Remember: "To read, you must write". In C/Python, verify TX buffer length equals total transaction length (Command + Address + Read Bytes). |
 
 ---
@@ -542,14 +544,14 @@ int main(int argc, char *argv[]) {
 ### 9.2 Step-by-Step Lab Oscilloscope / Logic Analyzer Checklist
 
 When bringing up a new SPI peripheral on the bench:
-1. **Verify Power & Logic Levels**: Measure $V_{DD}$ on the target IC pin. Confirm Controller and Target share the same $V_{IO}$ voltage (1.8V or 3.3V).
+1. **Verify Power & Logic Levels**: Measure V_DD on the target IC pin. Confirm Controller and Target share the same V_IO voltage (1.8V or 3.3V).
 2. **Confirm Ground Reference**: Connect oscilloscope ground clip directly to the nearest target ground pad.
-3. **Trigger on Chip Select ($\overline{\text{CS}}$)**:
-   - Configure oscilloscope / logic analyzer Channel 1 to $\overline{\text{CS}}$, set trigger to **Falling Edge**.
-   - Verify that $\overline{\text{CS}}$ goes solidly LOW ($< 0.4\,\text{V}$) and returns to HIGH ($> 0.8 \times V_{DD}$) when finished.
+3. **Trigger on Chip Select (NOT(CS))**:
+   - Configure oscilloscope / logic analyzer Channel 1 to NOT(CS), set trigger to **Falling Edge**.
+   - Verify that NOT(CS) goes solidly LOW (< 0.4 V) and returns to HIGH (> 0.8 * V_DD) when finished.
 4. **Inspect SCLK Quality**:
-   - Check SCLK idle voltage: If CPOL=0, SCLK must be $0\,\text{V}$ before $\overline{\text{CS}}$ drops. If CPOL=1, SCLK must be $V_{DD}$.
-   - Inspect edge sharpness: Rise time ($t_r$) should be clean and monotonic without stair-stepping or resonant ringing.
+   - Check SCLK idle voltage: If CPOL=0, SCLK must be 0 V before NOT(CS) drops. If CPOL=1, SCLK must be V_DD.
+   - Inspect edge sharpness: Rise time (t_r) should be clean and monotonic without stair-stepping or resonant ringing.
 5. **Decode MOSI & MISO**:
    - Align cursors with the active sampling edge (Rising for Mode 0/3; Falling for Mode 1/2).
    - Read the 8 bit values manually under the cursors.

@@ -12,9 +12,9 @@ Designed specifically as a cost-effective complementary sub-network beneath high
 
 Unlike multi-master arbitration buses (CAN) or multi-line point-to-point buses (SPI), LIN operates on a strictly deterministic **Single-Master / Multi-Slave** architecture:
 - **Single-Wire Simplicity**: Uses a single physical copper wire referenced to the vehicle chassis Ground (GND), drastically reducing automotive harness weight and connector pin counts.
-- **Battery-Level Signaling**: Operates directly at vehicle battery potential ($V_{BAT} = 12\,\text{V}$ nominal, $9\,\text{V} \dots 18\,\text{V}$ dynamic operating range), eliminating the need for step-down voltage regulators on basic sensor modules.
+- **Battery-Level Signaling**: Operates directly at vehicle battery potential (V_BAT = 12 V nominal, 9 V ... 18 V dynamic operating range), eliminating the need for step-down voltage regulators on basic sensor modules.
 - **Deterministic Scheduling**: The Master Node commands 100% of bus communication via fixed **Schedule Tables**. Bus collisions cannot occur during normal operation, ensuring guaranteed message latency and zero jitter.
-- **Ultra-Low Cost Slaves (No Quartz Crystal Required)**: LIN slaves can run on inexpensive internal RC oscillators ($\pm 14\%$ drift). Every frame header begins with a known calibration byte (`0x55`), allowing slaves to dynamically calibrate their bit clocks to the Master's high-precision crystal clock on every single frame!
+- **Ultra-Low Cost Slaves (No Quartz Crystal Required)**: LIN slaves can run on inexpensive internal RC oscillators (± 14\% drift). Every frame header begins with a known calibration byte (`0x55`), allowing slaves to dynamically calibrate their bit clocks to the Master's high-precision crystal clock on every single frame!
 
 ```text
                +12V Battery (VBAT)
@@ -49,12 +49,12 @@ Unlike multi-master arbitration buses (CAN) or multi-line point-to-point buses (
 | Metric / Parameter | LIN (ISO 17987) | CAN 2.0 (ISO 11898) | UART (RS-232 / TTL) | I2C | K-Line (ISO 9141) |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Signal Wires** | **1 wire** + GND | **2 wires** (CAN_H, CAN_L) | 2 wires (TX, RX) + GND | 2 wires (SDA, SCL) + GND | 1 wire + GND (Bidirectional) |
-| **Operating Voltage** | **12V nominal** ($9-18\text{V}$) | $2.5\text{V} \dots 3.5\text{V}$ diff | $3.3\text{V} / 5\text{V}$ or $\pm 12\text{V}$ | $1.8\text{V} \dots 5.0\text{V}$ | 12V nominal |
+| **Operating Voltage** | **12V nominal** (9-18V) | 2.5V ... 3.5V diff | 3.3V / 5V or ± 12V | 1.8V ... 5.0V | 12V nominal |
 | **Max Bitrate** | **19.2 kbps** (Max 20 kbps) | 1.0 Mbps (FD: 5 Mbps) | 115.2 kbps – 1.5 Mbps | 100k, 400k, 1 Mbps | 10.4 kbps |
 | **Bus Topology** | Single-Master / Multi-Drop | Multi-Master / Multi-Drop | Point-to-Point | Multi-Master / Multi-Drop | Point-to-Point diagnostic |
 | **Max Node Count** | **16 nodes** (1 M + 15 S) | 30 to 100+ nodes | 2 nodes | Up to 128 (7-bit addr) | 1 ECU + 1 Tester |
 | **Max Bus Length** | **40 meters** | 40m @ 1M, 1km @ 50k | < 15 meters | < 2 to 3 meters | < 10 meters |
-| **Clock Requirements**| Master: Quartz ($\pm 0.5\%$),<br>Slave: **RC osc ($\pm 14\%$)** | Crystal required<br>($\pm 0.1\%$ to $\pm 50\text{ppm}$)| Quartz / Resonator<br>($\pm 2\%$) | Synchronous clock line<br>(Master driven) | Quartz required ($\pm 1\%$) |
+| **Clock Requirements**| Master: Quartz (± 0.5\%),<br>Slave: **RC osc (± 14\%)** | Crystal required<br>(± 0.1\% to ± 50ppm)| Quartz / Resonator<br>(± 2\%) | Synchronous clock line<br>(Master driven) | Quartz required (± 1\%) |
 | **Arbitration** | **None** (Deterministic Slot) | Non-destructive CSMA/CR | None | Open-drain Wired-AND | None |
 | **Typical Cost Ratio**| **0.3x – 0.5x of CAN** | **1.0x (Baseline)** | 0.2x of CAN | 0.1x of CAN | 0.3x of CAN |
 | **Primary Domain** | Door mirrors, seats, wipers | Powertrain, ADAS, BCM | Debug consoles, GPS | On-board sensors, PMIC | Legacy OBD-II diagnostics |
@@ -75,16 +75,16 @@ protocols/lin/
 ```
 
 ### [1. Working Mechanism & Electrical Architecture](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/lin/lin-working-and-architecture.md)
-- Single-wire physical layer (ISO 17987-4): Recessive ($\ge 0.8 \times V_{BAT}$) vs Dominant ($\le 0.2 \times V_{BAT}$) voltage thresholds.
-- Termination asymmetry: Master pull-up ($1\,\text{k}\Omega$ + diode) vs Slave pull-up ($30\,\text{k}\Omega$ + diode).
+- Single-wire physical layer (ISO 17987-4): Recessive (>= 0.8 * V_BAT) vs Dominant (<= 0.2 * V_BAT) voltage thresholds.
+- Termination asymmetry: Master pull-up (1 kΩ + diode) vs Slave pull-up (30 kΩ + diode).
 - Transceiver architectures (TJA1021, MCP2003, TLIN1029): open-drain NMOS, TXD dominant clamp timeout, and EMC slew-rate control.
 - Deterministic schedule table execution, cycle times, and collision-resolving tables for event-triggered frames.
-- Low-power Sleep Mode ($<10\,\mu\text{A}$) and dominant Wake-Up pulse mechanics.
+- Low-power Sleep Mode (<10 µA) and dominant Wake-Up pulse mechanics.
 - LIN 2.1 Node Configuration and Identification services (NAD, Supplier ID, Function ID).
 
 ### [2. Frame Data & Protocol Analysis](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/lin/lin-frame-and-protocol-analysis.md)
-- Master Header anatomy: Synch Break Field ($\ge 13$ bits low), Break Delimiter ($\ge 1$ bit high), Synch Byte (`0x55`), and Protected Identifier (PID).
-- PID parity equations ($P0, P1$) and the 64-frame ID allocation map.
+- Master Header anatomy: Synch Break Field (>= 13 bits low), Break Delimiter (>= 1 bit high), Synch Byte (`0x55`), and Protected Identifier (PID).
+- PID parity equations (P0, P1) and the 64-frame ID allocation map.
 - Slave Response anatomy: 1 to 8 payload bytes in 8-N-1 UART format and 8-bit checksum.
 - Classic Checksum (LIN 1.3 / Diagnostic) vs Enhanced Checksum (LIN 2.x) algorithms with carry handling.
 - LIN Frame Types: Unconditional, Event-Triggered, Sporadic, and Diagnostic (`0x3C`, `0x3D`).
@@ -92,17 +92,17 @@ protocols/lin/
 - Logic analyzer and oscilloscope decoded trace walk-through.
 
 ### [3. Hardware Connections & Circuit Schematics](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/lin/lin-circuit-and-hardware-connections.md)
-- Complete schematic for Automotive Master Node with $1\,\text{k}\Omega$ pull-up, reverse blocking diode, and EMC filter.
-- Automotive Slave Node schematic with internal $30\,\text{k}\Omega$ pull-up and $220\,\text{pF}$ filter.
+- Complete schematic for Automotive Master Node with 1 kΩ pull-up, reverse blocking diode, and EMC filter.
+- Automotive Slave Node schematic with internal 30 kΩ pull-up and 220 pF filter.
 - Automotive transient surge protection network (ISO 7637-2 pulse 1, 2a, 3a/3b) using TVS diodes (PESD1LIN).
 - Full vehicle body harness cluster wiring topology for up to 16 nodes.
 
 ### [4. Timing Calculations, Synchronization & Hardware Engineering](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/lin/lin-timing-synchronization-and-hardware.md)
-- Bit timing theory ($T_{bit}$) across standard baud rates ($19200$, $9600$, $2400\,\text{bps}$).
-- Nominal frame duration and maximum slot sizing formula ($T_{frame\_max} = 1.4 \times T_{frame\_nom}$).
-- Slave auto-baud clock synchronization mathematics: 5 falling edges of `0x55` spanning 8 bit times ($8 \times T_{bit}$).
-- Microcontroller timer input capture implementation and RC oscillator frequency drift compensation ($\pm 14\%$ down to $\pm 1.5\%$).
-- Total bus line capacitance budget ($C_{bus} \le 10\,\text{nF}$) and passive rise time ($t_r$).
+- Bit timing theory (T_bit) across standard baud rates (19200, 9600, 2400 bps).
+- Nominal frame duration and maximum slot sizing formula (T_frame_max = 1.4 * T_frame_nom).
+- Slave auto-baud clock synchronization mathematics: 5 falling edges of `0x55` spanning 8 bit times (8 * T_bit).
+- Microcontroller timer input capture implementation and RC oscillator frequency drift compensation (± 14\% down to ± 1.5\%).
+- Total bus line capacitance budget (C_bus <= 10 nF) and passive rise time (t_r).
 - Automotive protection circuitry: Load dump (ISO 7637-2), reverse polarity diode, and TVS clamp layout.
 - Root Cause Analysis (RCA) troubleshooting matrix for bench and assembly bring-up.
 

@@ -468,23 +468,23 @@ Bring-up must follow a structured 4-step physical verification process:
 
 ### Step 1: SPI Bus Verification
 - Attach logic analyzer channels to `SCLK`, `MOSI`, `MISO`, `CS#`, and `IRQ`.
-- Issue a read of the silicon version register (Address `0x37` on MFRC522 $\rightarrow$ Expected value: `0x92` for v2.0 or `0x91` for v1.0).
+- Issue a read of the silicon version register (Address `0x37` on MFRC522 -> Expected value: `0x92` for v2.0 or `0x91` for v1.0).
 - If MISO returns `0x00` or `0xFF`: Check clock polarity (CPOL=0), chip select assertion, and verify power rails.
 
 ### Step 2: RF Carrier Verification
 - Attach a high-impedance 10:1 passive oscilloscope probe across `TX1` and `TX2` (or across the antenna coil).
-- Verify continuous **13.560 MHz ($\pm 7\text{ kHz}$)** sinusoidal oscillation.
-- Confirm differential amplitude: $V_{pp}$ across the coil should be between **$10\text{V}$ and $20\text{V}$** (or $3.3\text{V}$ single-ended).
+- Verify continuous **13.560 MHz (± 7 kHz)** sinusoidal oscillation.
+- Confirm differential amplitude: V_pp across the coil should be between **10V and 20V** (or 3.3V single-ended).
 
 ### Step 3: Modulation Envelope Verification
 - Capture the RF carrier while transmitting a REQA command (`0x26`).
-- Measure the carrier pause width: must fall strictly within **$2.0\ \mu\text{s} \le t_1 \le 3.0\ \mu\text{s}$**.
-- If excessive ringing or overshoot is observed after the pause, the antenna $Q$-factor is too high; increase the value of series damping resistors ($R_Q$).
+- Measure the carrier pause width: must fall strictly within **2.0\ µs <= t_1 <= 3.0\ µs**.
+- If excessive ringing or overshoot is observed after the pause, the antenna Q-factor is too high; increase the value of series damping resistors (R_Q).
 
 ### Step 4: Tag Load Modulation Verification
 - Place a 2-turn pickup coil ("spy coil") connected to an oscilloscope near the antenna.
 - Approach the reader with an NTAG213 or MIFARE card.
-- Zoom in on the RF envelope after the REQA pause. Look for the card's **848 kHz subcarrier burst** ($12.712\text{ MHz} / 14.408\text{ MHz}$ sideband modulation) exhibiting Manchester transitions.
+- Zoom in on the RF envelope after the REQA pause. Look for the card's **848 kHz subcarrier burst** (12.712 MHz / 14.408 MHz sideband modulation) exhibiting Manchester transitions.
 
 ---
 
@@ -492,11 +492,11 @@ Bring-up must follow a structured 4-step physical verification process:
 
 | Symptom | Probable Root Cause | Diagnostic Check | Verified Engineering Fix |
 | :--- | :--- | :--- | :--- |
-| **Transceiver unresponsive; reads return 0x00 or 0xFF** | SPI mode mismatch or floating reset pin | Check MISO on scope; probe $\overline{\text{RSTPD}}$ pin | Configure SPI Controller for Mode 0 (CPOL=0, CPHA=0). Ensure $\overline{\text{RSTPD}}$ is driven HIGH ($3.3\text{V}$). |
+| **Transceiver unresponsive; reads return 0x00 or 0xFF** | SPI mode mismatch or floating reset pin | Check MISO on scope; probe NOT(RSTPD) pin | Configure SPI Controller for Mode 0 (CPOL=0, CPHA=0). Ensure NOT(RSTPD) is driven HIGH (3.3V). |
 | **PN532 commands return no ACK or garbled response** | **Bit order mismatch (LSB-First trap)** | Inspect MOSI data on logic analyzer | PN532 hardware SPI requires **LSB-first** transmission. Reverse bit order in software or enable LSB-first in MCU SPI hardware. |
-| **Card only detected at zero distance (< 3 mm)** | Antenna detuning or mismatched $Q$-factor | Measure antenna inductance $L_{ant}$ with LCR meter | Adjust matching capacitors ($C_{series}, C_{parallel}$) to center resonance at 13.56 MHz; ensure $Q \approx 20\text{--}30$. |
-| **RF carrier turns on, but tags never respond to REQA** | **Omission of $5.0\text{ ms}$ guard delay ($T_{guard}$)** | Scope probe RF carrier vs REQA burst | Insert `delay_ms(5)` immediately after enabling `TX_CONTROL` before sending REQA to allow tag reservoir capacitors to charge. |
-| **Microcontroller crashes or resets when RF field enables** | Inrush current causing VDD rail sag | Monitor $3.3\text{V}$ power rail with scope trigger during RF turn-on | Add bulk decoupling capacitor ($10\ \mu\text{F}$ tantalum or low-ESR ceramic) adjacent to transceiver `TVDD` and `AVDD` pins. |
-| **Card detected, but anti-collision fails (`CollErr` asserted)** | High RF noise or receiver gain saturated | Read `RFCfgReg` and `CollReg` | Lower the internal receiver gain setting (e.g. from $48\text{ dB}$ to $38\text{ dB}$); adjust `RxThreshold` register. |
-| **Tags completely undetected when mounted on metal/battery** | Eddy currents in metal canceling magnetic flux | Probe $H$-field strength near metal surface | Apply a sintered ferrite shielding sheet ($\mu_r' \ge 100$) between the PCB loop antenna and the metal surface. |
-| **CRC errors during high-speed transfers (424 / 848 kbps)** | Antenna bandwidth too narrow ($Q$ too high) | Calculate $BW = f_c / Q$ | Increase damping resistor $R_Q$ to reduce $Q$ to $10\text{--}15$, widening RF bandwidth to $> 1\text{ MHz}$. |
+| **Card only detected at zero distance (< 3 mm)** | Antenna detuning or mismatched Q-factor | Measure antenna inductance L_ant with LCR meter | Adjust matching capacitors (C_series, C_parallel) to center resonance at 13.56 MHz; ensure Q ≈ 20--30. |
+| **RF carrier turns on, but tags never respond to REQA** | **Omission of 5.0 ms guard delay (T_guard)** | Scope probe RF carrier vs REQA burst | Insert `delay_ms(5)` immediately after enabling `TX_CONTROL` before sending REQA to allow tag reservoir capacitors to charge. |
+| **Microcontroller crashes or resets when RF field enables** | Inrush current causing VDD rail sag | Monitor 3.3V power rail with scope trigger during RF turn-on | Add bulk decoupling capacitor (10\ µF tantalum or low-ESR ceramic) adjacent to transceiver `TVDD` and `AVDD` pins. |
+| **Card detected, but anti-collision fails (`CollErr` asserted)** | High RF noise or receiver gain saturated | Read `RFCfgReg` and `CollReg` | Lower the internal receiver gain setting (e.g. from 48 dB to 38 dB); adjust `RxThreshold` register. |
+| **Tags completely undetected when mounted on metal/battery** | Eddy currents in metal canceling magnetic flux | Probe H-field strength near metal surface | Apply a sintered ferrite shielding sheet (µ_r' >= 100) between the PCB loop antenna and the metal surface. |
+| **CRC errors during high-speed transfers (424 / 848 kbps)** | Antenna bandwidth too narrow (Q too high) | Calculate BW = f_c / Q | Increase damping resistor R_Q to reduce Q to 10--15, widening RF bandwidth to > 1 MHz. |

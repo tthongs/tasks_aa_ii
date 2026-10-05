@@ -6,7 +6,7 @@ This engineering guide provides detailed, practical hardware schematics and conn
 
 ## 1. Automotive Master Node Circuit Architecture (TJA1021 / TLIN1029-Q1)
 
-In a LIN cluster, the **Master Node** coordinates all scheduling and transmits frame headers. It requires an explicit external **$1\,\text{k}\Omega$ master pull-up termination** path:
+In a LIN cluster, the **Master Node** coordinates all scheduling and transmits frame headers. It requires an explicit external **1 kΩ master pull-up termination** path:
 
 ```text
        +12V Battery Power (VBAT / KL30)
@@ -37,20 +37,20 @@ In a LIN cluster, the **Master Node** coordinates all scheduling and transmits f
 ```
 
 ### Critical Component Roles:
-1. **$1.0\,\text{k}\Omega$ Master Termination Resistor**:
-   - The master pull-up drops the total bus impedance to $\approx 1\,\text{k}\Omega \parallel (30\,\text{k}\Omega / N_{slaves}) \approx 800\,\Omega \dots 950\,\Omega$.
-   - This low impedance guarantees fast bus rise times ($t_r < 5\,\mu\text{s}$) even with $10\,\text{nF}$ total harness wiring capacitance.
+1. **1.0 kΩ Master Termination Resistor**:
+   - The master pull-up drops the total bus impedance to ≈ 1 kΩ || (30 kΩ / N_slaves) ≈ 800 Ω ... 950 Ω.
+   - This low impedance guarantees fast bus rise times (t_r < 5 µs) even with 10 nF total harness wiring capacitance.
 2. **Reverse Blocking Diode (BAS21 / 1N4148)**:
-   - Placed in series with the $1\,\text{k}\Omega$ pull-up resistor.
-   - If the vehicle battery voltage ($V_{BAT}$) fluctuates or drops during engine crank ($6\,\text{V}$ cold crank), this diode prevents current from back-feeding from the bus capacitance into the battery rail.
-3. **Master EMC Filter Capacitor ($C_{master} = 1.0\,\text{nF}$)**:
+   - Placed in series with the 1 kΩ pull-up resistor.
+   - If the vehicle battery voltage (V_BAT) fluctuates or drops during engine crank (6 V cold crank), this diode prevents current from back-feeding from the bus capacitance into the battery rail.
+3. **Master EMC Filter Capacitor (C_master = 1.0 nF)**:
    - Placed directly between the LIN bus pin and Ground on the master board to shape transition edges and suppress RF radiated emissions.
 
 ---
 
 ## 2. Automotive Slave Node Circuit Architecture
 
-Slave nodes (door lock motors, seat heaters, rain/light sensors) contain an **integrated internal $30\,\text{k}\Omega$ pull-up** and require only minimal external passive components:
+Slave nodes (door lock motors, seat heaters, rain/light sensors) contain an **integrated internal 30 kΩ pull-up** and require only minimal external passive components:
 
 ```text
                                +12V Local VBAT
@@ -79,8 +79,8 @@ Slave nodes (door lock motors, seat heaters, rain/light sensors) contain an **in
 ```
 
 ### Slave Design Guidelines:
-- **No External $1\,\text{k}\Omega$ Resistor**: Adding an external $1\,\text{k}\Omega$ pull-up to a slave node will violate LIN specification pull-up requirements and overload transceiver output transistors.
-- **Slave Capacitance ($C_{slave} \approx 220\,\text{pF}$)**: The LIN specification restricts each slave node to $\le 250\,\text{pF}$ of total pin and filter capacitance to ensure a cluster of 16 slave nodes does not exceed the total maximum network capacitance limit ($10\,\text{nF}$).
+- **No External 1 kΩ Resistor**: Adding an external 1 kΩ pull-up to a slave node will violate LIN specification pull-up requirements and overload transceiver output transistors.
+- **Slave Capacitance (C_slave ≈ 220 pF)**: The LIN specification restricts each slave node to <= 250 pF of total pin and filter capacitance to ensure a cluster of 16 slave nodes does not exceed the total maximum network capacitance limit (10 nF).
 
 ---
 
@@ -102,9 +102,9 @@ In automotive wiring harnesses, load dump transients, inductive relay kicks, and
 ```
 
 ### Automotive Transient Standards Met:
-- **ISO 7637-2 Pulse 1 (Inductive Disconnect)**: $-100\,\text{V}$ negative inductive spike clamped safely by the TVS forward diode drop.
-- **ISO 7637-2 Pulse 2a / 3a / 3b (Switching & Coupling)**: $+75\,\text{V} / \pm 150\,\text{V}$ high-frequency transients absorbed by the ferrite bead and TVS.
-- **ESD Ruggedness (IEC 61000-4-2)**: $\pm 15\,\text{kV}$ air discharge and $\pm 8\,\text{kV}$ contact discharge.
+- **ISO 7637-2 Pulse 1 (Inductive Disconnect)**: -100 V negative inductive spike clamped safely by the TVS forward diode drop.
+- **ISO 7637-2 Pulse 2a / 3a / 3b (Switching & Coupling)**: +75 V / ± 150 V high-frequency transients absorbed by the ferrite bead and TVS.
+- **ESD Ruggedness (IEC 61000-4-2)**: ± 15 kV air discharge and ± 8 kV contact discharge.
 
 ---
 

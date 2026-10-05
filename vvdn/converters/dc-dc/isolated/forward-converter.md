@@ -104,43 +104,45 @@ The **Forward Converter** is an isolated, buck-derived switched-mode power suppl
 
 | Net Name | Source (Pin / Terminal) | Destination (Pin / Terminal) | Electrical Function | Hardware Engineering Notes |
 | :--- | :--- | :--- | :--- | :--- |
-| **+VIN_RAW** | Input Connector Pin 1 | $C_{in,bulk}$ (+), Primary $N_p$ Pin 1, Reset Diode $D_{reset}$ Cathode | +48V DC input bus | Primary winding pin 1 and reset diode cathode tie directly to supply rail. |
-| **DRAIN_PRI** | Transformer Primary $N_p$ Pin 2 | $Q_1$ Drain, Primary Snubber $R_{snub,pri}$ | Primary switching node ($0\,\text{V} \dots 2 V_{IN}$) | With $N_p = N_{ter}$, peak drain voltage is clamped precisely to $2 V_{IN} = 96\,\text{V}$. |
-| **RESET_NODE** | Tertiary Winding $N_{ter}$ Pin 1 | Reset Diode $D_{reset}$ Anode | Magnetic core demagnetization rail | Winding dot is inverted relative to $N_p$; returns magnetizing energy back to $V_{IN}$ during OFF interval. |
-| **SW_SEC** | Forward Diode $D_1$ Cathode, Freewheel $D_2$ Cathode | Output Inductor $L_o$ Pin 1, Secondary Snubber | Secondary pulsating rectangular voltage node | Swings between $V_{IN} \cdot (N_s/N_p) = 24\,\text{V}$ and $-V_F \approx -0.5\,\text{V}$. |
-| **+VOUT** | Output Inductor $L_o$ Pin 2 | $C_{out}$ bank (+), Feedback $R_{fb1}$, Load (+) | Regulated +12V DC output rail | Continuous current output stage delivers low ripple and tight dynamic regulation. |
-| **GND_PRI / GND_SEC** | Primary Ground / Secondary Ground | Safety Y2 Capacitor ($C_{Y1}$) | Isolated return planes | Minimum $4.0\,\text{mm}$ clearance maintained across PCB boundary. |
+| **+VIN_RAW** | Input Connector Pin 1 | C_in,bulk (+), Primary N_p Pin 1, Reset Diode D_reset Cathode | +48V DC input bus | Primary winding pin 1 and reset diode cathode tie directly to supply rail. |
+| **DRAIN_PRI** | Transformer Primary N_p Pin 2 | Q_1 Drain, Primary Snubber R_snub,pri | Primary switching node (0 V ... 2 V_IN) | With N_p = N_ter, peak drain voltage is clamped precisely to 2 V_IN = 96 V. |
+| **RESET_NODE** | Tertiary Winding N_ter Pin 1 | Reset Diode D_reset Anode | Magnetic core demagnetization rail | Winding dot is inverted relative to N_p; returns magnetizing energy back to V_IN during OFF interval. |
+| **SW_SEC** | Forward Diode D_1 Cathode, Freewheel D_2 Cathode | Output Inductor L_o Pin 1, Secondary Snubber | Secondary pulsating rectangular voltage node | Swings between V_IN * (N_s/N_p) = 24 V and -V_F ≈ -0.5 V. |
+| **+VOUT** | Output Inductor L_o Pin 2 | C_out bank (+), Feedback R_fb1, Load (+) | Regulated +12V DC output rail | Continuous current output stage delivers low ripple and tight dynamic regulation. |
+| **GND_PRI / GND_SEC** | Primary Ground / Secondary Ground | Safety Y2 Capacitor (C_Y1) | Isolated return planes | Minimum 4.0 mm clearance maintained across PCB boundary. |
 
 ### 1.2 Component Bill of Materials & Parametric Specifications:
 
 | RefDes | Component Description | Manufacturer & Part Number | Key Electrical Specifications | Critical Design Constraint |
 | :--- | :--- | :--- | :--- | :--- |
-| **$Q_1$** | Primary N-MOSFET | Infineon BSC093N15NS5 | $V_{DS} = 150\,\text{V}, I_D = 75\,\text{A}, R_{DS(on)} = 9.3\,\text{m}\Omega, Q_g = 25\,\text{nC}$ | Rated for $150\,\text{V}$ to provide $50\%$ margin above $2 V_{IN} = 96\,\text{V}$ clamp level. |
-| **$T_1$** | Forward Transformer | Custom ETD34 Core (3C90) | Turns: $N_p:N_s:N_{ter} = 14:7:14, L_m = 450\,\mu\text{H}, L_{lk} < 2.0\,\mu\text{H}$ | Ungapped high-permeability core; bifilar winding of $N_p$ and $N_{ter}$ minimizes leakage inductance. |
-| **$D_{reset}$** | Core Demagnetizing Diode | Vishay ES1J | $V_{RRM} = 600\,\text{V}, I_F = 1\,\text{A}, t_{rr} < 35\,\text{ns}$ | High-voltage ultra-fast diode conducts magnetizing current $I_m$ back into input rail during OFF time. |
-| **$D_1, D_2$** | Secondary Rectifier Diodes | Vishay V40100P | $V_{RRM} = 100\,\text{V}, I_F = 40\,\text{A}, V_F = 0.58\,\text{V}, t_{rr} < 25\,\text{ns}$ | Dual Schottky diode in TO-247 package; provides forward conduction ($D_1$) and freewheeling loop ($D_2$). |
-| **$L_o$** | Output Filter Inductor | Coilcraft AGP4233-153ME | $L = 15\,\mu\text{H}, I_{sat} = 16\,\text{A}, I_{rms} = 14\,\text{A}, DCR = 4.2\,\text{m}\Omega$ | High DC current power choke with flat-wire winding; maintains continuous conduction down to $1\,\text{A}$. |
-| **$C_{out,bulk}$** | Output Bulk Capacitor | Panasonic 25SVPF330M | $3 \times 330\,\mu\text{F}, 25\,\text{V}, \text{Polymer}, ESR = 8\,\text{m}\Omega$ | Accommodates output ripple current $\Delta I_{Lo} = 2.5\,\text{A}$ with $< 20\,\text{mV}$ peak-to-peak ripple. |
+| **Q_1** | Primary N-MOSFET | Infineon BSC093N15NS5 | V_DS = 150 V, I_D = 75 A, R_DS(on) = 9.3 mΩ, Q_g = 25 nC | Rated for 150 V to provide 50\% margin above 2 V_IN = 96 V clamp level. |
+| **T_1** | Forward Transformer | Custom ETD34 Core (3C90) | Turns: N_p:N_s:N_ter = 14:7:14, L_m = 450 µH, L_lk < 2.0 µH | Ungapped high-permeability core; bifilar winding of N_p and N_ter minimizes leakage inductance. |
+| **D_reset** | Core Demagnetizing Diode | Vishay ES1J | V_RRM = 600 V, I_F = 1 A, t_rr < 35 ns | High-voltage ultra-fast diode conducts magnetizing current I_m back into input rail during OFF time. |
+| **D_1, D_2** | Secondary Rectifier Diodes | Vishay V40100P | V_RRM = 100 V, I_F = 40 A, V_F = 0.58 V, t_rr < 25 ns | Dual Schottky diode in TO-247 package; provides forward conduction (D_1) and freewheeling loop (D_2). |
+| **L_o** | Output Filter Inductor | Coilcraft AGP4233-153ME | L = 15 µH, I_sat = 16 A, I_rms = 14 A, DCR = 4.2 mΩ | High DC current power choke with flat-wire winding; maintains continuous conduction down to 1 A. |
+| **C_out,bulk** | Output Bulk Capacitor | Panasonic 25SVPF330M | 3 * 330 µF, 25 V, Polymer, ESR = 8 mΩ | Accommodates output ripple current Δ I_Lo = 2.5 A with < 20 mV peak-to-peak ripple. |
 
 
 ### Core Operating Phases:
-1. **Phase 1: Switch ON ($0 < t \le D \cdot T_s$)**:
-   - Primary switch Q1 turns ON. Full DC input voltage $V_{IN}$ is applied across primary winding $N_p$.
-   - Transformer dot convention is aligned: Secondary winding $N_s$ induces a positive voltage $V_s = V_{IN} \cdot \left(\frac{N_s}{N_p}\right)$.
-   - Forward diode $D_1$ is forward-biased, conducting current into the output inductor $L_o$ and charging capacitor $C_o$. Freewheeling diode $D_2$ is reverse-biased.
-   - Concurrently, magnetizing current $I_m$ builds up linearly in the primary magnetizing inductance ($L_m$):
-     $$i_m(t) = \frac{V_{IN}}{L_m} \cdot t$$
-2. **Phase 2: Switch OFF ($D \cdot T_s < t \le T_s$)**:
+1. **Phase 1: Switch ON (0 < t <= D * T_s)**:
+   - Primary switch Q1 turns ON. Full DC input voltage V_IN is applied across primary winding N_p.
+   - Transformer dot convention is aligned: Secondary winding N_s induces a positive voltage V_s = V_IN * (N_s / N_p).
+   - Forward diode D_1 is forward-biased, conducting current into the output inductor L_o and charging capacitor C_o. Freewheeling diode D_2 is reverse-biased.
+   - Concurrently, magnetizing current I_m builds up linearly in the primary magnetizing inductance (L_m):
+     ```
+i_m(t) = V_IN / L_m * t
+```
+2. **Phase 2: Switch OFF (D * T_s < t <= T_s)**:
    - Q1 turns OFF. Transformer primary current abruptly terminates.
    - The stored magnetizing energy induces a reverse polarity across all windings.
-   - Forward diode $D_1$ turns OFF. The output inductor current freewheels continuously through diode $D_2$.
-   - **Crucial Core Reset**: Diode $D_{reset}$ conducts, clamping the voltage across tertiary winding $N_{ter}$ to $-V_{IN}$ and returning the trapped magnetizing energy back to the input bulk capacitor.
+   - Forward diode D_1 turns OFF. The output inductor current freewheels continuously through diode D_2.
+   - **Crucial Core Reset**: Diode D_reset conducts, clamping the voltage across tertiary winding N_ter to -V_IN and returning the trapped magnetizing energy back to the input bulk capacitor.
 
 ---
 
 ## 2. The Core Saturation Hazard & Demagnetization Techniques
 
-Because energy is transferred directly during the ON phase, the transformer core must operate purely as an AC transformer without storing DC energy. If the magnetizing flux $\Phi_m$ is not completely returned to zero during each switching period, the core enters **flux walking / progressive magnetic saturation**, resulting in catastrophic switch overcurrent.
+Because energy is transferred directly during the ON phase, the transformer core must operate purely as an AC transformer without storing DC energy. If the magnetizing flux Φ_m is not completely returned to zero during each switching period, the core enters **flux walking / progressive magnetic saturation**, resulting in catastrophic switch overcurrent.
 
 ```text
                Transformer B-H Loop & Core Reset Trajectory
@@ -163,30 +165,42 @@ Because energy is transferred directly during the ON phase, the transformer core
 ### 2.1 Sizing the Tertiary Demagnetizing Winding:
 To prevent core saturation, the volt-second integral across the magnetizing inductance over one switching period must equal zero:
 
-$$\int_0^{T_s} v_L(t) \, dt = 0 \implies V_{IN} \cdot t_{on} = V_{reset} \cdot t_{reset}$$
-$$V_{IN} \cdot (D \cdot T_s) = \left(V_{IN} \cdot \frac{N_p}{N_{ter}}\right) \cdot t_{reset}$$
-Solving for the required reset time ($t_{reset}$):
-$$t_{reset} = D \cdot T_s \cdot \left(\frac{N_{ter}}{N_p}\right)$$
-To ensure complete demagnetization before the next cycle begins, the reset time must not exceed the available OFF time ($t_{reset} \le (1 - D) \cdot T_s$):
+```
+int_0^T_s v_L(t) dt = 0 => V_IN * t_on = V_reset * t_reset
+```
+```
+V_IN * (D * T_s) = (V_IN * N_p / N_ter) * t_reset
+```
+Solving for the required reset time (t_reset):
+```
+t_reset = D * T_s * (N_ter / N_p)
+```
+To ensure complete demagnetization before the next cycle begins, the reset time must not exceed the available OFF time (t_reset <= (1 - D) * T_s):
 
-$$D \cdot \left(\frac{N_{ter}}{N_p}\right) \le 1 - D \implies D_{max} \le \frac{1}{1 + \frac{N_{ter}}{N_p}}$$
+```
+D * (N_ter / N_p) <= 1 - D => D_max <= 1 / (1 + N_ter / N_p)
+```
 
 > [!IMPORTANT]
 > **The 50% Duty Cycle Limit**:
-> In standard practice, the tertiary winding is wound with identical turns to the primary ($N_{ter} = N_p$). Consequently:
-> $$D_{max} \le \frac{1}{1 + 1} = 50\%$$
-> Exceeding $50\%$ duty cycle with $N_{ter} = N_p$ causes incomplete magnetic reset and rapid transformer saturation!
+> In standard practice, the tertiary winding is wound with identical turns to the primary (N_ter = N_p). Consequently:
+> ```
+D_max <= 1 / (1 + 1) = 50\%
+```
+> Exceeding 50\% duty cycle with N_ter = N_p causes incomplete magnetic reset and rapid transformer saturation!
 
 ### 2.2 Switch Voltage Stress:
 During demagnetization, the reflected voltage from the tertiary winding adds directly to the input rail:
-$$V_{DS(max)} = V_{IN} \cdot \left(1 + \frac{N_p}{N_{ter}}\right) = 2 \cdot V_{IN} \quad (\text{For } N_{ter} = N_p)$$
-*Constraint*: For a $400\,\text{V}$ DC bus, the primary switch must be rated for at least $2 \times 400\,\text{V} + V_{spike} \ge 900\,\text{V} \dots 1000\,\text{V}$.
+```
+V_DS(max) = V_IN * (1 + N_p / N_ter) = 2 * V_IN (For N_ter = N_p)
+```
+*Constraint*: For a 400 V DC bus, the primary switch must be rated for at least 2 * 400 V + V_spike >= 900 V ... 1000 V.
 
 ---
 
 ## 3. The Two-Switch Forward Converter (Industry Standard)
 
-To eliminate the expensive tertiary winding and reduce switch voltage stress to exactly $V_{IN}$, the **Two-Switch Forward Converter** is universally preferred for powers from $100\,\text{W}$ to $500\,\text{W}$:
+To eliminate the expensive tertiary winding and reduce switch voltage stress to exactly V_IN, the **Two-Switch Forward Converter** is universally preferred for powers from 100 W to 500 W:
 
 ```text
                            Two-Switch Forward Converter Topology
@@ -210,10 +224,12 @@ To eliminate the expensive tertiary winding and reduce switch voltage stress to 
 ```
 
 ### Advantages of the Two-Switch Configuration:
-1. **Voltage Clamping to $V_{IN}$**: When Q1 and Q2 turn off simultaneously, the magnetizing current forces diodes $D_{clamp1}$ and $D_{clamp2}$ into forward conduction. The primary winding is clamped directly across $+V_{IN}$ and GND with inverted polarity.
+1. **Voltage Clamping to V_IN**: When Q1 and Q2 turn off simultaneously, the magnetizing current forces diodes D_clamp1 and D_clamp2 into forward conduction. The primary winding is clamped directly across +V_IN and GND with inverted polarity.
 2. **Maximum Switch Stress**:
-   $$V_{DS1(max)} = V_{DS2(max)} = V_{IN} + V_{diode\_drop}$$
-   In a $400\,\text{V}$ system, standard cost-effective $500\,\text{V} - 600\,\text{V}$ MOSFETs can be safely employed instead of fragile $1000\,\text{V}$ devices!
+   ```
+V_DS1(max) = V_DS2(max) = V_IN + V_diode_drop
+```
+   In a 400 V system, standard cost-effective 500 V - 600 V MOSFETs can be safely employed instead of fragile 1000 V devices!
 3. **Automatic Leakage Energy Recovery**: Transformer primary leakage inductance energy is returned non-dissipatively to the input supply via the clamp diodes, eliminating the need for an RCD snubber.
 
 ---
@@ -221,16 +237,24 @@ To eliminate the expensive tertiary winding and reduce switch voltage stress to 
 ## 4. Mathematical Design Equations
 
 ### 4.1 Voltage Conversion Ratio (Continuous Conduction Mode):
-$$V_{OUT} = V_{IN} \cdot \left(\frac{N_s}{N_p}\right) \cdot D$$
+```
+V_OUT = V_IN * (N_s / N_p) * D
+```
 
-### 4.2 Output Inductor Sizing ($L_o$):
-To maintain continuous conduction mode with peak-to-peak inductor ripple $\Delta I_L = r \cdot I_{OUT}$ (typically $r = 20\% \dots 40\%$):
-$$L_o = \frac{(V_{s} - V_{OUT}) \cdot D}{\Delta I_L \cdot f_{sw}} = \frac{V_{OUT} \cdot (1 - D)}{\Delta I_L \cdot f_{sw}}$$
+### 4.2 Output Inductor Sizing (L_o):
+To maintain continuous conduction mode with peak-to-peak inductor ripple Δ I_L = r * I_OUT (typically r = 20\% ... 40\%):
+```
+L_o = ((V_s - V_OUT) * D) / (Δ I_L * f_sw) = (V_OUT * (1 - D)) / (Δ I_L * f_sw)
+```
 
-### 4.3 Output Capacitor Sizing ($C_o$):
-To constrain output voltage ripple to $\Delta V_{OUT}$:
-$$C_o \ge \frac{\Delta I_L}{8 \cdot f_{sw} \cdot \Delta V_{OUT}}$$
-$$\text{ESR}_{max} \le \frac{\Delta V_{OUT,ESR}}{\Delta I_L}$$
+### 4.3 Output Capacitor Sizing (C_o):
+To constrain output voltage ripple to Δ V_OUT:
+```
+C_o >= (Δ I_L) / (8 * f_sw * Δ V_OUT)
+```
+```
+ESR_max <= (Δ V_OUT,ESR) / (Δ I_L)
+```
 
 ---
 
@@ -238,11 +262,11 @@ $$\text{ESR}_{max} \le \frac{\Delta V_{OUT,ESR}}{\Delta I_L}$$
 
 | Engineering Metric | Forward Converter | Flyback Converter |
 | :--- | :--- | :--- |
-| **Magnetic Element** | True AC Transformer + Output Inductor ($L_o$) | Coupled Inductor (Flyback Transformer) |
+| **Magnetic Element** | True AC Transformer + Output Inductor (L_o) | Coupled Inductor (Flyback Transformer) |
 | **Energy Transfer Timing** | Instantaneous during switch **ON** time | Stored during **ON**, released during **OFF** |
 | **Output Current Ripple** | **Continuous** (smoothed by output inductor) | **Discontinuous / Pulsed** (requires heavy MLCC) |
-| **Duty Cycle Limit** | Strictly limited ($D < 50\%$ with $N_{ter}=N_p$) | Flexible ($D$ up to $65\% - 70\%$) |
-| **Transformer Core Utilization** | Quadrant I only ($\Delta B = B_{max} - B_{rem}$) | Quadrant I only ($\Delta B = B_{max} - B_{rem}$) |
-| **Power Capacity** | $50\,\text{W} \dots 500\,\text{W}$ | $1\,\text{W} \dots 150\,\text{W}$ |
+| **Duty Cycle Limit** | Strictly limited (D < 50\% with N_ter=N_p) | Flexible (D up to 65\% - 70\%) |
+| **Transformer Core Utilization** | Quadrant I only (Δ B = B_max - B_rem) | Quadrant I only (Δ B = B_max - B_rem) |
+| **Power Capacity** | 50 W ... 500 W | 1 W ... 150 W |
 | **Component Count** | Higher (Transformer + Inductor + 2 Diodes) | Lowest (Transformer + 1 Diode + 1 Cap) |
 | **Output Voltage Slew** | Fast, small ripple | Slower transient, higher ripple |

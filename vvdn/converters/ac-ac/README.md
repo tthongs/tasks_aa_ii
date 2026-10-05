@@ -1,6 +1,6 @@
 # AC-AC Power Electronic Converters: Master Engineering Hub
 
-Welcome to the **VVDN Engineering Hub AC-AC Converters Master Guide**. AC-to-AC conversion modifies the RMS magnitude, phase angle, or fundamental frequency of an alternating current waveform. These converters are essential in heavy-duty industrial drives, grid frequency interconnects, aircraft electrical power systems ($400\,\text{Hz}$ to $50/60\,\text{Hz}$), induction heating, soft-starters, and solid-state voltage regulators.
+Welcome to the **VVDN Engineering Hub AC-AC Converters Master Guide**. AC-to-AC conversion modifies the RMS magnitude, phase angle, or fundamental frequency of an alternating current waveform. These converters are essential in heavy-duty industrial drives, grid frequency interconnects, aircraft electrical power systems (400 Hz to 50/60 Hz), induction heating, soft-starters, and solid-state voltage regulators.
 
 ---
 
@@ -30,9 +30,9 @@ Frequency & Voltage Control:            Voltage Control Only:       Diode / PFC 
 
 | Topology Family | Output Parameter Controlled | Frequency Capability | Switching Elements | Efficiency | Typical Applications |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **AC Voltage Controllers** | RMS Voltage only | Fixed ($f_o = f_{in}$) | Antiparallel Thyristors / TRIACs | $96\% \dots 99\%$ | Induction motor soft-starters, industrial furnace heating, lamp dimmers. |
-| **Cycloconverters** | Voltage & Subharmonic Frequency | Sub-fundamental ($f_o \le \frac{1}{3} f_{in}$) | Line-commutated SCR banks (P/N groups) | $92\% \dots 95\%$ | Mega-watt grinding mills, marine propulsion, cement kilns, mine hoists. |
-| **Matrix Converters** | Voltage, Frequency, Phase Angle | Arbitrary ($f_o <, =, > f_{in}$) | 9 Bidirectional 4-quadrant switches | $94\% \dots 97\%$ | Aerospace actuators, compact elevator drives without DC link capacitors. |
+| **AC Voltage Controllers** | RMS Voltage only | Fixed (f_o = f_in) | Antiparallel Thyristors / TRIACs | 96\% ... 99\% | Induction motor soft-starters, industrial furnace heating, lamp dimmers. |
+| **Cycloconverters** | Voltage & Subharmonic Frequency | Sub-fundamental (f_o <= 1 / 3 f_in) | Line-commutated SCR banks (P/N groups) | 92\% ... 95\% | Mega-watt grinding mills, marine propulsion, cement kilns, mine hoists. |
+| **Matrix Converters** | Voltage, Frequency, Phase Angle | Arbitrary (f_o <, =, > f_in) | 9 Bidirectional 4-quadrant switches | 94\% ... 97\% | Aerospace actuators, compact elevator drives without DC link capacitors. |
 
 ---
 
@@ -44,4 +44,4 @@ Explore each technical dossier for mathematical derivations, circuit schematics,
    *Covers: Single-phase to single-phase, three-phase to single-phase, three-phase to three-phase cycloconverters, Positive/Negative (P/N) converter banks, circulating current vs. non-circulating current modes, line commutation mechanics, and input displacement power factor.*
 
 2. [AC Voltage Controllers: Phase Angle & Integral Cycle Control](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/converters/ac-ac/ac-voltage-controllers.md) ([DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/converters/ac-ac/ac-voltage-controllers.docx))  
-   *Covers: Antiparallel SCRs and TRIACs, firing angle delay $\alpha$, RMS voltage equations for resistive and inductive (R-L) loads, conduction angle $\gamma$, harmonic current distortion, integral cycle burst firing, and snubber protection.*
+   *Covers: Antiparallel SCRs and TRIACs, firing angle delay α, RMS voltage equations for resistive and inductive (R-L) loads, conduction angle γ, harmonic current distortion, integral cycle burst firing, and snubber protection.*

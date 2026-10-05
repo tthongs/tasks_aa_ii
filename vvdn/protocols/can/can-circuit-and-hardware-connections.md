@@ -30,19 +30,19 @@ Connecting a microcontroller's integrated CAN controller (e.g., STM32 `bxCAN` / 
 ```
 
 ### Critical Circuit Highlights:
-1. **The $V_{IO}$ Logic Translation Pin**:
-   - The differential bus drivers require a $+5.0\,\text{V}$ supply ($V_{CC}$) to generate the standard $+2.5\,\text{V} \dots +3.5\,\text{V}$ dominant differential voltages.
-   - However, modern microcontrollers operate on $+3.3\,\text{V}$ logic.
-   - Connecting $+3.3\,\text{V}$ to the **$V_{IO}$ pin** (available on TJA1051T/3, TCAN1042V) shifts the TXD and RXD logic thresholds directly to $+3.3\,\text{V}$, eliminating the need for external level shifters!
+1. **The V_IO Logic Translation Pin**:
+   - The differential bus drivers require a +5.0 V supply (V_CC) to generate the standard +2.5 V ... +3.5 V dominant differential voltages.
+   - However, modern microcontrollers operate on +3.3 V logic.
+   - Connecting +3.3 V to the **V_IO pin** (available on TJA1051T/3, TCAN1042V) shifts the TXD and RXD logic thresholds directly to +3.3 V, eliminating the need for external level shifters!
 2. **Silent Mode / Standby Pin (`S` / `STB`)**:
    - Tied to Ground for normal active transmission and reception.
    - Pulling `S` HIGH disables the transmitter (Silent Mode), preventing the node from sending frames or error flags while keeping the receiver listening (ideal for software diagnostics, babbling-node containment, or listen-only listen modes).
 
 ---
 
-## 2. Split Termination Network ($60\Omega + 60\Omega$ with Center Capacitor)
+## 2. Split Termination Network (60Ω + 60Ω with Center Capacitor)
 
-While a single $120\,\Omega$ resistor across CANH and CANL provides basic differential impedance matching, automotive OEMs mandate **Split Termination** to suppress common-mode electromagnetic radiation:
+While a single 120 Ω resistor across CANH and CANL provides basic differential impedance matching, automotive OEMs mandate **Split Termination** to suppress common-mode electromagnetic radiation:
 
 ```text
                                          CAN_H Line
@@ -58,10 +58,12 @@ While a single $120\,\Omega$ resistor across CANH and CANL provides basic differ
                                          CAN_L Line
 ```
 
-### Why Split Termination is Superior to Single $120\,\Omega$:
-- **Differential Resistance**: $R_{diff} = R_1 + R_2 = 60.4\,\Omega + 60.4\,\Omega \approx 120.8\,\Omega$ (perfect differential impedance matching).
+### Why Split Termination is Superior to Single 120 Ω:
+- **Differential Resistance**: R_diff = R_1 + R_2 = 60.4 Ω + 60.4 Ω ≈ 120.8 Ω (perfect differential impedance matching).
 - **Common-Mode Low-Pass Filter**: Common-mode noise appearing equally on CAN_H and CAN_L sees the center node as a virtual AC ground:
-  $$f_{cutoff} = \frac{1}{2 \pi \cdot (R/2) \cdot C_{split}} = \frac{1}{2 \pi \cdot (30\,\Omega) \cdot (4.7\,\text{nF})} \approx 1.13\,\text{MHz}$$
+  ```
+f_cutoff = 1 / (2 π * (R/2) * C_split) = 1 / (2 π * (30 Ω) * (4.7 nF)) ≈ 1.13 MHz
+```
   High-frequency common-mode noise and ground bounce are shunted directly to Ground before radiating through the wiring harness.
 
 ---
@@ -87,14 +89,14 @@ For automotive powertrain, chassis, and industrial robotics exposed to severe el
 ```
 
 ### Component Functions:
-1. **Common Mode Choke (CMC, $51\,\mu\text{H} \dots 100\,\mu\text{H}$)**:
+1. **Common Mode Choke (CMC, 51 µH ... 100 µH)**:
    - Windings are bifilar wound on a common ferrite core.
    - Differential signals pass unhindered with near-zero insertion loss.
-   - Unwanted common-mode noise currents induce opposing flux that chokes out the disturbance, providing up to $30\,\text{dB}$ attenuation between $10\,\text{MHz}$ and $100\,\text{MHz}$.
+   - Unwanted common-mode noise currents induce opposing flux that chokes out the disturbance, providing up to 30 dB attenuation between 10 MHz and 100 MHz.
 2. **Automotive Dual TVS Diode (NXP PESD2CAN / onsemi NUP2105L)**:
    - SOT-23 package integrating two bidirectional clamping diodes connected to Ground.
-   - Ultra-low capacitance ($C_d < 15\,\text{pF}$) to prevent distorting $2\,\text{Mbps} - 5\,\text{Mbps}$ CAN FD bit edges.
-   - Withstands $\pm 30\,\text{kV}$ ESD contact discharges (IEC 61000-4-2) and ISO 7637-2 electrical transients.
+   - Ultra-low capacitance (C_d < 15 pF) to prevent distorting 2 Mbps - 5 Mbps CAN FD bit edges.
+   - Withstands ± 30 kV ESD contact discharges (IEC 61000-4-2) and ISO 7637-2 electrical transients.
 
 ---
 
@@ -147,8 +149,13 @@ Essential in Electric Vehicles (EV main traction inverters, 400V/800V Battery Ma
 1. **Strict Linear Daisy-Chain (No Star / Tree Routing)**:
    - CAN is strictly a transmission line bus. Star topologies create impedance discontinuities and severe signal reflections that destroy bit decoding.
 2. **Termination Exclusively at Extreme Ends**:
-   - Exactly two $120\,\Omega$ termination networks must exist across the entire network—one at each physical extreme.
+   - Exactly two 120 Ω termination networks must exist across the entire network—one at each physical extreme.
    - Total bus DC resistance measured with an ohmmeter between CAN_H and CAN_L with power OFF must read:
-     $$R_{bus,total} = 120\,\Omega \parallel 120\,\Omega \approx 60\,\Omega$$
-3. **Keep Stubs Shorter than $0.3\,\text{m}$**:
-   - Connections from the linear backbone trunk to an individual ECU must be kept as short as physically possible ($< 0.3\,\text{meters}$) to prevent transmission line stub reflections.
+     ```
+R_bus,total = 120 Ω || 120 Ω = 60 Ω
+```
+
+Where:
+- R_bus,total: Total equivalent DC differential bus termination resistance across CAN_H and CAN_L (Ω)
+3. **Keep Stubs Shorter than 0.3 m**:
+   - Connections from the linear backbone trunk to an individual ECU must be kept as short as physically possible (< 0.3 meters) to prevent transmission line stub reflections.

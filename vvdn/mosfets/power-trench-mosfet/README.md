@@ -1,6 +1,6 @@
 # Power Trench MOSFETs (UMOS & Shielded Gate): Physics, Architecture & Applications
 
-A **Trench MOSFET** (historically termed **UMOS** or **TrenchFET**) is a vertical power transistor architecture designed to minimize on-resistance ($R_{DS(on)}$) in the low-to-medium voltage domain ($20\,\text{V} \dots 100\,\text{V}$). By etching vertical trenches into the silicon and forming vertical conduction channels along the trench sidewalls, trench technology eliminates the parasitic JFET resistance inherent to planar power MOSFETs and achieves cellular densities exceeding $10^8\,\text{cells/cm}^2$.
+A **Trench MOSFET** (historically termed **UMOS** or **TrenchFET**) is a vertical power transistor architecture designed to minimize on-resistance (R_DS(on)) in the low-to-medium voltage domain (20 V ... 100 V). By etching vertical trenches into the silicon and forming vertical conduction channels along the trench sidewalls, trench technology eliminates the parasitic JFET resistance inherent to planar power MOSFETs and achieves cellular densities exceeding 10^8 cells/cm^2.
 
 ---
 
@@ -30,20 +30,31 @@ A **Trench MOSFET** (historically termed **UMOS** or **TrenchFET**) is a vertica
 
 ### The Planar Resistance Bottleneck & Trench Solution:
 In planar power MOSFETs, the total on-resistance consists of:
-$$R_{DS(on)} = R_{source} + R_{ch} + R_{JFET} + R_{drift} + R_{sub} + R_{contact}$$
-In low-voltage devices ($< 100\,\text{V}$), the drift region resistance $R_{drift}$ is very small. Consequently, the channel resistance $R_{ch}$ and the **parasitic JFET neck resistance** ($R_{JFET}$) between adjacent p-body diffusions accounted for over $60\%$ of total losses.
+```
+R_DS(on) = R_source + R_ch + R_JFET + R_drift + R_sub + R_contact
+```
+
+Where:
+- R_DS(on): Total device drain-to-source on-state resistance (Ω)
+- R_source: N+ source diffusion region resistance (Ω)
+- R_ch: Active vertical MOS inversion channel resistance (Ω)
+- R_JFET: JFET neck resistance between cells (negligible in vertical trench structures) (Ω)
+- R_drift: Low-doped N- epitaxial drift region resistance (Ω)
+- R_sub: Heavily doped N+ silicon substrate resistance (Ω)
+- R_contact: Ohmic contact resistance at source and drain metallization interfaces (Ω)
+In low-voltage devices (< 100 V), the drift region resistance R_drift is very small. Consequently, the channel resistance R_ch and the **parasitic JFET neck resistance** (R_JFET) between adjacent p-body diffusions accounted for over 60\% of total losses.
 
 **The Trench Revolution**:
 1. Channels are formed **vertically** along the etched sidewalls of the trench.
 2. The current flows vertically straight down from the top source into the drift region.
-3. The parasitic JFET constriction region is **completely eliminated** ($R_{JFET} \rightarrow 0$).
+3. The parasitic JFET constriction region is **completely eliminated** (R_JFET -> 0).
 4. The horizontal cell pitch can be shrunk aggressively, packing dramatically more channel width per unit silicon die area.
 
 ---
 
 ## 2. Advanced Evolution: Shielded Gate Trench (SGT / Split-Gate)
 
-While standard trench MOSFETs drastically reduced $R_{DS(on)}$, they suffered from large gate-to-drain capacitance ($C_{gd} / C_{rss}$) because the bottom of the conductive polysilicon gate was in direct capacitive contact with the high-voltage drain drift region:
+While standard trench MOSFETs drastically reduced R_DS(on), they suffered from large gate-to-drain capacitance (C_gd / C_rss) because the bottom of the conductive polysilicon gate was in direct capacitive contact with the high-voltage drain drift region:
 
 ```text
        Conventional Trench                    Shielded Gate Trench (SGT)
@@ -59,15 +70,15 @@ While standard trench MOSFETs drastically reduced $R_{DS(on)}$, they suffered fr
 ```
 
 ### Advantages of Shielded Gate Trench (SGT):
-1. **$C_{gd}$ Decoupling**: The bottom portion of the trench houses a second polysilicon electrode tied directly to **Source potential** (Ground in low-side switches). This acts as an electrostatic Faraday shield, dropping Miller capacitance $C_{gd}$ by up to $70\%$.
-2. **Reduced Figure-of-Merit ($FOM = R_{DS(on)} \times Q_g$)**: Allows power converters to switch at frequencies above $1\,\text{MHz}$ with high efficiency.
+1. **C_gd Decoupling**: The bottom portion of the trench houses a second polysilicon electrode tied directly to **Source potential** (Ground in low-side switches). This acts as an electrostatic Faraday shield, dropping Miller capacitance C_gd by up to 70\%.
+2. **Reduced Figure-of-Merit (FOM = R_DS(on) * Q_g)**: Allows power converters to switch at frequencies above 1 MHz with high efficiency.
 3. **Reshaped Electric Field**: The shield electrode flattens the vertical electric field profile, allowing a higher-doped (lower resistance) epitaxial drift region for the same breakdown voltage rating.
 
 ---
 
 ## 3. Top-FET vs. Bottom-FET Selection in Synchronous Buck Converters
 
-In synchronous step-down (buck) DC-DC converters (e.g., $12\,\text{V} \rightarrow 1.0\,\text{V}$ for CPU/FPGA Core rails at $40\,\text{A}$), the design requirements for the High-Side (Control FET) and Low-Side (Sync FET) are fundamentally divergent:
+In synchronous step-down (buck) DC-DC converters (e.g., 12 V -> 1.0 V for CPU/FPGA Core rails at 40 A), the design requirements for the High-Side (Control FET) and Low-Side (Sync FET) are fundamentally divergent:
 
 ```text
            +12V Input Rail
@@ -91,22 +102,22 @@ In synchronous step-down (buck) DC-DC converters (e.g., $12\,\text{V} \rightarro
 
 ### Engineering Trade-Offs:
 1. **High-Side (HS) Control FET**:
-   - Operates for only $8.3\%$ of the time.
-   - Dominated by **switching losses** ($P_{sw} \propto Q_g, Q_{gd}$).
-   - **Optimization Target**: Choose an SGT trench MOSFET with lowest possible $Q_{gd}$ and $Q_g$, even if $R_{DS(on)}$ is slightly higher (e.g., $5\,\text{m}\Omega - 10\,\text{m}\Omega$).
+   - Operates for only 8.3\% of the time.
+   - Dominated by **switching losses** (P_sw proportional to Q_g, Q_gd).
+   - **Optimization Target**: Choose an SGT trench MOSFET with lowest possible Q_gd and Q_g, even if R_DS(on) is slightly higher (e.g., 5 mΩ - 10 mΩ).
 2. **Low-Side (LS) Synchronous Rectifier FET**:
-   - Operates for $91.7\%$ of the time.
-   - Dominated by **conduction losses** ($P_{cond} = I_{rms}^2 \cdot R_{DS(on)}$).
-   - **Optimization Target**: Minimize $R_{DS(on)}$ at all costs (e.g., $< 1.5\,\text{m}\Omega$).
-   - **Crucial Anti-Shoot-Through Ratio**: Must guarantee $\frac{C_{gs}}{C_{gd}} > 2.0$. If the switch node swings abruptly ($dv/dt > 20\,\text{V/ns}$) when the High-Side FET turns on, displacement current through $C_{gd}$ injects charge into the Low-Side gate. If $C_{gs}$ is insufficient, $V_{GS(LS)}$ bounces above $V_{TH}$, causing instantaneous bridge shoot-through and catastrophic destruction.
+   - Operates for 91.7\% of the time.
+   - Dominated by **conduction losses** (P_cond = I_rms^2 * R_DS(on)).
+   - **Optimization Target**: Minimize R_DS(on) at all costs (e.g., < 1.5 mΩ).
+   - **Crucial Anti-Shoot-Through Ratio**: Must guarantee C_gs / C_gd > 2.0. If the switch node swings abruptly (dv/dt > 20 V/ns) when the High-Side FET turns on, displacement current through C_gd injects charge into the Low-Side gate. If C_gs is insufficient, V_GS(LS) bounces above V_TH, causing instantaneous bridge shoot-through and catastrophic destruction.
 
 ---
 
 ## 4. Commercial Part Catalog & Selection
 
-| Part Number | Manufacturer | Package | $V_{DS(max)}$ | $I_{D(max)}$ | $R_{DS(on)}$ (@10V) | $Q_g$ (Typ) | Target Application |
+| Part Number | Manufacturer | Package | V_DS(max) | I_D(max) | R_DS(on) (@10V) | Q_g (Typ) | Target Application |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **CSD18534Q5A** | Texas Instruments | SON $5\times 6$ mm | $60\,\text{V}$ | $100\,\text{A}$ | $7.8\,\text{m}\Omega$ | $13.5\,\text{nC}$ | 24V/48V telecom buck, motor drives |
-| **BSC014N04LS** | Infineon (OptiMOS) | SuperSO8 | $40\,\text{V}$ | $198\,\text{A}$ | $1.4\,\text{m}\Omega$ | $49\,\text{nC}$ | Server CPU VRM low-side sync rectifier |
-| **IPB014N06N** | Infineon (OptiMOS) | D2PAK | $60\,\text{V}$ | $180\,\text{A}$ | $1.4\,\text{m}\Omega$ | $137\,\text{nC}$ | 48V mild hybrid automotive, battery isolation |
-| **PSMN1R0-40YLD**| Nexperia | LFPAK56 | $40\,\text{V}$ | $300\,\text{A}$ | $1.0\,\text{m}\Omega$ | $65\,\text{nC}$ | Ultra-dense high-reliability BLDC motor phase |
+| **CSD18534Q5A** | Texas Instruments | SON 5* 6 mm | 60 V | 100 A | 7.8 mΩ | 13.5 nC | 24V/48V telecom buck, motor drives |
+| **BSC014N04LS** | Infineon (OptiMOS) | SuperSO8 | 40 V | 198 A | 1.4 mΩ | 49 nC | Server CPU VRM low-side sync rectifier |
+| **IPB014N06N** | Infineon (OptiMOS) | D2PAK | 60 V | 180 A | 1.4 mΩ | 137 nC | 48V mild hybrid automotive, battery isolation |
+| **PSMN1R0-40YLD**| Nexperia | LFPAK56 | 40 V | 300 A | 1.0 mΩ | 65 nC | Ultra-dense high-reliability BLDC motor phase |

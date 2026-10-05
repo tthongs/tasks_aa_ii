@@ -51,46 +51,56 @@ Idle (High) ──────┐          ┌───┬───┬───�
 #### A. Baud Rate vs. Bit Rate
 - **Bit Rate (bps)**: The actual number of information bits transmitted per second.
 - **Baud Rate (Bd)**: The number of physical line-state transitions per second.
-- **In binary UART**: Each state change represents exactly one bit ($0\text{V} = 0$, $3.3\text{V} = 1$). Therefore:
-  $$\text{Baud Rate (symbols/sec)} = \text{Bit Rate (bits/sec)}$$
+- **In binary UART**: Each state change represents exactly one bit (0V = 0, 3.3V = 1). Therefore:
+  ```
+Baud Rate (symbols/sec) = Bit Rate (bits/sec)
+```
   *(In multi-level modulations like QAM or PAM4, one baud can carry 2, 4, or more bits. In UART, 1 Baud = 1 bps).*
 
-#### B. Physical Significance: Bit Period ($T_{bit}$)
+#### B. Physical Significance: Bit Period (T_bit)
 The baud rate strictly determines the physical duration in time that every single bit occupies on the wire:
-$$T_{bit} = \frac{1}{\text{Baud Rate}}$$
+```
+T_bit = 1 / (Baud Rate)
+```
 
 At **115,200 Baud**:
-$$T_{bit} = \frac{1}{115200} \approx 8.68 \times 10^{-6}\,\text{s} = 8.68\,\mu\text{s}$$
+```
+T_bit = 1 / 115200 ≈ 8.68 * 10^-6 s = 8.68 µs
+```
 
-Every bit (Start, Data 0-7, Parity, Stop) must be held on the wire for exactly $8.68\,\mu\text{s}$. Because UART is asynchronous (no clock wire), both sender and receiver rely on internal timers calibrated to this exact interval.
+Every bit (Start, Data 0-7, Parity, Stop) must be held on the wire for exactly 8.68 µs. Because UART is asynchronous (no clock wire), both sender and receiver rely on internal timers calibrated to this exact interval.
 
 #### C. Gross Baud Rate vs. Actual Useful Payload Throughput
 In an `8-N-1` configuration, transmitting **1 byte (8 bits)** of real payload requires:
-$$\text{Total Bits on Wire} = 1\,\text{Start} + 8\,\text{Data} + 0\,\text{Parity} + 1\,\text{Stop} = 10\,\text{bits}$$
+```
+Total Bits on Wire = 1 Start + 8 Data + 0 Parity + 1 Stop = 10 bits
+```
 
-- Protocol efficiency is $\frac{8}{10} = 80\%$.
+- Protocol efficiency is 8 / 10 = 80\%.
 - **Effective Data Throughput (Bytes per second)**:
-  $$\text{Payload Rate (Bytes/s)} = \frac{\text{Baud Rate}}{\text{Total Bits per Frame}} = \frac{\text{Baud Rate}}{10}$$
+  ```
+Payload Rate (Bytes/s) = (Baud Rate) / (Total Bits per Frame) = (Baud Rate) / 10
+```
 
-| Baud Rate | $T_{bit}$ | Frame Time (10 bits) | Theoretical Payload Throughput |
+| Baud Rate | T_bit | Frame Time (10 bits) | Theoretical Payload Throughput |
 | :--- | :--- | :--- | :--- |
-| **9600** | $104.17\,\mu\text{s}$ | $1.042\,\text{ms}$ | $960\,\text{Bytes/s}$ ($0.94\,\text{KB/s}$) |
-| **19200** | $52.08\,\mu\text{s}$ | $520.8\,\mu\text{s}$ | $1,920\,\text{Bytes/s}$ ($1.88\,\text{KB/s}$) |
-| **38400** | $26.04\,\mu\text{s}$ | $260.4\,\mu\text{s}$ | $3,840\,\text{Bytes/s}$ ($3.75\,\text{KB/s}$) |
-| **57600** | $17.36\,\mu\text{s}$ | $173.6\,\mu\text{s}$ | $5,760\,\text{Bytes/s}$ ($5.63\,\text{KB/s}$) |
-| **115200** | $8.68\,\mu\text{s}$ | $86.8\,\mu\text{s}$ | $11,520\,\text{Bytes/s}$ ($11.25\,\text{KB/s}$) |
-| **921600** | $1.085\,\mu\text{s}$ | $10.85\,\mu\text{s}$ | $92,160\,\text{Bytes/s}$ ($90.0\,\text{KB/s}$) |
-| **1500000** | $0.667\,\mu\text{s}$ | $6.67\,\mu\text{s}$ | $150,000\,\text{Bytes/s}$ ($146.5\,\text{KB/s}$) |
+| **9600** | 104.17 µs | 1.042 ms | 960 Bytes/s (0.94 KB/s) |
+| **19200** | 52.08 µs | 520.8 µs | 1,920 Bytes/s (1.88 KB/s) |
+| **38400** | 26.04 µs | 260.4 µs | 3,840 Bytes/s (3.75 KB/s) |
+| **57600** | 17.36 µs | 173.6 µs | 5,760 Bytes/s (5.63 KB/s) |
+| **115200** | 8.68 µs | 86.8 µs | 11,520 Bytes/s (11.25 KB/s) |
+| **921600** | 1.085 µs | 10.85 µs | 92,160 Bytes/s (90.0 KB/s) |
+| **1500000** | 0.667 µs | 6.67 µs | 150,000 Bytes/s (146.5 KB/s) |
 
 ---
 
 ### 3.2 How Hardware Calculates & Generates the Baud Rate (Baud Rate Generator / BRG)
 
-Microcontrollers and SoCs (e.g., STM32, ESP32, NXP, Qualcomm, 16550 UART) generate baud rates from an internal system/peripheral clock ($f_{clk}$).
+Microcontrollers and SoCs (e.g., STM32, ESP32, NXP, Qualcomm, 16550 UART) generate baud rates from an internal system/peripheral clock (f_clk).
 
 #### A. The Oversampling Mechanism
 To reliably sample asynchronous data without a shared clock:
-1. The receiver runs an oversampling clock, standardly at **$16\times$ the target baud rate** (some controllers allow $8\times$).
+1. The receiver runs an oversampling clock, standardly at **16* the target baud rate** (some controllers allow 8*).
 2. When the line drops from High to Low (Start bit falling edge), the UART counter starts.
 3. At tick **7 or 8** (midpoint of the start bit), the receiver samples again to verify it is a valid start bit (not a noise glitch).
 4. Each subsequent bit is sampled **16 ticks later**, guaranteeing sampling at the exact middle of each bit period where the signal is cleanest.
@@ -103,69 +113,93 @@ Sample Point:                                  ▲ (Tick 7-8: Midpoint)         
 ```
 
 #### B. The Hardware Divisor Formula
-The peripheral clock $f_{clk}$ is divided down using a register called the **Divisor** (e.g., `UBRR` in AVR, `USART_BRR` in STM32, `DLL/DLM` in 16550):
+The peripheral clock f_clk is divided down using a register called the **Divisor** (e.g., `UBRR` in AVR, `USART_BRR` in STM32, `DLL/DLM` in 16550):
 
-$$\text{Baud Rate} = \frac{f_{clk}}{OS \times \text{Divisor}}$$
+```
+Baud Rate = f_clk / (OS * Divisor)
+```
 
 Where:
-- $f_{clk}$ = Clock frequency supplied to the UART peripheral (in Hz).
-- $OS$ = Oversampling factor (typically $16$).
-- $\text{Divisor}$ = Value loaded into the Baud Rate Generator register.
+- f_clk = Clock frequency supplied to the UART peripheral (in Hz).
+- OS = Oversampling factor (typically 16).
+- Divisor = Value loaded into the Baud Rate Generator register.
 
 #### C. Calculating the Required Divisor:
-$$\text{Divisor} = \frac{f_{clk}}{OS \times \text{Baud}_{target}}$$
+```
+Divisor = f_clk / (OS * Baud_target)
+```
 
 ---
 
 ### 3.3 Baud Rate Error & Tolerance Calculation
 
-In hardware, the divisor is often an integer register. When $f_{clk} / (OS \times \text{Baud})$ does not yield a whole number, rounding creates a **baud rate error**.
+In hardware, the divisor is often an integer register. When f_clk / (OS * Baud) does not yield a whole number, rounding creates a **baud rate error**.
 
 #### A. Actual Baud Rate & Percentage Error Formulas
-$$\text{Baud}_{actual} = \frac{f_{clk}}{OS \times \text{Divisor}_{rounded}}$$
+```
+Baud_actual = f_clk / (OS * Divisor_rounded)
+```
 
-$$\text{Error (\%)} = \left( \frac{\text{Baud}_{actual} - \text{Baud}_{target}}{\text{Baud}_{target}} \right) \times 100\%$$
+```
+Error (\%) = ( (Baud_actual - Baud_target) / Baud_target ) * 100\%
+```
 
 #### B. Why Does Error Cause Framing Errors? (Cumulative Phase Drift)
 - The receiver resynchronizes its clock **only at the falling edge of the Start bit**.
 - For all 8 data bits, parity, and the stop bit (up to 10 bit periods), the receiver runs purely open-loop.
 - With each passing bit, any timing mismatch accumulates:
-  $$\Delta t_{accumulated} = N \times (T_{bit, actual} - T_{bit, target})$$
-- By bit 9 or 10 (the Stop bit), if the sampling point drifts by more than **$\pm 0.5 \times T_{bit}$**, the receiver will sample during a logic transition or adjacent bit.
-- **Rule of Thumb**: Total clock difference between sender and receiver **must remain within $\pm 2.5\%$ to $\pm 3\%$**. Exceeding $3\%$ results in corrupted bytes and `Framing Errors (FE)`.
+  ```
+Δ t_accumulated = N * (T_bit, actual - T_bit, target)
+```
+- By bit 9 or 10 (the Stop bit), if the sampling point drifts by more than **± 0.5 * T_bit**, the receiver will sample during a logic transition or adjacent bit.
+- **Rule of Thumb**: Total clock difference between sender and receiver **must remain within ± 2.5\% to ± 3\%**. Exceeding 3\% results in corrupted bytes and `Framing Errors (FE)`.
 
 ---
 
 ### 3.4 Practical Real-World Examples
 
 #### Example 1: 16 MHz Clock with Integer Divisor (The "Bad Clock" Problem)
-- Given: $f_{clk} = 16\,\text{MHz} = 16,000,000\,\text{Hz}$, Target Baud = $115200$, $OS = 16$.
+- Given: f_clk = 16 MHz = 16,000,000 Hz, Target Baud = 115200, OS = 16.
 - Compute Divisor:
-  $$\text{Divisor} = \frac{16,000,000}{16 \times 115200} = \frac{16,000,000}{1,843,200} \approx 8.68055$$
-- An integer-only register must round to **$9$** (or $8$):
-  - With $\text{Divisor} = 9$:
-    $$\text{Baud}_{actual} = \frac{16,000,000}{16 \times 9} = 111,111.1\,\text{bps}$$
-    $$\text{Error} = \left( \frac{111111.1 - 115200}{115200} \right) \times 100\% = \mathbf{-3.55\%}$$
-  - **Verdict**: **Fails!** $-3.55\%$ exceeds the $3\%$ limit. Communication will suffer frequent framing errors and corrupted packets.
+  ```
+Divisor = 16,000,000 / (16 * 115200) = 16,000,000 / 1,843,200 ≈ 8.68055
+```
+- An integer-only register must round to **9** (or 8):
+  - With Divisor = 9:
+    ```
+Baud_actual = 16,000,000 / (16 * 9) = 111,111.1 bps
+```
+    ```
+Error = ( (111111.1 - 115200) / 115200 ) * 100\% = -3.55\%
+```
+  - **Verdict**: **Fails!** -3.55\% exceeds the 3\% limit. Communication will suffer frequent framing errors and corrupted packets.
 
 #### Example 2: Fractional Baud Rate Generator (Modern MCUs / SoCs)
 Modern microcontrollers (like STM32) provide fractional dividers (e.g. 12-bit Mantissa + 4-bit Fraction):
-- Ideal Divisor = $8.68055$
-- Mantissa = $8$
-- Fraction = $\text{round}(0.68055 \times 16) = \text{round}(10.88) = 11$
-- Effective Divisor = $8 + \frac{11}{16} = 8.6875$
+- Ideal Divisor = 8.68055
+- Mantissa = 8
+- Fraction = round(0.68055 * 16) = round(10.88) = 11
+- Effective Divisor = 8 + 11 / 16 = 8.6875
 - Recalculate Actual Baud:
-  $$\text{Baud}_{actual} = \frac{16,000,000}{16 \times 8.6875} = 115,107.9\,\text{bps}$$
-  $$\text{Error} = \left( \frac{115107.9 - 115200}{115200} \right) \times 100\% = \mathbf{-0.08\%}$$
-- **Verdict**: **Passes with flying colors!** ($< 0.1\%$ error).
+  ```
+Baud_actual = 16,000,000 / (16 * 8.6875) = 115,107.9 bps
+```
+  ```
+Error = ( (115107.9 - 115200) / 115200 ) * 100\% = -0.08\%
+```
+- **Verdict**: **Passes with flying colors!** (< 0.1\% error).
 
 #### Example 3: Why "Baud Rate Friendly" Crystals Exist (11.0592 MHz, 18.432 MHz)
-In older hardware (8051, AVR, legacy industrial controllers), you will see unusual crystal frequencies like **$11.0592\,\text{MHz}$**:
+In older hardware (8051, AVR, legacy industrial controllers), you will see unusual crystal frequencies like **11.0592 MHz**:
 - Divisor for 115,200 baud:
-  $$\text{Divisor} = \frac{11,059,200}{16 \times 115200} = \frac{11,059,200}{1,843,200} = \mathbf{6.0000}$$
+  ```
+Divisor = 11,059,200 / (16 * 115200) = 11,059,200 / 1,843,200 = 6.0000
+```
 - Divisor for 9600 baud:
-  $$\text{Divisor} = \frac{11,059,200}{16 \times 9600} = \mathbf{72.0000}$$
-- Because $11.0592\,\text{MHz}$ is an exact multiple of all standard baud rates, integer divisors yield **$0.00\%$ baud rate error**.
+  ```
+Divisor = 11,059,200 / (16 * 9600) = 72.0000
+```
+- Because 11.0592 MHz is an exact multiple of all standard baud rates, integer divisors yield **0.00\% baud rate error**.
 
 ---
 
@@ -174,17 +208,19 @@ In older hardware (8051, AVR, legacy industrial controllers), you will see unusu
 When connecting to an unknown board or unlabelled test point:
 1. Connect oscilloscope / logic analyzer probe to the board's **TX** pin and **GND**.
 2. Trigger the scope on a falling edge while the board boots or transmits data.
-3. Zoom in and find the **narrowest single pulse** (shortest high or low pulse). In random data, the narrowest pulse corresponds to a single bit ($1 \times T_{bit}$).
-4. Measure the pulse width with cursor $\Delta t$.
+3. Zoom in and find the **narrowest single pulse** (shortest high or low pulse). In random data, the narrowest pulse corresponds to a single bit (1 * T_bit).
+4. Measure the pulse width with cursor Δ t.
 5. Compute the baud rate:
-   $$\text{Baud Rate} = \frac{1}{\Delta t}$$
+   ```
+Baud Rate = 1 / (Δ t)
+```
 
 *Measurement Cheatsheet:*
-- If $\Delta t \approx 104\,\mu\text{s} \longrightarrow \mathbf{9600}$ Baud
-- If $\Delta t \approx 26.0\,\mu\text{s} \longrightarrow \mathbf{38400}$ Baud
-- If $\Delta t \approx 8.68\,\mu\text{s} \longrightarrow \mathbf{115200}$ Baud
-- If $\Delta t \approx 1.08\,\mu\text{s} \longrightarrow \mathbf{921600}$ Baud
-- If $\Delta t \approx 0.67\,\mu\text{s} \longrightarrow \mathbf{1500000}$ (1.5M) Baud
+- If Δ t ≈ 104 µs -> 9600 Baud
+- If Δ t ≈ 26.0 µs -> 38400 Baud
+- If Δ t ≈ 8.68 µs -> 115200 Baud
+- If Δ t ≈ 1.08 µs -> 921600 Baud
+- If Δ t ≈ 0.67 µs -> 1500000 (1.5M) Baud
 
 ---
 
@@ -194,13 +230,13 @@ UART is the **logical protocol** (controller/state machine). The physical voltag
 
 | Standard | Logic 0 | Logic 1 | Typical Distance | Topology |
 | :--- | :--- | :--- | :--- | :--- |
-| **TTL / CMOS (3.3V)** | $0\,\text{V}$ | $3.3\,\text{V}$ | $< 1\,\text{meter}$ (board-level) | Point-to-point |
-| **TTL / CMOS (1.8V)** | $0\,\text{V}$ | $1.8\,\text{V}$ | $< 0.5\,\text{meter}$ (modern SoCs) | Point-to-point |
-| **RS-232** | $+3\,\text{V}\dots +15\,\text{V}$ | $-3\,\text{V}\dots -15\,\text{V}$ | Up to $15\,\text{meters}$ | Point-to-point (Inverted logic!) |
-| **RS-485** | Differential: $V_A - V_B < -200\,\text{mV}$ | Differential: $V_A - V_B > +200\,\text{mV}$ | Up to $1200\,\text{meters}$ | Multi-drop bus (up to 32+ devices) |
+| **TTL / CMOS (3.3V)** | 0 V | 3.3 V | < 1 meter (board-level) | Point-to-point |
+| **TTL / CMOS (1.8V)** | 0 V | 1.8 V | < 0.5 meter (modern SoCs) | Point-to-point |
+| **RS-232** | +3 V... +15 V | -3 V... -15 V | Up to 15 meters | Point-to-point (Inverted logic!) |
+| **RS-485** | Differential: V_A - V_B < -200 mV | Differential: V_A - V_B > +200 mV | Up to 1200 meters | Multi-drop bus (up to 32+ devices) |
 
 > [!CAUTION]
-> **Never connect an RS-232 cable directly to a TTL UART header (e.g. Raspberry Pi, Qualcomm/NXP/Rockchip SoC header).** RS-232 voltages ($\pm 12\text{V}$) will permanently fry the SoC pins. Always use a level converter/transceiver (e.g., MAX3232).
+> **Never connect an RS-232 cable directly to a TTL UART header (e.g. Raspberry Pi, Qualcomm/NXP/Rockchip SoC header).** RS-232 voltages (± 12V) will permanently fry the SoC pins. Always use a level converter/transceiver (e.g., MAX3232).
 
 ---
 

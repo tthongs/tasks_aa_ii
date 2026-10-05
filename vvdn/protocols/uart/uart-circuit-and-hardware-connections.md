@@ -29,8 +29,8 @@ When directly interconnecting two microcontrollers on the same PCB or short boar
    - Controller #1 **RXD** (Receive Data, Input) must connect to Controller #2 **TXD** (Transmit Data, Output).
    - *Trap*: Connecting TX to TX and RX to RX will cause bus contention and complete failure.
 2. **Common Ground Connection (Mandatory)**:
-   - Asynchronous signaling requires a common voltage reference. Without a shared Ground wire, ground potential shifts will shift the logic threshold ($V_{IL} / V_{IH}$), causing severe framing errors and corrupted data.
-3. **Series Damping Resistors ($R_{series} = 22\,\Omega \dots 47\,\Omega$)**:
+   - Asynchronous signaling requires a common voltage reference. Without a shared Ground wire, ground potential shifts will shift the logic threshold (V_IL / V_IH), causing severe framing errors and corrupted data.
+3. **Series Damping Resistors (R_series = 22 Ω ... 47 Ω)**:
    - Placed in series on high-speed lines adjacent to the transmitting pin.
    - Absorbs high-frequency transmission line reflections, damps ringing caused by PCB trace parasitic inductance, and protects against ESD/current spikes.
 4. **Hardware Flow Control (RTS/CTS)**:
@@ -61,15 +61,15 @@ To interface microcontrollers with a host PC via USB Type-C:
 ```
 
 ### Hardware Circuit Details:
-- **USB-C CC Pull-Down Resistors**: Two separate $5.1\,\text{k}\Omega$ resistors from CC1 and CC2 to Ground identify the board as an upstream-facing device (UFP / Sink) to USB-C chargers.
-- **Series Protection Resistors ($1\,\text{k}\Omega$)**: Placed on TXD and RXD lines between the bridge IC and MCU. If the MCU is unpowered while the USB bridge is connected, this prevents parasitic phantom-powering of the MCU through its internal I/O clamp diodes.
-- **Auto-Reset Circuit for Firmware Upload**: Connecting the bridge **DTR#** pin through a $100\,\text{nF}$ series ceramic capacitor to the microcontroller's active-LOW reset pin (`NRST`) automatically resets the MCU into the bootloader when flashing firmware.
+- **USB-C CC Pull-Down Resistors**: Two separate 5.1 kΩ resistors from CC1 and CC2 to Ground identify the board as an upstream-facing device (UFP / Sink) to USB-C chargers.
+- **Series Protection Resistors (1 kΩ)**: Placed on TXD and RXD lines between the bridge IC and MCU. If the MCU is unpowered while the USB bridge is connected, this prevents parasitic phantom-powering of the MCU through its internal I/O clamp diodes.
+- **Auto-Reset Circuit for Firmware Upload**: Connecting the bridge **DTR#** pin through a 100 nF series ceramic capacitor to the microcontroller's active-LOW reset pin (`NRST`) automatically resets the MCU into the bootloader when flashing firmware.
 
 ---
 
 ## 3. High-Voltage RS-232 Transceiver Circuit (MAX3232 / SP3232)
 
-For interfacing with legacy industrial machinery, PC serial ports, or avionics instruments using $\pm 12\,\text{V}$ bipolar signaling:
+For interfacing with legacy industrial machinery, PC serial ports, or avionics instruments using ± 12 V bipolar signaling:
 
 ```text
                                      +3.3V / +5.0V VCC
@@ -101,10 +101,10 @@ For interfacing with legacy industrial machinery, PC serial ports, or avionics i
 ```
 
 ### Critical Component Selection:
-- **Charge Pump Flying Capacitors ($C_1, C_2, C_{V+}, C_{V-}$)**: Four $0.1\,\mu\text{F}$ X7R ceramic capacitors generate internal $+2\times V_{CC}$ and $-2\times V_{CC}$ bipolar supplies.
+- **Charge Pump Flying Capacitors (C_1, C_2, C_V+, C_V-)**: Four 0.1 µF X7R ceramic capacitors generate internal +2* V_CC and -2* V_CC bipolar supplies.
 - **Inversion Characteristic**: RS-232 inverts logic states physically:
-  - Logic 0 (Space) = $+5\,\text{V} \dots +12\,\text{V}$
-  - Logic 1 (Mark / Idle) = $-5\,\text{V} \dots -12\,\text{V}$
+  - Logic 0 (Space) = +5 V ... +12 V
+  - Logic 1 (Mark / Idle) = -5 V ... -12 V
 
 ---
 
@@ -145,16 +145,16 @@ For multi-drop industrial networks, factory automation (Modbus RTU), and long-di
 ```
 
 ### Hardware Implementation Rules:
-1. **Direction Control (DE and $\overline{\text{RE}}$ Tied Together)**:
-   - Driver Enable (**DE**, active HIGH) and Receiver Enable ($\overline{\text{RE}}$, active LOW) are shorted together on the PCB and connected to a single MCU GPIO pin (`RS485_DIR`).
+1. **Direction Control (DE and NOT(RE) Tied Together)**:
+   - Driver Enable (**DE**, active HIGH) and Receiver Enable (NOT(RE), active LOW) are shorted together on the PCB and connected to a single MCU GPIO pin (`RS485_DIR`).
    - `DIR = LOW (0)`: Driver is disabled (High-Z), receiver is enabled. The node listens to the bus.
    - `DIR = HIGH (1)`: Driver is enabled, receiver is disabled. The node actively drives the differential pair.
-2. **$120\,\Omega$ Bus Termination**:
-   - A single $120\,\Omega$ $1\%$ metal-film resistor must be placed across $A$ and $B$ at the **two extreme physical ends** of the transmission line cable. Intermediate nodes must never have termination enabled.
+2. **120 Ω Bus Termination**:
+   - A single 120 Ω 1\% metal-film resistor must be placed across A and B at the **two extreme physical ends** of the transmission line cable. Intermediate nodes must never have termination enabled.
 3. **Fail-Safe Biasing Network**:
-   - To prevent receiver chatter when all drivers are tri-stated (idle bus where $V_A - V_B = 0\,\text{V}$), install fail-safe biasing:
-     - Pull-up resistor ($560\,\Omega \dots 1\,\text{k}\Omega$) from line $A$ to $V_{CC}$.
-     - Pull-down resistor ($560\,\Omega \dots 1\,\text{k}\Omega$) from line $B$ to Ground.
+   - To prevent receiver chatter when all drivers are tri-stated (idle bus where V_A - V_B = 0 V), install fail-safe biasing:
+     - Pull-up resistor (560 Ω ... 1 kΩ) from line A to V_CC.
+     - Pull-down resistor (560 Ω ... 1 kΩ) from line B to Ground.
 
 ---
 
@@ -183,14 +183,14 @@ To interface a 3.3V microcontroller (STM32, ESP32) with a 5V UART device (5V GPS
 
 ### Circuit Operation:
 1. **Idle State (Both lines HIGH)**:
-   - The gate is at $+3.3\,\text{V}$. Source is pulled to $+3.3\,\text{V}$ by $R_1$.
-   - $V_{GS} = 3.3\,\text{V} - 3.3\,\text{V} = 0\,\text{V} < V_{TH}$. The MOSFET is OFF.
-   - The 5V side is held at $+5.0\,\text{V}$ by pull-up resistor $R_2$.
+   - The gate is at +3.3 V. Source is pulled to +3.3 V by R_1.
+   - V_GS = 3.3 V - 3.3 V = 0 V < V_TH. The MOSFET is OFF.
+   - The 5V side is held at +5.0 V by pull-up resistor R_2.
 2. **3.3V Device Pulls Line LOW (TXD = 0V)**:
-   - Source is driven to $0\,\text{V}$.
-   - $V_{GS} = 3.3\,\text{V} - 0\,\text{V} = 3.3\,\text{V} > V_{TH}$. The MOSFET turns fully ON.
+   - Source is driven to 0 V.
+   - V_GS = 3.3 V - 0 V = 3.3 V > V_TH. The MOSFET turns fully ON.
    - The conducting channel shorts Drain to Source, pulling the 5V side down to Ground.
 3. **5V Device Pulls Line LOW (TXD = 0V)**:
-   - Drain is driven to $0\,\text{V}$.
-   - Current flows through the MOSFET's intrinsic body diode from Source to Drain, pulling Source down to $\approx 0.6\,\text{V}$.
-   - Once Source drops, $V_{GS}$ rises above $V_{TH}$, fully turning on the channel and pulling the 3.3V node down to pure Ground.
+   - Drain is driven to 0 V.
+   - Current flows through the MOSFET's intrinsic body diode from Source to Drain, pulling Source down to ≈ 0.6 V.
+   - Once Source drops, V_GS rises above V_TH, fully turning on the channel and pulling the 3.3V node down to pure Ground.

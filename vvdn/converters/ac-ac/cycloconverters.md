@@ -177,41 +177,41 @@ A cycloconverter consists of two back-to-back phase-controlled thyristor bridges
 
 | Net Name | Source (Pin / Terminal) | Destination (Pin / Terminal) | Electrical Function | Hardware Engineering Notes |
 | :--- | :--- | :--- | :--- | :--- |
-| **AC_LINE_IN** | Mains Terminal Block (L) | Fuse $F_1$ Input | 230V AC 50Hz single-phase grid input | 30A fast-acting ceramic fuse provides branch short-circuit protection. |
-| **AC_LINE_SW** | Fuse $F_1$ Output | $T_{P1}/T_{N1}$ Anodes, $T_{P4}/T_{N4}$ Cathodes, MOV1, $R_{zcd1}$ | Protected internal AC line feed | Distributes raw utility AC to both positive and negative converter legs. |
-| **AC_NEUT_IN** | Mains Terminal Block (N) | $T_{P3}/T_{N3}$ Anodes, $T_{P2}/T_{N2}$ Cathodes, MOV1, $R_{zcd2}$ | Mains neutral return bus | Kelvin connection to Zero-Crossing Detector (ZCD) for firing synchronization. |
-| **P_POS_BUS** | $T_{P1}, T_{P3}$ Cathodes | Snubber $R_{sp1}/C_{sp1}$, Reactor $L_{IPR1}$ Tap A | Positive converter output rail ($+V_P$) | Delivers positive load current during output half-cycles ($i_o > 0$). |
-| **P_NEG_BUS** | $T_{P4}, T_{P2}$ Anodes | Snubber $R_{sp2}/C_{sp2}$, Reactor $L_{IPR2}$ Tap A | Positive converter return rail | Completes the circuit for P-bank conduction back to AC lines. |
-| **N_POS_BUS** | $T_{N4}, T_{N2}$ Cathodes | Snubber $R_{sn2}/C_{sn2}$, Reactor $L_{IPR2}$ Tap B | Negative converter positive rail | Provides return path for negative load current ($i_o < 0$). |
-| **N_NEG_BUS** | $T_{N1}, T_{N3}$ Anodes | Snubber $R_{sn1}/C_{sn1}$, Reactor $L_{IPR1}$ Tap B | Negative converter negative rail ($-V_N$) | Sinks negative load current back into the utility mains. |
-| **LOAD_PHASE** | $L_{IPR1}$ Center Tap | LEM LA 25-NP Sensor Pin 1 (IN) | Synthesized variable-frequency AC line | Output frequency adjustable from 0 to 16.7 Hz with low sub-harmonic ripple. |
-| **LOAD_RET** | $L_{IPR2}$ Center Tap | Load Terminal 2 (Return) | Synthesized AC return line | Provides symmetrical impedance balance against line ground. |
-| **GATE_P1..P4** | Pulse XFMRs $TX_1 \dots TX_4$ | $T_{P1} \dots T_{P4}$ Gates/Cathodes | Galvanically isolated P-bank triggers | 1:1 pulse transformers with $3.75\,\text{kV}$ isolation driven by DSP PWM pulse trains. |
-| **GATE_N1..N4** | Pulse XFMRs $TX_5 \dots TX_8$ | $T_{N1} \dots T_{N4}$ Gates/Cathodes | Galvanically isolated N-bank triggers | Anti-parallel firing angle maintained at $\alpha_N = 180^\circ - \alpha_P$ in circulating mode. |
-| **LINE_SYNC** | HCPL-3700 Pin 6 (Vout) | DSP Timer Input Capture Pin | Grid zero-crossing synchronization pulse | Filters line noise and notches to establish exact $\alpha = 0^\circ$ reference point. |
-| **I_SENSE_FB** | LEM LA 25-NP Pin 3 (M) | Precision Resistor $R_m$ ($100\,\Omega$) to DSP ADC | Closed-loop load current measurement | High-bandwidth feedback used for seamless bank handover and circulating current control. |
+| **AC_LINE_IN** | Mains Terminal Block (L) | Fuse F_1 Input | 230V AC 50Hz single-phase grid input | 30A fast-acting ceramic fuse provides branch short-circuit protection. |
+| **AC_LINE_SW** | Fuse F_1 Output | T_P1/T_N1 Anodes, T_P4/T_N4 Cathodes, MOV1, R_zcd1 | Protected internal AC line feed | Distributes raw utility AC to both positive and negative converter legs. |
+| **AC_NEUT_IN** | Mains Terminal Block (N) | T_P3/T_N3 Anodes, T_P2/T_N2 Cathodes, MOV1, R_zcd2 | Mains neutral return bus | Kelvin connection to Zero-Crossing Detector (ZCD) for firing synchronization. |
+| **P_POS_BUS** | T_P1, T_P3 Cathodes | Snubber R_sp1/C_sp1, Reactor L_IPR1 Tap A | Positive converter output rail (+V_P) | Delivers positive load current during output half-cycles (i_o > 0). |
+| **P_NEG_BUS** | T_P4, T_P2 Anodes | Snubber R_sp2/C_sp2, Reactor L_IPR2 Tap A | Positive converter return rail | Completes the circuit for P-bank conduction back to AC lines. |
+| **N_POS_BUS** | T_N4, T_N2 Cathodes | Snubber R_sn2/C_sn2, Reactor L_IPR2 Tap B | Negative converter positive rail | Provides return path for negative load current (i_o < 0). |
+| **N_NEG_BUS** | T_N1, T_N3 Anodes | Snubber R_sn1/C_sn1, Reactor L_IPR1 Tap B | Negative converter negative rail (-V_N) | Sinks negative load current back into the utility mains. |
+| **LOAD_PHASE** | L_IPR1 Center Tap | LEM LA 25-NP Sensor Pin 1 (IN) | Synthesized variable-frequency AC line | Output frequency adjustable from 0 to 16.7 Hz with low sub-harmonic ripple. |
+| **LOAD_RET** | L_IPR2 Center Tap | Load Terminal 2 (Return) | Synthesized AC return line | Provides symmetrical impedance balance against line ground. |
+| **GATE_P1..P4** | Pulse XFMRs TX_1 ... TX_4 | T_P1 ... T_P4 Gates/Cathodes | Galvanically isolated P-bank triggers | 1:1 pulse transformers with 3.75 kV isolation driven by DSP PWM pulse trains. |
+| **GATE_N1..N4** | Pulse XFMRs TX_5 ... TX_8 | T_N1 ... T_N4 Gates/Cathodes | Galvanically isolated N-bank triggers | Anti-parallel firing angle maintained at α_N = 180° - α_P in circulating mode. |
+| **LINE_SYNC** | HCPL-3700 Pin 6 (Vout) | DSP Timer Input Capture Pin | Grid zero-crossing synchronization pulse | Filters line noise and notches to establish exact α = 0° reference point. |
+| **I_SENSE_FB** | LEM LA 25-NP Pin 3 (M) | Precision Resistor R_m (100 Ω) to DSP ADC | Closed-loop load current measurement | High-bandwidth feedback used for seamless bank handover and circulating current control. |
 
 ### 1.2 Component Bill of Materials & Parametric Specifications:
 
 | RefDes | Component Description | Manufacturer & Part Number | Key Electrical Specifications | Critical Design Constraint |
 | :--- | :--- | :--- | :--- | :--- |
-| **$T_{P1..P4}, T_{N1..N4}$** | Phase-Control Thyristors (8x) | Vishay Semiconductors 30TPS12 | $V_{RRM} = 1200\,\text{V}, I_{T(RMS)} = 30\,\text{A}, I_{T(AV)} = 20\,\text{A}, I_{GT} = 45\,\text{mA}, V_{TM} = 1.25\,\text{V}$ | $1200\,\text{V}$ rating accommodates inductive kickback and $2.5\times$ mains line transients. |
-| **$L_{IPR1}, L_{IPR2}$** | Center-Tapped Interphase Reactors | Custom Magnetics / Kool Mµ Core | $L = 10\,\text{mH}$ center-tapped, $I_{cont} = 25\,\text{A}_{RMS}, I_{sat} > 45\,\text{A}$, Toroidal Core | Mutual coupling factor $k > 0.98$ ensures load flux cancellation while offering $4L$ impedance to circulating current. |
-| **$TX_1 \dots TX_8$** | Gate Pulse Transformers (8x) | Pulse Electronics PE-65812NL | Turns Ratio 1:1, $V\cdot t = 50\,\text{V}\cdot\mu\text{s}, V_{iso} = 3750\,\text{V}_{RMS}, C_{ww} < 25\,\text{pF}$ | Ultra-low interwinding capacitance prevents $dv/dt$ transients from coupling into digital logic. |
-| **$R_s, C_s$** | RC Snubber Networks (4x) | TE Connectivity / KEMET PHE450 | $R = 47\,\Omega / 5\,\text{W}$ Wirewound, $C = 0.1\,\mu\text{F} / 630\,\text{V}$ Metallized Polypropylene | Restricts SCR turn-off rate $dv/dt < 200\,\text{V}/\mu\text{s}$ to prevent spurious re-triggering. |
-| **$CS_1$** | Closed-Loop Hall Current Sensor | LEM LA 25-NP | Nominal $I_{PN} = 25\,\text{A}_{RMS}$, Conversion Ratio 1:1000, Bandwidth DC to $150\,\text{kHz}$, Accuracy $\pm 0.5\%$ | Zero phase distortion is essential for detecting exact load current zero-crossings in blocking mode. |
-| **$U_{ZCD}$** | AC Line Voltage Threshold Optocoupler | Broadcom HCPL-3700 | Input threshold adjustable via external resistors, $V_{iso} = 3750\,\text{V}_{RMS}$, Hysteresis $0.2\,\text{V}$ | Provides clean, jitter-free zero-crossing interrupts to DSP despite grid harmonic distortion. |
-| **$MOV_1$** | AC Input Surge Varistor | Littelfuse V275LA20CP | $V_{RMS} = 275\,\text{V}, I_{max} = 6500\,\text{A}$ ($8/20\,\mu\text{s}$), Energy absorption $120\,\text{J}$ | Clamps incoming lightning surges and utility inductive switching transients below $710\,\text{V}$. |
+| **T_P1..P4, T_N1..N4** | Phase-Control Thyristors (8x) | Vishay Semiconductors 30TPS12 | V_RRM = 1200 V, I_T(RMS) = 30 A, I_T(AV) = 20 A, I_GT = 45 mA, V_TM = 1.25 V | 1200 V rating accommodates inductive kickback and 2.5* mains line transients. |
+| **L_IPR1, L_IPR2** | Center-Tapped Interphase Reactors | Custom Magnetics / Kool Mµ Core | L = 10 mH center-tapped, I_cont = 25 A_RMS, I_sat > 45 A, Toroidal Core | Mutual coupling factor k > 0.98 ensures load flux cancellation while offering 4L impedance to circulating current. |
+| **TX_1 ... TX_8** | Gate Pulse Transformers (8x) | Pulse Electronics PE-65812NL | Turns Ratio 1:1, V* t = 50 V*µs, V_iso = 3750 V_RMS, C_ww < 25 pF | Ultra-low interwinding capacitance prevents dv/dt transients from coupling into digital logic. |
+| **R_s, C_s** | RC Snubber Networks (4x) | TE Connectivity / KEMET PHE450 | R = 47 Ω / 5 W Wirewound, C = 0.1 µF / 630 V Metallized Polypropylene | Restricts SCR turn-off rate dv/dt < 200 V/µs to prevent spurious re-triggering. |
+| **CS_1** | Closed-Loop Hall Current Sensor | LEM LA 25-NP | Nominal I_PN = 25 A_RMS, Conversion Ratio 1:1000, Bandwidth DC to 150 kHz, Accuracy ± 0.5\% | Zero phase distortion is essential for detecting exact load current zero-crossings in blocking mode. |
+| **U_ZCD** | AC Line Voltage Threshold Optocoupler | Broadcom HCPL-3700 | Input threshold adjustable via external resistors, V_iso = 3750 V_RMS, Hysteresis 0.2 V | Provides clean, jitter-free zero-crossing interrupts to DSP despite grid harmonic distortion. |
+| **MOV_1** | AC Input Surge Varistor | Littelfuse V275LA20CP | V_RMS = 275 V, I_max = 6500 A (8/20 µs), Energy absorption 120 J | Clamps incoming lightning surges and utility inductive switching transients below 710 V. |
 
 ### 1.1 Fundamental Commutation Mechanics:
-1. **Positive Half-Cycle of Output ($f_o$)**:
-   - The **P-Bank** thyristors ($T_1 \dots T_4$) are triggered in phase-controlled fashion.
-   - P-bank supplies positive load current ($i_o > 0$).
+1. **Positive Half-Cycle of Output (f_o)**:
+   - The **P-Bank** thyristors (T_1 ... T_4) are triggered in phase-controlled fashion.
+   - P-bank supplies positive load current (i_o > 0).
    - Output voltage is formed by segments of the input AC line voltage.
-2. **Negative Half-Cycle of Output ($f_o$)**:
-   - The **N-Bank** thyristors ($T_1' \dots T_4'$) are triggered.
-   - N-bank conducts negative load current ($i_o < 0$).
-   - By modulating the firing delay angle $\alpha$ from cycle to cycle, the synthesized output voltage tracks a low-frequency fundamental sine wave.
+2. **Negative Half-Cycle of Output (f_o)**:
+   - The **N-Bank** thyristors (T_1' ... T_4') are triggered.
+   - N-bank conducts negative load current (i_o < 0).
+   - By modulating the firing delay angle α from cycle to cycle, the synthesized output voltage tracks a low-frequency fundamental sine wave.
 
 ---
 
@@ -234,11 +234,13 @@ A cycloconverter consists of two back-to-back phase-controlled thyristor bridges
 ```
 
 ### 2.1 The Cosine Wave Crossing Triggering Principle:
-To generate an output voltage that varies sinusoidally at frequency $f_o$:
-$$\alpha(t) = \arccos\left( r \cdot \sin(\omega_o t) \right)$$
+To generate an output voltage that varies sinusoidally at frequency f_o:
+```
+α(t) = arccos( r * sin(ω_o t) )
+```
 Where:
-- $r = \frac{V_{o,pk}}{V_{o,max}}$ is the voltage modulation index ($0 \le r \le 1$).
-- $\omega_o = 2\pi f_o$ is the desired output angular frequency.
+- r = V_o,pk / V_o,max is the voltage modulation index (0 <= r <= 1).
+- ω_o = 2π f_o is the desired output angular frequency.
 - The gate firing pulse for each SCR is issued precisely when a timing cosine wave synchronous with the input line intersects the reference sinusoidal control wave.
 
 ---
@@ -275,13 +277,15 @@ Where:
 ```
 
 ### 3.1 Non-Circulating Current (Blocking) Mode:
-- **Operation**: Only one converter bank (P or N) is active at any instant. When the load current $i_o$ decays to zero, gate firing pulses to the outgoing bank are suppressed. A mandatory blanking dead-time ($1 \dots 3\,\text{ms}$) is enforced before firing pulses are applied to the incoming bank.
+- **Operation**: Only one converter bank (P or N) is active at any instant. When the load current i_o decays to zero, gate firing pulses to the outgoing bank are suppressed. A mandatory blanking dead-time (1 ... 3 ms) is enforced before firing pulses are applied to the incoming bank.
 - **Advantage**: No circulating current flows between P and N bridges; no heavy interphase reactors (IPR) are required. High overall efficiency.
 - **Disadvantage**: Current zero-crossing distortion / deadband when load current is discontinuous.
 
 ### 3.2 Circulating Current Mode:
 - **Operation**: Both P-bank and N-bank conduct continuously. The relationship between firing angles is maintained at:
-  $$\alpha_P + \alpha_N = 180^\circ$$
+  ```
+α_P + α_N = 180°
+```
 - An **Interphase Reactor (IPR)** is placed between the two bridge outputs to limit the high-frequency circulating ripple current.
 - **Advantage**: Smooth, zero-distortion current waveforms through load zero-crossing. Faster dynamic bandwidth.
 - **Disadvantage**: Bulky, expensive interphase magnetic reactors; slightly lower efficiency due to circulating copper losses.
@@ -292,19 +296,25 @@ Where:
 
 ### 4.1 Output Voltage Derivation (3-Phase, 6-Pulse Cycloconverter):
 For a 6-pulse bridge, the maximum fundamental RMS output phase voltage is:
-$$V_{o,rms} = V_{in,line} \cdot \frac{3}{\pi} \cdot r \approx 0.955 \cdot V_{in,line} \cdot r$$
+```
+V_o,rms = V_in,line * 3 / π * r ≈ 0.955 * V_in,line * r
+```
 
-### 4.2 The Output Frequency Limit ($f_o \le \frac{1}{3} f_{in}$):
+### 4.2 The Output Frequency Limit (f_o <= 1 / 3 f_in):
 A cycloconverter relies entirely on **natural AC line commutation** (the input AC voltage must reverse polarity to turn off the conducting thyristor).
-- If the desired output frequency $f_o$ approaches the input frequency $f_{in}$, the number of input AC segments available per output half-cycle becomes too small ($< 3$ pulses).
+- If the desired output frequency f_o approaches the input frequency f_in, the number of input AC segments available per output half-cycle becomes too small (< 3 pulses).
 - The synthesized waveform degenerates into gross harmonic distortion that cannot be filtered.
 - *Strict Industrial Rule*:
-  $$f_{o,max} \le \frac{1}{3} f_{in} \quad (\text{For } 50\,\text{Hz} \text{ grid}, f_{o,max} \approx 16.7\,\text{Hz}; \text{ For } 60\,\text{Hz}, f_{o,max} \approx 20\,\text{Hz})$$
+  ```
+f_o,max <= 1 / 3 f_in (For 50 Hz grid, f_o,max ≈ 16.7 Hz; For 60 Hz, f_o,max ≈ 20 Hz)
+```
 
-### 4.3 Input Displacement Power Factor ($\cos \phi_{in}$):
-Because thyristors must be phase-delayed ($\alpha > 0$) to synthesize intermediate sinusoidal voltages:
-$$\text{DPF}_{in} \approx 0.843 \cdot r \cdot \cos \phi_L$$
-Even if the motor load operates at unity power factor ($\cos \phi_L = 1.0$), the input power factor to the cycloconverter rarely exceeds $0.7 \dots 0.75$ lagging, requiring static var compensators (SVC) or power factor correction capacitor banks on the supply feeder.
+### 4.3 Input Displacement Power Factor (cos φ_in):
+Because thyristors must be phase-delayed (α > 0) to synthesize intermediate sinusoidal voltages:
+```
+DPF_in ≈ 0.843 * r * cos φ_L
+```
+Even if the motor load operates at unity power factor (cos φ_L = 1.0), the input power factor to the cycloconverter rarely exceeds 0.7 ... 0.75 lagging, requiring static var compensators (SVC) or power factor correction capacitor banks on the supply feeder.
 
 ---
 
@@ -312,6 +322,6 @@ Even if the motor load operates at unity power factor ($\cos \phi_L = 1.0$), the
 
 | Application | Power Level | Typical Frequencies | Why Cycloconverters Dominate |
 | :--- | :--- | :--- | :--- |
-| **SAG & Ball Grinding Mills** | $5\,\text{MW} \dots 25\,\text{MW}$ | $0 \dots 5\,\text{Hz}$ | Directly drives gearless ring motors (slow rotation: $10 \dots 15\,\text{RPM}$) with enormous starting torque. |
-| **Marine Icebreaker Propulsion** | $10\,\text{MW} \dots 40\,\text{MW}$ | $0 \dots 15\,\text{Hz}$ | Rugged line-commutated thyristor reliability; immune to inverter DC-link capacitor failure in harsh maritime environments. |
-| **Mine Shaft Hoists** | $2\,\text{MW} \dots 10\,\text{MW}$ | $0 \dots 10\,\text{Hz}$ | Inherent 4-quadrant four-quadrant operation: smooth acceleration and regenerative braking during payload descent. |
+| **SAG & Ball Grinding Mills** | 5 MW ... 25 MW | 0 ... 5 Hz | Directly drives gearless ring motors (slow rotation: 10 ... 15 RPM) with enormous starting torque. |
+| **Marine Icebreaker Propulsion** | 10 MW ... 40 MW | 0 ... 15 Hz | Rugged line-commutated thyristor reliability; immune to inverter DC-link capacitor failure in harsh maritime environments. |
+| **Mine Shaft Hoists** | 2 MW ... 10 MW | 0 ... 10 Hz | Inherent 4-quadrant four-quadrant operation: smooth acceleration and regenerative braking during payload descent. |

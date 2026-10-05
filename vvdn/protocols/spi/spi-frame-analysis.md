@@ -18,21 +18,21 @@ To build reliable embedded systems, engineers distinguish between **Physical Fra
 ```
 
 ### 1.1 Physical Framing Boundaries
-- **Frame Initiation**: The Controller drives Chip Select ($\overline{\text{CS}}$) from HIGH to LOW. This resets the peripheral's internal bit counter and state machine, and enables its MISO output driver.
+- **Frame Initiation**: The Controller drives Chip Select (NOT(CS)) from HIGH to LOW. This resets the peripheral's internal bit counter and state machine, and enables its MISO output driver.
 - **Clocking & Shifting**: SCLK pulses transmit data bidirectionally between the Controller and Peripheral shift registers.
-- **Frame Termination**: The Controller drives $\overline{\text{CS}}$ from LOW to HIGH. This:
+- **Frame Termination**: The Controller drives NOT(CS) from LOW to HIGH. This:
   - Latches received commands or written data into internal device registers.
   - Returns the peripheral's MISO pin to High-Z (tri-state).
   - Resets state logic to prepare for the next transaction.
 
 > [!IMPORTANT]
-> **Chip Select is the Word & Packet Boundary**: If $\overline{\text{CS}}$ does not toggle between independent commands, many SPI peripherals (such as EEPROMs and ADCs) will fail to execute commands, misinterpret opcodes, or permanently ignore subsequent clock cycles.
+> **Chip Select is the Word & Packet Boundary**: If NOT(CS) does not toggle between independent commands, many SPI peripherals (such as EEPROMs and ADCs) will fail to execute commands, misinterpret opcodes, or permanently ignore subsequent clock cycles.
 
 ---
 
 ### 1.2 Word Size vs. Packet Size
 - **Word Size (Bits per Word)**: The atomic unit clocked in one continuous chunk. Standard microcontrollers support **8-bit**, **16-bit**, or **32-bit** word lengths. Many precision instrumentation converters use non-standard sizes (**10-bit, 12-bit, 14-bit, or 24-bit**).
-- **Packet Size (Transaction Length)**: The total number of bytes transferred between $\overline{\text{CS}}$ falling and rising. A single packet can range from **1 byte** (e.g. Write Enable opcode `0x06`) to **256+ bytes** (e.g. Flash page programming) or **several kilobytes** in DMA burst transfers.
+- **Packet Size (Transaction Length)**: The total number of bytes transferred between NOT(CS) falling and rising. A single packet can range from **1 byte** (e.g. Write Enable opcode `0x06`) to **256+ bytes** (e.g. Flash page programming) or **several kilobytes** in DMA burst transfers.
 
 ---
 
@@ -59,7 +59,7 @@ MISO:       |  Don't Care / Echo |   Don't Care / Echo  |   High-Z / Pipelining 
 - For devices exceeding 16 MB (128 Mb) capacity, modern SPI Flash utilizes a **4-byte (32-bit) addressing mode** instead of legacy 3-byte (24-bit) addressing.
 
 ### Phase 3: Turnaround & Dummy Wait States
-- **The Turnaround Problem**: In high-speed read transactions ($> 25\,\text{MHz}$), internal memory arrays and ADCs cannot fetch internal data cells fast enough to output valid data on the very next clock edge following the address.
+- **The Turnaround Problem**: In high-speed read transactions (> 25 MHz), internal memory arrays and ADCs cannot fetch internal data cells fast enough to output valid data on the very next clock edge following the address.
 - **The Solution**: The Controller transmits a fixed number of **Dummy Cycles** (typically 1 to 8 clock cycles / 1 byte) where MOSI outputs `0x00` or `0xFF`.
 - During these dummy cycles, the peripheral retrieves data from its internal array and prepares its output shift register. Data appears on MISO immediately following the dummy phase.
 
@@ -101,8 +101,8 @@ MISO:       ──[ Stale / High-Z ]──[ 0xEF (Mfg ID)   ]──[ 0x40 (Mem T
 ```
 
 #### 2. Standard Read (`0x03`) vs. High-Speed Fast Read (`0x0B`)
-- **Standard Read (`0x03`)**: Maximum clock speed limited to $\approx 33 - 50\,\text{MHz}$. Frame: `[0x03] + [24-bit Address] + [Data Bytes...]`. No dummy byte.
-- **Fast Read (`0x0B`)**: Allows operation up to $104 - 133\,\text{MHz}$. Requires **1 Dummy Byte (8 dummy clocks)** after the address to accommodate array access latency:
+- **Standard Read (`0x03`)**: Maximum clock speed limited to ≈ 33 - 50 MHz. Frame: `[0x03] + [24-bit Address] + [Data Bytes...]`. No dummy byte.
+- **Fast Read (`0x0B`)**: Allows operation up to 104 - 133 MHz. Requires **1 Dummy Byte (8 dummy clocks)** after the address to accommodate array access latency:
 
 ```text
 MOSI: ──[ 0x0B ]──[ Addr[23:16] ]──[ Addr[15:8] ]──[ Addr[7:0] ]──[ DUMMY (0x00) ]──[ 0x00 ]──[ 0x00 ]...
@@ -111,7 +111,7 @@ MISO: ──[  XX  ]──[     XX      ]──[     XX     ]──[     XX     
 
 #### 3. Page Program (Write) Frame (`0x02`)
 Flash writes require a two-step sequence:
-1. First Frame: Issue **Write Enable (`0x06`)** (1-byte frame, $\overline{\text{CS}}$ toggled).
+1. First Frame: Issue **Write Enable (`0x06`)** (1-byte frame, NOT(CS) toggled).
 2. Second Frame: Issue **Page Program (`0x02`)** with 24-bit address and 1 to 256 payload bytes:
 
 ```text
@@ -130,9 +130,9 @@ Frame 2:  CS# ──┐                                                         
 Digital motion and environmental sensors use compact register-mapped framing. To optimize bandwidth, the command byte packs addressing and control flags into a single 8-bit word.
 
 #### Frame Format Breakdown (e.g. ADXL345 3-Axis Accelerometer):
-- **Bit 7 ($\text{R}/\overline{\text{W}}$)**: `1` = Read operation; `0` = Write operation.
-- **Bit 6 ($\text{MB}$)**: Multiple-Byte / Auto-Increment bit (`1` = Stream multiple sequential registers; `0` = Single byte).
-- **Bits [5:0] ($\text{Reg Addr}$)**: 6-bit register address (`0x00` to `0x3F`).
+- **Bit 7 (R/NOT(W))**: `1` = Read operation; `0` = Write operation.
+- **Bit 6 (MB)**: Multiple-Byte / Auto-Increment bit (`1` = Stream multiple sequential registers; `0` = Single byte).
+- **Bits [5:0] (Reg Addr)**: 6-bit register address (`0x00` to `0x3F`).
 
 ```text
 Command Byte Bit Layout:
@@ -144,7 +144,7 @@ Command Byte Bit Layout:
 ```
 
 #### Multi-Byte Burst Read Example (Reading X, Y, Z Acceleration Atomically):
-To prevent axis skew where $X$ is sampled at time $T_0$ and $Z$ at time $T_1$, all 6 data registers (`DATAX0` to `DATAZ1`, registers `0x32` to `0x37`) must be read in a **single continuous $\overline{\text{CS}}$ window**:
+To prevent axis skew where X is sampled at time T_0 and Z at time T_1, all 6 data registers (`DATAX0` to `DATAZ1`, registers `0x32` to `0x37`) must be read in a **single continuous NOT(CS) window**:
 
 ```text
 MOSI Byte 0: 0xC0 | 0x32 = 0xF2 (Bit 7=1 for Read, Bit 6=1 for Multi-Byte, Bits 5:0 = 0x32)
@@ -189,8 +189,12 @@ MISO:       ──────────────────────�
 ```
 
 #### Decoding Formula:
-$$\text{Raw ADC Value (10-bit)} = ((\text{Byte1} \ \&\ 0x03) \ll 8) \ | \ \text{Byte2}$$
-$$\text{Measured Voltage} = \frac{\text{Raw Value}}{1024} \times V_{REF}$$
+```
+Raw ADC Value (10-bit) = ((Byte1 \ &\ 0x03) << 8) \ | \ Byte2
+```
+```
+Measured Voltage = (Raw Value) / 1024 * V_REF
+```
 
 ---
 
@@ -215,7 +219,7 @@ Matching 32-Bit Safe SPI Response Frame:
 ```
 
 #### CRC-8 Mathematical Specification:
-- **Standard Polynomial**: $P(x) = x^8 + x^2 + x^1 + 1$ (`0x07`) or SAE J1850 ($x^8 + x^4 + x^3 + x^2 + 1$ / `0x1D`).
+- **Standard Polynomial**: P(x) = x^8 + x^2 + x^1 + 1 (`0x07`) or SAE J1850 (x^8 + x^4 + x^3 + x^2 + 1 / `0x1D`).
 - **Initial Seed**: Typically `0xFF` or `0x00`.
 - **Validation Rule**: The peripheral computes the CRC across bits [31:8]. If the calculated CRC does not match bits [7:0], the hardware **drops the write**, asserts a `CRC_ERR` flag in the Global Status bits of the response frame, and triggers an interrupt to the host MCU.
 
@@ -263,8 +267,8 @@ int spi_read_flash_fast(int fd, uint32_t addr, uint8_t *rx_buf, size_t len) {
 
 > [!CAUTION]
 > **The `cs_change` Trap**:
-> - If `cs_change == 0`: $\overline{\text{CS}}$ remains **asserted (LOW)** until the entire array of transfers completes.
-> - If `cs_change == 1`: $\overline{\text{CS}}$ is **deasserted (toggled HIGH)** momentarily between transfer segments. 
+> - If `cs_change == 0`: NOT(CS) remains **asserted (LOW)** until the entire array of transfers completes.
+> - If `cs_change == 1`: NOT(CS) is **deasserted (toggled HIGH)** momentarily between transfer segments. 
 > Setting `cs_change = 1` before the data phase will prematurely terminate the memory read command and corrupt the payload!
 
 ---
@@ -368,9 +372,9 @@ Time [ms]     Channel      Decoded Value       Annotation
 | :--- | :--- | :--- |
 | **All decoded bytes shifted left by 1 bit** (e.g. `0x9F` decoded as `0x3E`) | Analyzer CPHA configuration inverted. | The analyzer is sampling on the leading edge instead of trailing edge; it captures the bus while the line is still transitioning. |
 | **MISO outputs `0x00` during byte 0, real data during byte 1** | Normal SPI Shift Register behavior. | During byte 0 (command phase), the peripheral is receiving the opcode. It cannot output valid response data until byte 1. |
-| **Data bytes read correctly, but device does not respond to subsequent writes** | $\overline{\text{CS}}$ not toggled HIGH between frames. | Many flash/EEPROM devices latch data and start internal write cycles only upon the **rising edge of $\overline{\text{CS}}$**. |
+| **Data bytes read correctly, but device does not respond to subsequent writes** | NOT(CS) not toggled HIGH between frames. | Many flash/EEPROM devices latch data and start internal write cycles only upon the **rising edge of NOT(CS)**. |
 | **Decoded hex displays `0xFF` or `0x00` across all bytes** | 1. Slave unpowered.<br>2. Wrong CS routed.<br>3. MISO floating. | When a slave is unselected, its MISO output buffer is in High-Z. A floating line typically drifts to logic HIGH (`0xFF`) or LOW (`0x00`). |
-| **Intermittent corrupt bytes during high-speed burst** | Inter-word timing violation ($t_{inter\_byte}$) or lack of dummy clocks. | High-speed memory arrays require dummy wait states to fetch subsequent blocks. |
+| **Intermittent corrupt bytes during high-speed burst** | Inter-word timing violation (t_inter_byte) or lack of dummy clocks. | High-speed memory arrays require dummy wait states to fetch subsequent blocks. |
 
 ---
 

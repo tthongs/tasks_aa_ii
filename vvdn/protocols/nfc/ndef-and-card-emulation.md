@@ -69,12 +69,14 @@ Type 2 is the most prevalent NFC tag silicon deployed worldwide (smart posters, 
 
 The 4-byte CC page informs the reader whether NDEF data is present and how much memory is available:
 - **Byte 0 (`Magic Number = 0xE1`)**: Identifies compliance with NFC Forum Type 2 Tag specification.
-- **Byte 1 (`Version Number`)**: High nibble = Major version (`0x1`), Low nibble = Minor version (`0x0`) $\rightarrow$ `0x10`.
+- **Byte 1 (`Version Number`)**: High nibble = Major version (`0x1`), Low nibble = Minor version (`0x0`) -> `0x10`.
 - **Byte 2 (`Memory Size Multiplier, T2T_SIZE`)**: Defines total user data memory:
-  $$\text{User Memory (Bytes)} = \text{T2T\_SIZE} \times 8$$
-  - Example: `0x12` ($18\text{ decimal}$) $\implies 18 \times 8 = 144\text{ bytes}$ of user space (NTAG213).
-  - Example: `0x3E` ($62\text{ decimal}$) $\implies 62 \times 8 = 496\text{ bytes}$ (NTAG215).
-  - Example: `0x6D` ($109\text{ decimal}$) $\implies 109 \times 8 = 872\text{ bytes}$ (NTAG216).
+  ```
+User Memory (Bytes) = T2T_SIZE * 8
+```
+  - Example: `0x12` (18 decimal) => 18 * 8 = 144 bytes of user space (NTAG213).
+  - Example: `0x3E` (62 decimal) => 62 * 8 = 496 bytes (NTAG215).
+  - Example: `0x6D` (109 decimal) => 109 * 8 = 872 bytes (NTAG216).
 - **Byte 3 (`Read/Write Access`)**: `0x00` indicates read and write allowed without authentication; `0x0F` indicates read-only.
 
 ### 3.2 Type-Length-Value (TLV) Data Structure
@@ -82,8 +84,8 @@ The 4-byte CC page informs the reader whether NDEF data is present and how much 
 User memory is wrapped in TLV blocks:
 - **`T = 0x00` (Null TLV)**: 1-byte padding; ignored by reader.
 - **`T = 0x03` (NDEF Message TLV)**:
-  - If $L \le 254$: Length is 1 byte ($L$).
-  - If $L \ge 255$: Length is encoded as 3 bytes: `0xFF [LEN_HIGH] [LEN_LOW]`.
+  - If L <= 254: Length is 1 byte (L).
+  - If L >= 255: Length is encoded as 3 bytes: `0xFF [LEN_HIGH] [LEN_LOW]`.
   - Value contains the raw binary NDEF message.
 - **`T = 0xFE` (Terminator TLV)**: 1 byte (`0xFE`); marks the end of valid data in tag memory.
 
@@ -157,8 +159,8 @@ An NDEF Message consists of one or more **NDEF Records**. Each record encapsulat
 2. **`ME` (Message End, Bit 6)**: Set to `1` on the final record of an NDEF message. (For single-record messages, both `MB = 1` and `ME = 1`).
 3. **`CF` (Chunk Flag, Bit 5)**: Set to `1` if the payload is fragmented across multiple chunks.
 4. **`SR` (Short Record, Bit 4)**:
-   - `SR = 1`: **Short Record**. Payload length is encoded as a **single byte** ($0\text{ to }255\text{ bytes}$).
-   - `SR = 0`: **Normal Record**. Payload length is encoded as a **4-byte big-endian integer** (up to $4.29\text{ GB}$).
+   - `SR = 1`: **Short Record**. Payload length is encoded as a **single byte** (0 to 255 bytes).
+   - `SR = 0`: **Normal Record**. Payload length is encoded as a **4-byte big-endian integer** (up to 4.29 GB).
 5. **`IL` (ID Length Present, Bit 3)**:
    - `IL = 1`: The 1-byte `ID Length` field and the `ID` string are present.
    - `IL = 0`: `ID Length` and `ID` fields are omitted.
@@ -221,7 +223,7 @@ Record Payload:
  +---------------+--------------------+-----------------------------+
 ```
 - **Status Byte (Bit 7)**: `0` = UTF-8 encoding; `1` = UTF-16 encoding.
-- **Status Byte (Bits 5:0)**: Length of IANA language code string ($k$ bytes, e.g. `'en'` = 2, `'fr'` = 2).
+- **Status Byte (Bits 5:0)**: Length of IANA language code string (k bytes, e.g. `'en'` = 2, `'fr'` = 2).
 
 ---
 

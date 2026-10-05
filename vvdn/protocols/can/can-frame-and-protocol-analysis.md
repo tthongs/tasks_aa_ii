@@ -44,7 +44,9 @@ The Standard Data Frame consists of seven primary logical fields occupying betwe
    - Payload data, transmitted byte-by-byte, MSB first within each byte.
 8. **Cyclic Redundancy Check (CRC Field) — 16 bits**:
    - **CRC Sequence (15 bits)**: Generated via generator polynomial:
-     $$P(x) = x^{15} + x^{14} + x^{10} + x^8 + x^7 + x^4 + x^3 + 1$$
+     ```
+P(x) = x^15 + x^14 + x^10 + x^8 + x^7 + x^4 + x^3 + 1
+```
    - **CRC Delimiter (1 bit)**: Always **Recessive ('1')**. Marks end of bit stuffing.
 9. **Acknowledgment Field (ACK Field) — 2 bits**:
    - **ACK Slot (1 bit)**: Transmitter transmits a **Recessive ('1')** bit. Every node on the bus that received the frame without error forces this bit to **Dominant ('0')** on the wire.
@@ -72,7 +74,7 @@ To accommodate complex networks (such as commercial vehicles adhering to SAE J19
 - **Substitute Remote Request (SRR) — 1 bit**: Always driven **Recessive ('1')**. Ensures that if a Standard frame and an Extended frame share the same first 11 bits, the Standard frame (`RTR=0`) wins arbitration over the Extended frame (`SRR=1`).
 - **Identifier Extension (IDE) — 1 bit**: Driven **Recessive ('1')** to signal an extended 29-bit format.
 - **Extended Identifier (18 bits)**: Bits `ID17` down to `ID0`.
-- **Total Identifier Space**: $2^{29} = 536,870,912$ unique IDs.
+- **Total Identifier Space**: 2^29 = 536,870,912 unique IDs.
 
 ---
 
@@ -104,14 +106,14 @@ Unlike Classical CAN where DLC directly matches byte count, CAN FD uses non-line
 
 | DLC Code (Binary) | Classical CAN Payload | CAN FD Payload |
 | :--- | :--- | :--- |
-| `0000b` – `1000b` ($0 - 8$) | $0 - 8$ Bytes | $0 - 8$ Bytes |
-| `1001b` ($9$) | 8 Bytes | **12 Bytes** |
-| `1010b` ($10$) | 8 Bytes | **16 Bytes** |
-| `1011b` ($11$) | 8 Bytes | **20 Bytes** |
-| `1100b` ($12$) | 8 Bytes | **24 Bytes** |
-| `1101b` ($13$) | 8 Bytes | **32 Bytes** |
-| `1110b` ($14$) | 8 Bytes | **48 Bytes** |
-| `1111b` ($15$) | 8 Bytes | **64 Bytes** |
+| `0000b` – `1000b` (0 - 8) | 0 - 8 Bytes | 0 - 8 Bytes |
+| `1001b` (9) | 8 Bytes | **12 Bytes** |
+| `1010b` (10) | 8 Bytes | **16 Bytes** |
+| `1011b` (11) | 8 Bytes | **20 Bytes** |
+| `1100b` (12) | 8 Bytes | **24 Bytes** |
+| `1101b` (13) | 8 Bytes | **32 Bytes** |
+| `1110b` (14) | 8 Bytes | **48 Bytes** |
+| `1111b` (15) | 8 Bytes | **64 Bytes** |
 
 ---
 
@@ -134,12 +136,16 @@ Line After Stuffing:    1  1  1  1  1 [0] 0  0  0  0 [1] 0  1
 
 ### 2.2 Worst-Case Frame Length Formula
 In Classical CAN 2.0A with an 8-byte payload:
-- Nominal bits = $1\,(\text{SOF}) + 11\,(\text{ID}) + 1\,(\text{RTR}) + 1\,(\text{IDE}) + 1\,(\text{r0}) + 4\,(\text{DLC}) + 64\,(\text{Data}) + 15\,(\text{CRC}) + 1\,(\text{CD}) + 2\,(\text{ACK}) + 7\,(\text{EOF}) + 3\,(\text{IFS}) = 111\,\text{bits}$.
-- Bit-stuffed portion = $1 + 11 + 1 + 1 + 1 + 4 + 64 + 15 = 97\,\text{bits}$.
+- Nominal bits = 1 (SOF) + 11 (ID) + 1 (RTR) + 1 (IDE) + 1 (r0) + 4 (DLC) + 64 (Data) + 15 (CRC) + 1 (CD) + 2 (ACK) + 7 (EOF) + 3 (IFS) = 111 bits.
+- Bit-stuffed portion = 1 + 11 + 1 + 1 + 1 + 4 + 64 + 15 = 97 bits.
 - Theoretical maximum stuff bits:
-  $$\text{Max Stuff Bits} = \left\lfloor \frac{97 - 1}{4} \right\rfloor = 24\,\text{bits}$$
+  ```
+Max Stuff Bits = <=ftfloor((97 - 1) / 4 ) = 24 bits
+```
 - **Absolute Worst-Case Frame Length**:
-  $$\text{Total Bits}_{max} = 111 + 24 = 135\,\text{bits}$$
+  ```
+Total Bits_max = 111 + 24 = 135 bits
+```
 
 ---
 
@@ -177,7 +183,7 @@ Used across trucks, buses, diesel generators, and marine engines, SAE J1939 util
 ```
 
 - **PGN (Parameter Group Number)**: 18-bit identifier indexing standard vehicle messages (e.g., PGN `61444` / `0xF004` = Electronic Engine Controller 1, containing Engine Speed).
-- **SPN (Suspect Parameter Number)**: Specific sensor or actuator variable embedded within a PGN (e.g., SPN `190` = Engine Speed, resolution $0.125\,\text{rpm/bit}$).
+- **SPN (Suspect Parameter Number)**: Specific sensor or actuator variable embedded within a PGN (e.g., SPN `190` = Engine Speed, resolution 0.125 rpm/bit).
 - **Transport Protocol (TP)**: Breaks payloads larger than 8 bytes (up to 1,785 bytes) into multiple frames using **BAM (Broadcast Announce Message)** or **RTS/CTS connection-mode**.
 
 ---
@@ -189,9 +195,9 @@ Unified Diagnostic Services (UDS) is the universal automotive standard for flash
 | Frame Type | PCI Nibble | Description |
 | :--- | :--- | :--- |
 | **Single Frame (SF)** | `0x0_` | Payload fits in 1 to 7 bytes within a single CAN frame. |
-| **First Frame (FF)** | `0x1_` | Initiates multi-frame transfer; encodes total 12-bit payload length ($L \le 4095$ bytes). |
-| **Consecutive Frame (CF)**| `0x2_` | Carries subsequent data chunks with a 4-bit rolling Sequence Number ($0 \dots 15$). |
-| **Flow Control (FC)** | `0x3_` | Sent by receiver to regulate pacing; sets **Block Size (BS)** and **Separation Time ($ST_{min}$)**. |
+| **First Frame (FF)** | `0x1_` | Initiates multi-frame transfer; encodes total 12-bit payload length (L <= 4095 bytes). |
+| **Consecutive Frame (CF)**| `0x2_` | Carries subsequent data chunks with a 4-bit rolling Sequence Number (0 ... 15). |
+| **Flow Control (FC)** | `0x3_` | Sent by receiver to regulate pacing; sets **Block Size (BS)** and **Separation Time (ST_min)**. |
 
 ---
 

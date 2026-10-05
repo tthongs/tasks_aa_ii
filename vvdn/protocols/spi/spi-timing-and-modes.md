@@ -11,20 +11,20 @@ In SPI, the Serial Clock (**SCLK**) synchronizes all data transmission. Because 
 ### 1.1 Parameter Definitions
 
 #### A. Clock Polarity (CPOL)
-CPOL specifies the idle logic level of the SCLK line when no data is being transferred ($\overline{\text{CS}} = \text{HIGH}$):
-- **$\text{CPOL} = 0$**: SCLK idles at **Logic LOW (0V)**.
+CPOL specifies the idle logic level of the SCLK line when no data is being transferred (NOT(CS) = HIGH):
+- **CPOL = 0**: SCLK idles at **Logic LOW (0V)**.
   - The leading (first) edge is a **Rising Edge (0 -> 1)**.
   - The trailing (second) edge is a **Falling Edge (1 -> 0)**.
-- **$\text{CPOL} = 1$**: SCLK idles at **Logic HIGH ($V_{DD}$)**.
+- **CPOL = 1**: SCLK idles at **Logic HIGH (V_DD)**.
   - The leading (first) edge is a **Falling Edge (1 -> 0)**.
   - The trailing (second) edge is a **Rising Edge (0 -> 1)**.
 
 #### B. Clock Phase (CPHA)
 CPHA specifies the alignment between data bit transitions (toggling/shifting) and data bit sampling (latching/capturing):
-- **$\text{CPHA} = 0$**: Data is sampled on the **Leading (first) clock edge**.
-  - The first data bit must be driven onto the bus **before** the first clock edge (immediately upon $\overline{\text{CS}}$ assertion).
+- **CPHA = 0**: Data is sampled on the **Leading (first) clock edge**.
+  - The first data bit must be driven onto the bus **before** the first clock edge (immediately upon NOT(CS) assertion).
   - Subsequent data bits are shifted onto the line on the **Trailing (second) clock edge**.
-- **$\text{CPHA} = 1$**: Data is sampled on the **Trailing (second) clock edge**.
+- **CPHA = 1**: Data is sampled on the **Trailing (second) clock edge**.
   - The first data bit is shifted onto the line on the **Leading (first) clock edge**.
   - Data bits are captured on the **Trailing (second) clock edge**.
 
@@ -77,9 +77,9 @@ DATA  ──────────────────< 1 >─< 0 >─< 1 
 
 | Mode | CPOL | CPHA | Idle SCLK | Data Driven / Shifted | Data Sampled / Latched | Typical Applications |
 | :---: | :---: | :---: | :---: | :---: | :---: | :--- |
-| **0** | `0` | `0` | **Low** | Falling edge (and on $\overline{\text{CS}}$ assert) | **Rising edge** | **Industry Standard**: NOR Flash, SD Cards, EEPROMs, IMUs |
+| **0** | `0` | `0` | **Low** | Falling edge (and on NOT(CS) assert) | **Rising edge** | **Industry Standard**: NOR Flash, SD Cards, EEPROMs, IMUs |
 | **1** | `0` | `1` | **Low** | Rising edge | **Falling edge** | Specialized ADCs, display controllers |
-| **2** | `1` | `0` | **High** | Rising edge (and on $\overline{\text{CS}}$ assert) | **Falling edge** | Legacy DSP peripherals, industrial converters |
+| **2** | `1` | `0` | **High** | Rising edge (and on NOT(CS) assert) | **Falling edge** | Legacy DSP peripherals, industrial converters |
 | **3** | `1` | `1` | **High** | Falling edge | **Rising edge** | **Flash Standard**: Winbond, Macronix, Microchip memory |
 
 > [!NOTE]
@@ -126,7 +126,7 @@ At the completion of cycle 8:
 
 ## 3. AC Timing Parameters & Bus Timing Budget
 
-At high clock frequencies ($\ge 20\,\text{MHz}$), physical propagation delays through PCB traces, digital isolators, and internal semiconductor silicon consume a major fraction of the clock period.
+At high clock frequencies (>= 20 MHz), physical propagation delays through PCB traces, digital isolators, and internal semiconductor silicon consume a major fraction of the clock period.
 
 ### 3.1 Key AC Timing Parameters Defined
 
@@ -144,15 +144,15 @@ DATA (MOSI/MISO)  ───────X───────────X──
                          |   Valid Input Data |     | New Output Valid
 ```
 
-- **$T_{SCLK}$ (Clock Period)**: Total duration of one SCLK cycle ($1 / f_{SCLK}$).
-- **$t_{HIGH} / t_{LOW}$ (Clock Pulse Widths)**: SCLK High and Low durations (typically $45\% - 55\%$ of $T_{SCLK}$).
-- **$t_{SU}$ (Setup Time)**: Minimum duration data must remain stable **before** the active sampling clock edge.
-- **$t_H$ (Hold Time)**: Minimum duration data must remain stable **after** the active sampling clock edge.
-- **$t_V$ or $t_{CO}$ (Clock-to-Output Valid Delay)**: Propagation time from the active clock edge until the transmitting device drives valid data onto the wire.
-- **$t_{DIS}$ (Output Disable Time)**: Time for the peripheral's MISO buffer to return to High-Z after $\overline{\text{CS}}$ goes HIGH.
-- **$t_{CSS}$ (CS Setup Time)**: Time between $\overline{\text{CS}}$ active (LOW) and the first SCLK edge.
-- **$t_{CSH}$ (CS Hold Time)**: Time between the last SCLK edge and $\overline{\text{CS}}$ deasserting (HIGH).
-- **$t_{CS\_HIGH}$ (CS Deselect / Recovery Time)**: Minimum inactive HIGH duration required between consecutive transactions.
+- **T_SCLK (Clock Period)**: Total duration of one SCLK cycle (1 / f_SCLK).
+- **t_HIGH / t_LOW (Clock Pulse Widths)**: SCLK High and Low durations (typically 45\% - 55\% of T_SCLK).
+- **t_SU (Setup Time)**: Minimum duration data must remain stable **before** the active sampling clock edge.
+- **t_H (Hold Time)**: Minimum duration data must remain stable **after** the active sampling clock edge.
+- **t_V or t_CO (Clock-to-Output Valid Delay)**: Propagation time from the active clock edge until the transmitting device drives valid data onto the wire.
+- **t_DIS (Output Disable Time)**: Time for the peripheral's MISO buffer to return to High-Z after NOT(CS) goes HIGH.
+- **t_CSS (CS Setup Time)**: Time between NOT(CS) active (LOW) and the first SCLK edge.
+- **t_CSH (CS Hold Time)**: Time between the last SCLK edge and NOT(CS) deasserting (HIGH).
+- **t_CS_HIGH (CS Deselect / Recovery Time)**: Minimum inactive HIGH duration required between consecutive transactions.
 
 ---
 
@@ -164,19 +164,25 @@ In an SPI transaction, the Controller generates SCLK.
 
 This creates a **Round-Trip Propagation Constraint**:
 
-$$T_{SCLK, min} > 2 \times (t_{prop\_out} + t_{prop\_in}) + t_{CO\_peripheral} + t_{SU\_controller} + t_{skew}$$
+```
+T_SCLK, min > 2 * (t_prop_out + t_prop_in) + t_CO_peripheral + t_SU_controller + t_skew
+```
 
 For symmetrical forward and return paths:
-$$T_{SCLK, min} > 2 \times t_{prop\_path} + t_{CO\_peripheral} + t_{SU\_controller} + t_{margin}$$
+```
+T_SCLK, min > 2 * t_prop_path + t_CO_peripheral + t_SU_controller + t_margin
+```
 
 Where:
-- $t_{prop\_path} = t_{trace} + t_{cable} + t_{isolator}$ (one-way propagation delay).
-- $t_{CO\_peripheral}$ = Peripheral clock-to-output delay (from peripheral datasheet).
-- $t_{SU\_controller}$ = Controller input data setup time (from SoC / MCU datasheet).
-- $t_{margin}$ = Recommended engineering safety margin ($\approx 2 - 3\,\text{ns}$).
+- t_prop_path = t_trace + t_cable + t_isolator (one-way propagation delay).
+- t_CO_peripheral = Peripheral clock-to-output delay (from peripheral datasheet).
+- t_SU_controller = Controller input data setup time (from SoC / MCU datasheet).
+- t_margin = Recommended engineering safety margin (≈ 2 - 3 ns).
 
 The maximum safe read frequency is:
-$$f_{SCLK, max} = \frac{1}{T_{SCLK, min}}$$
+```
+f_SCLK, max = 1 / (T_SCLK, min)
+```
 
 ---
 
@@ -185,35 +191,43 @@ $$f_{SCLK, max} = \frac{1}{T_{SCLK, min}}$$
 #### Scenario 1: High-Speed On-Board NOR Flash (Winbond W25Q128FV)
 - **Physical Layout**: On-board Flash memory located 50 mm (2 inches) from an STM32H7 MCU.
 - **Propagation Parameters**:
-  - FR4 PCB Trace Delay: $\approx 6.5\,\text{ps/mm} \implies t_{trace} = 50\,\text{mm} \times 6.5\,\text{ps/mm} = 0.325\,\text{ns}$.
-  - Isolators / Buffers: None ($t_{isolator} = 0$).
-  - One-way path delay: $t_{prop\_path} \approx 0.33\,\text{ns}$.
+  - FR4 PCB Trace Delay: ≈ 6.5 ps/mm => t_trace = 50 mm * 6.5 ps/mm = 0.325 ns.
+  - Isolators / Buffers: None (t_isolator = 0).
+  - One-way path delay: t_prop_path ≈ 0.33 ns.
 - **Silicon Parameters** (from Datasheets):
-  - Flash $t_{CO}$ (Clock to output valid): $7.0\,\text{ns}$.
-  - STM32H7 SPI Controller Setup Time $t_{SU}$: $3.0\,\text{ns}$.
-  - Safety Margin $t_{margin}$: $2.0\,\text{ns}$.
+  - Flash t_CO (Clock to output valid): 7.0 ns.
+  - STM32H7 SPI Controller Setup Time t_SU: 3.0 ns.
+  - Safety Margin t_margin: 2.0 ns.
 - **Calculation**:
-  $$T_{SCLK, min} = (2 \times 0.33\,\text{ns}) + 7.0\,\text{ns} + 3.0\,\text{ns} + 2.0\,\text{ns} = 12.66\,\text{ns}$$
-  $$f_{SCLK, max} = \frac{1}{12.66 \times 10^{-9}\,\text{s}} \approx \mathbf{78.9\,\text{MHz}}$$
-- **Verdict**: **PASS for 50 MHz operation** ($T_{SCLK} = 20\,\text{ns} > 12.66\,\text{ns}$). The interface runs reliably at 50 MHz.
+  ```
+T_SCLK, min = (2 * 0.33 ns) + 7.0 ns + 3.0 ns + 2.0 ns = 12.66 ns
+```
+  ```
+f_SCLK, max = 1 / (12.66 * 10^-9 s) ≈ 78.9 MHz
+```
+- **Verdict**: **PASS for 50 MHz operation** (T_SCLK = 20 ns > 12.66 ns). The interface runs reliably at 50 MHz.
 
 ---
 
 #### Scenario 2: Off-Board Industrial Sensor with Cable & Galvanic Isolator
 - **Physical Layout**: Precision SPI ADC connected via a **30 cm ribbon cable** and an optocoupler / digital isolator (e.g. ADuM1401).
 - **Propagation Parameters**:
-  - 30 cm Ribbon Cable Delay ($\approx 5.0\,\text{ns/m}$): $t_{cable} = 0.3\,\text{m} \times 5.0\,\text{ns} = 1.5\,\text{ns}$.
-  - Digital Isolator Propagation Delay: $t_{isolator} = 25.0\,\text{ns}$ per direction!
-  - Total One-Way Path Delay: $t_{prop\_path} = 1.5\,\text{ns} + 25.0\,\text{ns} = 26.5\,\text{ns}$.
+  - 30 cm Ribbon Cable Delay (≈ 5.0 ns/m): t_cable = 0.3 m * 5.0 ns = 1.5 ns.
+  - Digital Isolator Propagation Delay: t_isolator = 25.0 ns per direction!
+  - Total One-Way Path Delay: t_prop_path = 1.5 ns + 25.0 ns = 26.5 ns.
 - **Silicon Parameters**:
-  - ADC $t_{CO}$: $18.0\,\text{ns}$.
-  - Controller $t_{SU}$: $5.0\,\text{ns}$.
-  - Safety Margin: $3.0\,\text{ns}$.
+  - ADC t_CO: 18.0 ns.
+  - Controller t_SU: 5.0 ns.
+  - Safety Margin: 3.0 ns.
 - **Calculation**:
-  $$T_{SCLK, min} = (2 \times 26.5\,\text{ns}) + 18.0\,\text{ns} + 5.0\,\text{ns} + 3.0\,\text{ns} = 53.0\,\text{ns} + 26.0\,\text{ns} = \mathbf{79.0\,\text{ns}}$$
-  $$f_{SCLK, max} = \frac{1}{79.0 \times 10^{-9}\,\text{s}} \approx \mathbf{12.6\,\text{MHz}}$$
+  ```
+T_SCLK, min = (2 * 26.5 ns) + 18.0 ns + 5.0 ns + 3.0 ns = 53.0 ns + 26.0 ns = 79.0 ns
+```
+  ```
+f_SCLK, max = 1 / (79.0 * 10^-9 s) ≈ 12.6 MHz
+```
 - **Verdict**:
-  - Attempting to run this sensor at standard $20\,\text{MHz}$ ($T_{SCLK} = 50\,\text{ns}$) **will fail completely**, resulting in corrupted MISO reads.
+  - Attempting to run this sensor at standard 20 MHz (T_SCLK = 50 ns) **will fail completely**, resulting in corrupted MISO reads.
   - The maximum safe operating clock is **10 MHz or lower** (e.g. 5–8 MHz).
 
 ---
@@ -221,7 +235,7 @@ $$f_{SCLK, max} = \frac{1}{T_{SCLK, min}}$$
 ## 4. Gross Clock Rate vs. Effective Payload Throughput
 
 While SPI has zero frame-addressing overhead, actual payload throughput is affected by:
-1. **$\overline{\text{CS}}$ Assertion and Deselect Overhead**: Controller must lower CS before clocking and raise it between transactions.
+1. **NOT(CS) Assertion and Deselect Overhead**: Controller must lower CS before clocking and raise it between transactions.
 2. **Command & Address Overhead**: In Flash and sensors, 1 to 5 bytes of command and address precede payload data.
 3. **Dummy Wait Cycles**: High-speed Flash reads require 4 to 8 dummy clock cycles for internal array access.
 4. **Inter-Byte Latency**: CPU interrupt-driven transfers introduce microsecond delays between bytes compared to hardware DMA streams.
@@ -230,41 +244,49 @@ While SPI has zero frame-addressing overhead, actual payload throughput is affec
 
 Assumes a continuous 1 KB (1024-byte) burst read:
 
-| Clock Rate ($f_{SCLK}$) | Raw Bitrate | Standard SPI (1-bit) Effective Throughput | Dual SPI (2-bit) Effective Throughput | Quad SPI (QSPI 4-bit) Effective Throughput |
+| Clock Rate (f_SCLK) | Raw Bitrate | Standard SPI (1-bit) Effective Throughput | Dual SPI (2-bit) Effective Throughput | Quad SPI (QSPI 4-bit) Effective Throughput |
 | :---: | :---: | :---: | :---: | :---: |
-| **1 MHz** | 1.0 Mbps | $120\,\text{KB/s}$ ($0.96\,\text{Mbps}$) | $235\,\text{KB/s}$ | $450\,\text{KB/s}$ |
-| **10 MHz** | 10.0 Mbps | $1.20\,\text{MB/s}$ ($9.6\,\text{Mbps}$) | $2.35\,\text{MB/s}$ | $4.55\,\text{MB/s}$ |
-| **25 MHz** | 25.0 Mbps | $3.05\,\text{MB/s}$ ($24.4\,\text{Mbps}$) | $5.95\,\text{MB/s}$ | $11.6\,\text{MB/s}$ |
-| **50 MHz** | 50.0 Mbps | $6.10\,\text{MB/s}$ ($48.8\,\text{Mbps}$) | $11.9\,\text{MB/s}$ | $23.3\,\text{MB/s}$ |
-| **80 MHz** | 80.0 Mbps | $9.75\,\text{MB/s}$ ($78.0\,\text{Mbps}$) | $19.1\,\text{MB/s}$ | $37.5\,\text{MB/s}$ |
-| **104 MHz** (QSPI) | 104.0 Mbps | — | $24.8\,\text{MB/s}$ | $48.9\,\text{MB/s}$ |
+| **1 MHz** | 1.0 Mbps | 120 KB/s (0.96 Mbps) | 235 KB/s | 450 KB/s |
+| **10 MHz** | 10.0 Mbps | 1.20 MB/s (9.6 Mbps) | 2.35 MB/s | 4.55 MB/s |
+| **25 MHz** | 25.0 Mbps | 3.05 MB/s (24.4 Mbps) | 5.95 MB/s | 11.6 MB/s |
+| **50 MHz** | 50.0 Mbps | 6.10 MB/s (48.8 Mbps) | 11.9 MB/s | 23.3 MB/s |
+| **80 MHz** | 80.0 Mbps | 9.75 MB/s (78.0 Mbps) | 19.1 MB/s | 37.5 MB/s |
+| **104 MHz** (QSPI) | 104.0 Mbps | — | 24.8 MB/s | 48.9 MB/s |
 
 ---
 
 ## 5. High-Speed Signal Integrity & PCB Routing Rules
 
-At edge transition speeds under $2\,\text{ns}$, PCB traces behave as transmission lines regardless of the fundamental clock frequency.
+At edge transition speeds under 2 ns, PCB traces behave as transmission lines regardless of the fundamental clock frequency.
 
 ### 5.1 Critical Trace Length Formula
 A PCB trace must be treated as a transmission line when the trace length exceeds:
-$$l_{crit} = \frac{t_{rise}}{2 \times t_{prop\_per\_cm}}$$
+```
+l_crit = t_rise / (2 * t_prop_per_cm)
+```
 
 On standard FR4 PCB material:
-$$t_{prop\_per\_cm} \approx 65\,\text{ps/cm} \quad (0.065\,\text{ns/cm})$$
+```
+t_prop_per_cm ≈ 65 ps/cm (0.065 ns/cm)
+```
 
-If an MCU output has a rise time of $t_{rise} = 1.0\,\text{ns}$:
-$$l_{crit} = \frac{1.0\,\text{ns}}{2 \times 0.065\,\text{ns/cm}} \approx \mathbf{7.69\,\text{cm}}\quad (\approx 3.0\,\text{inches})$$
+If an MCU output has a rise time of t_rise = 1.0 ns:
+```
+l_crit = 1.0 ns / (2 * 0.065 ns/cm) ≈ 7.69 cm (≈ 3.0 inches)
+```
 
-Any trace longer than $7.5\,\text{cm}$ will experience severe reflections and edge ringing without proper termination.
+Any trace longer than 7.5 cm will experience severe reflections and edge ringing without proper termination.
 
 ### 5.2 Source Series Damping Resistor Calculation
 To eliminate ringing and double-clocking on SCLK, match the driver's output impedance to the characteristic trace impedance:
-$$R_{series} = Z_0 - R_{driver}$$
+```
+R_series = Z_0 - R_driver
+```
 
 Where:
-- $Z_0$ = Characteristic impedance of the PCB microstrip trace (standardly $50\,\Omega$).
-- $R_{driver}$ = Internal output impedance of the Controller's CMOS push-pull pin (typically $15 - 25\,\Omega$).
-- **Required Series Resistor**: $R_{series} \approx 50\,\Omega - 20\,\Omega = \mathbf{30\,\Omega}$ (Standard values: **$27\,\Omega\text{ to }33\,\Omega$**).
+- Z_0 = Characteristic impedance of the PCB microstrip trace (standardly 50 Ω).
+- R_driver = Internal output impedance of the Controller's CMOS push-pull pin (typically 15 - 25 Ω).
+- **Required Series Resistor**: R_series ≈ 50 Ω - 20 Ω = 30 Ω (Standard values: **27 Ω to 33 Ω**).
 
 Place this resistor as close as physically possible to the Controller's SCLK and MOSI output pins.
 
@@ -273,16 +295,16 @@ Place this resistor as close as physically possible to the Controller's SCLK and
 ## 6. Lab Measurement & Logic Analyzer Decoding Guide
 
 ### 6.1 Setting Up a Logic Analyzer (Saleae / Sigrok PulseView)
-1. **Sampling Rate Rule of Thumb**: Set the logic analyzer sample rate to **at least $4\times$ (ideally $8\times - 10\times$) the SPI clock rate**.
-   - For a 10 MHz SPI bus, set sample rate $\ge 80\,\text{MSa/s}$.
+1. **Sampling Rate Rule of Thumb**: Set the logic analyzer sample rate to **at least 4* (ideally 8* - 10*) the SPI clock rate**.
+   - For a 10 MHz SPI bus, set sample rate >= 80 MSa/s.
 2. **Channel Connections**:
    - Channel 0: SCLK
    - Channel 1: MOSI (COPI)
    - Channel 2: MISO (CIPO)
-   - Channel 3: $\overline{\text{CS}}$
+   - Channel 3: NOT(CS)
    - Ground Lead: Connect directly to the DUT digital ground.
 3. **Trigger Configuration**:
-   - Set Trigger condition on Channel 3 ($\overline{\text{CS}}$) to **Falling Edge**.
+   - Set Trigger condition on Channel 3 (NOT(CS)) to **Falling Edge**.
 4. **Configuring Protocol Decoder**:
    - Protocol: `SPI`
    - Select correct channels.
@@ -293,7 +315,7 @@ Place this resistor as close as physically possible to the Controller's SCLK and
 ### 6.2 Diagnostic Rules for Scope Screen Inspection
 - **If data byte is shifted left by 1 bit**: The analyzer or MCU is sampling one edge too early (CPHA mismatch; switch CPHA from 0 to 1).
 - **If data byte is shifted right by 1 bit**: The analyzer or MCU is sampling one edge too late (switch CPHA from 1 to 0).
-- **If data reads all `0xFF` or `0x00`**: Check that $\overline{\text{CS}}$ is actually falling LOW during the clock burst; if $\overline{\text{CS}}$ remains HIGH, the target's MISO output is tri-stated.
+- **If data reads all `0xFF` or `0x00`**: Check that NOT(CS) is actually falling LOW during the clock burst; if NOT(CS) remains HIGH, the target's MISO output is tri-stated.
 
 ---
 

@@ -8,17 +8,19 @@ The physical layer of CAN uses a balanced, two-wire differential signaling bus c
 
 ### 1.1 Differential Logic States: Recessive vs. Dominant
 
-Unlike single-ended buses (UART, LIN, I2C), CAN represents binary states using the differential voltage $V_{DIFF}$:
-$$V_{DIFF} = V_{CAN\_H} - V_{CAN\_L}$$
+Unlike single-ended buses (UART, LIN, I2C), CAN represents binary states using the differential voltage V_DIFF:
+```
+V_DIFF = V_CAN_H - V_CAN_L
+```
 
 The bus supports two distinct electrical states:
 1. **Recessive State (Logic 1)**:
-   - High-impedance state. Both $CAN\_H$ and $CAN\_L$ lines are weakly biased to the nominal common-mode voltage of approximately **$2.5\,\text{V}$**.
-   - Differential voltage is approximately **$0\,\text{V}$** (ISO spec: $-0.5\,\text{V} \le V_{DIFF} \le +0.05\,\text{V}$).
+   - High-impedance state. Both CAN_H and CAN_L lines are weakly biased to the nominal common-mode voltage of approximately **2.5 V**.
+   - Differential voltage is approximately **0 V** (ISO spec: -0.5 V <= V_DIFF <= +0.05 V).
    - The bus defaults to Recessive when all nodes are idle or transmitting a '1'.
 2. **Dominant State (Logic 0)**:
-   - Actively driven state. The transmitting transceiver drives $CAN\_H$ up to **$+3.5\,\text{V}$** and pulls $CAN\_L$ down to **$+1.5\,\text{V}$**.
-   - Differential voltage is approximately **$+2.0\,\text{V}$** (ISO spec: $+1.5\,\text{V} \le V_{DIFF} \le +3.0\,\text{V}$).
+   - Actively driven state. The transmitting transceiver drives CAN_H up to **+3.5 V** and pulls CAN_L down to **+1.5 V**.
+   - Differential voltage is approximately **+2.0 V** (ISO spec: +1.5 V <= V_DIFF <= +3.0 V).
    - **Wired-AND Electrical Law**: If any single node drives a Dominant bit, the bus is forced into the Dominant state, overriding any number of nodes driving a Recessive bit.
 
 ```text
@@ -38,18 +40,18 @@ The bus supports two distinct electrical states:
 
 | Parameter | Symbol | Dominant (Logic 0) | Recessive (Logic 1) | Unit |
 | :--- | :--- | :--- | :--- | :--- |
-| **CAN_H Bus Voltage** | $V_{CAN\_H}$ | $2.75\,\text{V} \dots 4.5\,\text{V}$ (Typ: $3.5\,\text{V}$) | $2.0\,\text{V} \dots 3.0\,\text{V}$ (Typ: $2.5\,\text{V}$) | V |
-| **CAN_L Bus Voltage** | $V_{CAN\_L}$ | $0.5\,\text{V} \dots 2.25\,\text{V}$ (Typ: $1.5\,\text{V}$) | $2.0\,\text{V} \dots 3.0\,\text{V}$ (Typ: $2.5\,\text{V}$) | V |
-| **Differential Voltage** | $V_{DIFF}$ | $+1.5\,\text{V} \dots +3.0\,\text{V}$ (Typ: $+2.0\,\text{V}$) | $-0.5\,\text{V} \dots +0.05\,\text{V}$ (Typ: $0.0\,\text{V}$) | V |
-| **Receiver Threshold** | $V_{TH(rx)}$ | $V_{DIFF} > 0.9\,\text{V}$ | $V_{DIFF} < 0.5\,\text{V}$ | V |
-| **Receiver Hysteresis** | $V_{HYS}$ | Typical $150\,\text{mV}$ margin prevents jitter | — | mV |
-| **Common-Mode Range** | $V_{CM}$ | $-2.0\,\text{V} \dots +7.0\,\text{V}$ (Extended: $-12\,\text{V} \dots +12\,\text{V}$) | — | V |
+| **CAN_H Bus Voltage** | V_CAN_H | 2.75 V ... 4.5 V (Typ: 3.5 V) | 2.0 V ... 3.0 V (Typ: 2.5 V) | V |
+| **CAN_L Bus Voltage** | V_CAN_L | 0.5 V ... 2.25 V (Typ: 1.5 V) | 2.0 V ... 3.0 V (Typ: 2.5 V) | V |
+| **Differential Voltage** | V_DIFF | +1.5 V ... +3.0 V (Typ: +2.0 V) | -0.5 V ... +0.05 V (Typ: 0.0 V) | V |
+| **Receiver Threshold** | V_TH(rx) | V_DIFF > 0.9 V | V_DIFF < 0.5 V | V |
+| **Receiver Hysteresis** | V_HYS | Typical 150 mV margin prevents jitter | — | mV |
+| **Common-Mode Range** | V_CM | -2.0 V ... +7.0 V (Extended: -12 V ... +12 V) | — | V |
 
 ---
 
 ## 2. Transceiver Architecture & Circuit Interfacing
 
-The CAN Transceiver acts as the physical bridge between the digital logic levels ($3.3\,\text{V}$ or $5\,\text{V}$ CMOS/TTL on TXD and RXD) of the CAN Controller and the differential analog voltages on the physical bus.
+The CAN Transceiver acts as the physical bridge between the digital logic levels (3.3 V or 5 V CMOS/TTL on TXD and RXD) of the CAN Controller and the differential analog voltages on the physical bus.
 
 ```text
                    +5V (Vcc)
@@ -69,18 +71,18 @@ The CAN Transceiver acts as the physical bridge between the digital logic levels
 ### 2.1 Critical Transceiver Internal Subsystems
 
 1. **High-Impedance Receiver Stage**:
-   - The differential comparator continuously senses $V_{CAN\_H} - V_{CAN\_L}$. If $V_{DIFF} > 0.9\,\text{V}$, the receiver drives `RXD = 0`. If $V_{DIFF} < 0.5\,\text{V}$, it pulls `RXD = 1`.
-   - Even when powered down ($V_{CC} = 0\,\text{V}$), transceiver pins must present extremely high input impedance ($> 20\,\text{k}\Omega$) to prevent loading the active bus.
+   - The differential comparator continuously senses V_CAN_H - V_CAN_L. If V_DIFF > 0.9 V, the receiver drives `RXD = 0`. If V_DIFF < 0.5 V, it pulls `RXD = 1`.
+   - Even when powered down (V_CC = 0 V), transceiver pins must present extremely high input impedance (> 20 kΩ) to prevent loading the active bus.
 2. **TXD Dominant Clamp / Dominant Timeout**:
    - If a microcontroller firmware lockup or hardware latchup holds the `TXD` pin permanently LOW (driving continuous Dominant), the entire automotive network would freeze.
-   - Modern transceivers incorporate an internal hardware watchdog timer ($t_{dom\_to} \approx 1.5\,\text{ms} - 5\,\text{ms}$). If `TXD` remains LOW longer than $t_{dom\_to}$, the transmitter stage is automatically disabled, releasing the bus back to Recessive.
-3. **Loopback Propagation Delay ($t_{loop}$)**:
+   - Modern transceivers incorporate an internal hardware watchdog timer (t_dom_to ≈ 1.5 ms - 5 ms). If `TXD` remains LOW longer than t_dom_to, the transmitter stage is automatically disabled, releasing the bus back to Recessive.
+3. **Loopback Propagation Delay (t_loop)**:
    - When a controller drives a bit on `TXD`, the signal travels through the transmitter output stage, drives the physical bus, returns through the internal receiver comparator, and outputs on `RXD`.
-   - The total round-trip transceiver delay ($t_{loop} = t_{tx\_delay} + t_{rx\_delay}$) standardly ranges between **$100\,\text{ns}$ and $250\,\text{ns}$**. This loop delay is a primary constraint when calculating maximum bus length and bit timing.
+   - The total round-trip transceiver delay (t_loop = t_tx_delay + t_rx_delay) standardly ranges between **100 ns and 250 ns**. This loop delay is a primary constraint when calculating maximum bus length and bit timing.
 
 ### 2.2 Termination Schemes: Parallel vs. Split Termination
 
-To prevent high-frequency transmission-line signal reflections, the CAN bus requires termination matching the nominal cable characteristic impedance ($Z_0 = 120\,\Omega$).
+To prevent high-frequency transmission-line signal reflections, the CAN bus requires termination matching the nominal cable characteristic impedance (Z_0 = 120 Ω).
 
 ```text
 Standard Termination (120Ω)             Split Termination (60Ω + 60Ω + 4.7nF)
@@ -93,10 +95,12 @@ Standard Termination (120Ω)             Split Termination (60Ω + 60Ω + 4.7nF)
                                               CAN_L ──────┴──────
 ```
 
-- **Standard Parallel Termination**: A single $120\,\Omega$ ($\pm 1\%$, 0.25W) metal-film resistor placed across CAN_H and CAN_L at each extreme end of the linear bus trunk. Total parallel DC bus resistance:
-  $$R_{bus} = 120\,\Omega \parallel 120\,\Omega = 60\,\Omega$$
-- **Split Termination (Automotive Standard)**: Two $60\,\Omega$ ($\pm 1\%$) precision resistors in series with a central capacitor ($C_L = 4.7\,\text{nF}$ rated $\ge 50\,\text{V}$) connected to Ground.
-  - *Engineering Advantage*: Acts as a low-pass filter for high-frequency common-mode noise without altering the differential DC termination ($60\,\Omega + 60\,\Omega = 120\,\Omega$). It dramatically reduces radiated electromagnetic emissions (EMI) and stabilizes the recessive bus bias point.
+- **Standard Parallel Termination**: A single 120 Ω (± 1\%, 0.25W) metal-film resistor placed across CAN_H and CAN_L at each extreme end of the linear bus trunk. Total parallel DC bus resistance:
+  ```
+R_bus = 120 Ω || 120 Ω = 60 Ω
+```
+- **Split Termination (Automotive Standard)**: Two 60 Ω (± 1\%) precision resistors in series with a central capacitor (C_L = 4.7 nF rated >= 50 V) connected to Ground.
+  - *Engineering Advantage*: Acts as a low-pass filter for high-frequency common-mode noise without altering the differential DC termination (60 Ω + 60 Ω = 120 Ω). It dramatically reduces radiated electromagnetic emissions (EMI) and stabilizes the recessive bus bias point.
 
 ---
 
@@ -124,7 +128,7 @@ Actual Bus Line:    0     0      0      1      0 (Dominant)
 ```
 
 > [!IMPORTANT]
-> **Priority Axiom**: Because a Dominant bit ($0$) overrides a Recessive bit ($1$), **lower numerical CAN Identifiers have higher priority**.
+> **Priority Axiom**: Because a Dominant bit (0) overrides a Recessive bit (1), **lower numerical CAN Identifiers have higher priority**.
 > - ID `0x001` (Emergency Braking / Airbag) preempts ID `0x100` (Engine RPM).
 > - ID `0x100` preempts ID `0x500` (HVAC / Ambient Temperature).
 
@@ -132,15 +136,15 @@ Actual Bus Line:    0     0      0      1      0 (Dominant)
 
 ## 4. Error Detection & Confinement Mechanics
 
-CAN achieves an extraordinary undetected error rate ($< 4.7 \times 10^{-13}$) through five distinct hardware error detection mechanisms running concurrently on every node.
+CAN achieves an extraordinary undetected error rate (< 4.7 * 10^-13) through five distinct hardware error detection mechanisms running concurrently on every node.
 
 ### 4.1 The Five Error Detection Types
 
 | Error Type | Layer | Detected By | Detection Mechanism |
 | :--- | :--- | :--- | :--- |
 | **1. Bit Error** | Physical | Transmitter Only | The transmitter compares its driven bit on `TXD` with the sampled bit on `RXD`. A Bit Error is flagged if the read bit does not match the driven bit. *(Exceptions: During arbitration where Recessive '1' may be overridden, or during ACK Slot).* |
-| **2. Stuff Error** | Framing | All Nodes | A Stuff Error is flagged if $6$ consecutive bits of identical polarity are detected within the bit-stuffed zone (SOF through CRC sequence). |
-| **3. CRC Error** | Data Integrity | Receivers Only | Receivers independently calculate the CRC-15 polynomial ($x^{15} + x^{14} + x^{10} + x^8 + x^7 + x^4 + x^3 + 1$) over the incoming bit stream. An error is flagged if the calculated CRC does not match the transmitted CRC field. |
+| **2. Stuff Error** | Framing | All Nodes | A Stuff Error is flagged if 6 consecutive bits of identical polarity are detected within the bit-stuffed zone (SOF through CRC sequence). |
+| **3. CRC Error** | Data Integrity | Receivers Only | Receivers independently calculate the CRC-15 polynomial (x^15 + x^14 + x^10 + x^8 + x^7 + x^4 + x^3 + 1) over the incoming bit stream. An error is flagged if the calculated CRC does not match the transmitted CRC field. |
 | **4. Form Error** | Frame Format | All Nodes | Flagged when a fixed-form delimiter field contains an illegal bit value (e.g., CRC Delimiter, ACK Delimiter, or End-of-Frame containing a dominant '0' instead of recessive '1'). |
 | **5. ACK Error** | Handshake | Transmitter Only | Flagged when the transmitting node drives a Recessive bit in the ACK Slot but reads back a Recessive '1' because no receiver acknowledged the frame with a Dominant '0'. |
 
@@ -194,15 +198,15 @@ To prevent a malfunctioning ECU from corrupting the entire vehicle network, ever
 ```
 
 #### Counter Adjustment Rules:
-- When a transmitter detects an error: $\text{TEC} \leftarrow \text{TEC} + 8$.
-- When a receiver detects an error: $\text{REC} \leftarrow \text{REC} + 1$ (or $+8$ if receiver error flag was dominant).
-- When a transmitter completes a successful frame: $\text{TEC} \leftarrow \text{TEC} - 1$ (down to 0).
-- When a receiver completes a successful frame: $\text{REC} \leftarrow \text{REC} - 1$ (if $1 \le \text{REC} \le 127$; reset to 0 if REC=0).
+- When a transmitter detects an error: TEC <=ftarrow TEC + 8.
+- When a receiver detects an error: REC <=ftarrow REC + 1 (or +8 if receiver error flag was dominant).
+- When a transmitter completes a successful frame: TEC <=ftarrow TEC - 1 (down to 0).
+- When a receiver completes a successful frame: REC <=ftarrow REC - 1 (if 1 <= REC <= 127; reset to 0 if REC=0).
 
 #### Bus-Off Recovery Protocol:
 Once a node transitions to **Bus-Off**, it can only rejoin the network through a controlled recovery sequence:
 - The controller monitors the RX line until it observes **128 occurrences of 11 consecutive Recessive bits** (corresponding to 128 idle message periods).
-- Upon completion, $\text{TEC}$ and $\text{REC}$ are reset to $0$, and the controller re-enters the **Error Active** state.
+- Upon completion, TEC and REC are reset to 0, and the controller re-enters the **Error Active** state.
 
 ---
 
@@ -238,7 +242,9 @@ Every filter comprises two 32-bit (or 16-bit) registers:
   - Mask bit = `0`: The incoming frame's bit is **ignored** ("don't care").
 
 #### Acceptance Logic Equation:
-$$\text{Match} = \neg \Big( (\text{Incoming\_ID} \oplus \text{Filter\_ID}) \ \& \ \text{Filter\_Mask} \Big) == 0$$
+```
+Match = !=g ( (Incoming_ID XOR Filter_ID) \ & \ Filter_Mask ) == 0
+```
 
 ```c
 /* Example: C Acceptance Filter Configuration for STM32 bxCAN */

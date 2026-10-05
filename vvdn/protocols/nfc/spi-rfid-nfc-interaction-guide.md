@@ -20,8 +20,8 @@ When explaining an SPI-based NFC implementation to a mentor or senior engineer, 
 ### The Three Entities and Their Exact Roles:
 1. **The Host Microcontroller (The Brain)**:
    - Contains the high-level application (e.g., read a URL, unlock a door, process a payment).
-   - Speaks purely **digital logic (0s and 1s)** at standard MCU voltage levels ($3.3\text{V}$ or $1.8\text{V}$).
-   - **Why it cannot do this alone**: A microcontroller's GPIO pins cannot oscillate at $13.56\text{ MHz}$ with $15\text{V}$ peak-to-peak differential power, cannot provide RF impedance matching to an antenna, and cannot detect a $10\text{ millivolt}$ signal riding on top of a $20\text{V}$ carrier.
+   - Speaks purely **digital logic (0s and 1s)** at standard MCU voltage levels (3.3V or 1.8V).
+   - **Why it cannot do this alone**: A microcontroller's GPIO pins cannot oscillate at 13.56 MHz with 15V peak-to-peak differential power, cannot provide RF impedance matching to an antenna, and cannot detect a 10 millivolt signal riding on top of a 20V carrier.
 2. **The RFID Transceiver IC (The Physical RF Modem)**:
    - Silicon chips such as the **NXP PN532, NXP MFRC522, or STMicroelectronics ST25R3916**.
    - Contains analog oscillators, RF push-pull power amplifiers (TX1, TX2), envelope detectors, phase decoders, and a hardware FIFO buffer.
@@ -55,7 +55,7 @@ Here is the exact technical distinction you should give:
 +-------------------------------------------------------------------------------+
 ```
 
-- **RFID (Radio Frequency Identification)** is the **underlying physical radio technology**. It defines how an RF reader powers a coil at $13.56\text{ MHz}$ and isolates a tag's serial number (UID) using magnetic induction.
+- **RFID (Radio Frequency Identification)** is the **underlying physical radio technology**. It defines how an RF reader powers a coil at 13.56 MHz and isolates a tag's serial number (UID) using magnetic induction.
 - **NFC (Near Field Communication)** is the **standardized application and protocol ecosystem built on top of 13.56 MHz RFID**. It adds:
   1. **Standardized Data Packaging (NDEF)**: Any phone or reader can read URLs, text, and MIME data without needing proprietary software.
   2. **Three Operating Modes**:
@@ -110,23 +110,23 @@ Host parses NDEF payload: "https://vvdntech.com"
 ### Detailed Breakdown of the Steps:
 
 #### Step 1: Awakening the RF Field & The Mandatory Guard Delay
-- **SPI Action**: The MCU asserts $\overline{\text{CS}}$, sends the register address for `TxControlReg` with the write bit, and writes `0x03` to turn on the differential antenna pins `TX1` and `TX2`.
-- **RFID Transceiver Action**: The chip's internal RF oscillator connects to the push-pull output drivers, pumping a sinusoidal $13.56\text{ MHz}$ current through the EMC filter and PCB antenna coil.
-- **Physical Result**: A magnetic $H$-field expands outward from the coil.
-- **The Critical Rule**: The host MCU **must wait at least $5.0\text{ ms}$** before sending any data. The tag has no battery; it must harvest energy from this unmodulated carrier, rectify it, charge its reservoir capacitor, and release its internal Power-On Reset (POR).
+- **SPI Action**: The MCU asserts NOT(CS), sends the register address for `TxControlReg` with the write bit, and writes `0x03` to turn on the differential antenna pins `TX1` and `TX2`.
+- **RFID Transceiver Action**: The chip's internal RF oscillator connects to the push-pull output drivers, pumping a sinusoidal 13.56 MHz current through the EMC filter and PCB antenna coil.
+- **Physical Result**: A magnetic H-field expands outward from the coil.
+- **The Critical Rule**: The host MCU **must wait at least 5.0 ms** before sending any data. The tag has no battery; it must harvest energy from this unmodulated carrier, rectify it, charge its reservoir capacitor, and release its internal Power-On Reset (POR).
 
 #### Step 2: The Polling Mystery — Why 7 Bits Matter
 - **The Problem**: ISO 14443-A mandates that the initial request (REQA) must be **exactly 7 bits** (`0x26` = `0100110b`), not 8 bits!
 - **How SPI Solves It**: Microcontroller SPI peripherals only transfer whole bytes (multiples of 8 bits). You cannot tell an MCU's SPI controller to "send 7 bits".
 - **The Solution**: The host writes to the transceiver's `BitFramingReg` over SPI to tell its internal bit-engine: *"The next byte in the FIFO only has 7 valid bits"*.
-- **The Transmission**: The transceiver's digital state machine takes the `0x26` byte from its FIFO, shifts out only 7 bits to the RF modulator, creating a $2.5\ \mu\text{s}$ blanking pause (100% ASK) on the $13.56\text{ MHz}$ carrier.
+- **The Transmission**: The transceiver's digital state machine takes the `0x26` byte from its FIFO, shifts out only 7 bits to the RF modulator, creating a 2.5\ µs blanking pause (100% ASK) on the 13.56 MHz carrier.
 
 #### Step 3: Tag Response via Inductive Load Modulation
 - The tag has no transmitter. How does it reply?
 - It turns an internal MOSFET on and off, switching an extra resistor across its own coil.
 - Because the tag's coil and the reader's coil are magnetically coupled like an air-core transformer, changing the tag's load changes the **reflected impedance** seen at the reader's coil.
-- This creates tiny amplitude variations ($10\text{ to }50\text{ mV}$) on the reader's $15\text{V}$ carrier at an **$848\text{ kHz}$ subcarrier offset**.
-- The RFID transceiver's analog envelope detector and bandpass filter isolate this $848\text{ kHz}$ signal, decode the Manchester bits, assemble them into bytes, and push them into the internal FIFO buffer.
+- This creates tiny amplitude variations (10 to 50 mV) on the reader's 15V carrier at an **848 kHz subcarrier offset**.
+- The RFID transceiver's analog envelope detector and bandpass filter isolate this 848 kHz signal, decode the Manchester bits, assemble them into bytes, and push them into the internal FIFO buffer.
 - The transceiver pulls its **`IRQ` pin LOW** to tell the Host MCU: *"I have received data!"*
 - The Host MCU initiates an SPI burst read to pull the ATQA (`0x0004`) out of the transceiver FIFO.
 
@@ -155,14 +155,14 @@ When your mentor asks: *"Why did you use SPI rather than I2C or UART to talk to 
 | **Throughput** | ~10 KB/s – 100 KB/s | ~10 KB/s – 40 KB/s | **600 KB/s – 1200 KB/s** |
 | **Duplex** | Full Duplex | Half Duplex | **Full Duplex** |
 | **Protocol Overhead** | Start/Stop bits (~20%) | 7-bit address, ACK/NACK | **Zero overhead (direct register shifting)** |
-| **FIFO Drain Time** | Several milliseconds | $\sim 1.5\text{ ms}$ | **$< 60\ \mu\text{s}$ (instant)** |
+| **FIFO Drain Time** | Several milliseconds | sim 1.5 ms | **< 60\ µs (instant)** |
 | **Suitability for High-Speed NFC** | Poor (Causes FIFO overrun) | Marginal (Bottlenecks 848k) | **Optimal (Handles 848 kbps seamlessly)** |
 
 ### The "FIFO Overflow" Engineering Argument:
-At high NFC bitrates (848 kbps), the over-the-air RF interface delivers $106\text{ bytes per millisecond}$.
-A standard RFID chip FIFO is only **64 bytes**. That means the FIFO will overflow and permanently corrupt the data in **$603\ \mu\text{s}$**!
-- On I2C at 400 kHz, draining 64 bytes takes over $1500\ \mu\text{s}$ $\rightarrow$ **FIFO overflow occurs!**
-- On SPI at 10 MHz, draining 64 bytes takes only **$51.2\ \mu\text{s}$** $\rightarrow$ **Safe with massive margin!**
+At high NFC bitrates (848 kbps), the over-the-air RF interface delivers 106 bytes per millisecond.
+A standard RFID chip FIFO is only **64 bytes**. That means the FIFO will overflow and permanently corrupt the data in **603\ µs**!
+- On I2C at 400 kHz, draining 64 bytes takes over 1500\ µs -> **FIFO overflow occurs!**
+- On SPI at 10 MHz, draining 64 bytes takes only **51.2\ µs** -> **Safe with massive margin!**
 
 ---
 
@@ -179,10 +179,10 @@ Use these structured answers during technical reviews with your mentor:
 > *"The **LSB-first bit order trap**. In 99% of embedded SPI peripherals, data is transferred MSB-first. However, the PN532's hardware SPI interface shifts data **LSB-first** (least significant bit first). If the host MCU's SPI controller is not reconfigured for LSB-first, or if bytes are not reversed in software, the PN532 receives garbled commands and appears completely dead."*
 
 ### Q3: "How does an unpowered NFC tag communicate back to the reader?"
-> *"Through **Inductive Load Modulation**. The tag has no battery or RF transmitter. It switches an internal load resistor or capacitor across its own antenna coil. Because of mutual inductance ($M = k\sqrt{L_1 L_2}$), this load change reflects back onto the reader's primary coil, creating minute voltage variations at an $848\text{ kHz}$ subcarrier frequency, which the transceiver's analog receiver demodulates."*
+> *"Through **Inductive Load Modulation**. The tag has no battery or RF transmitter. It switches an internal load resistor or capacitor across its own antenna coil. Because of mutual inductance (M = ksqrt(L_1 L_2)), this load change reflects back onto the reader's primary coil, creating minute voltage variations at an 848 kHz subcarrier frequency, which the transceiver's analog receiver demodulates."*
 
 ### Q4: "Why can't we design the antenna with an extremely high Q-factor to get maximum range?"
-> *"Because of the **Quality Factor vs. Bandwidth trade-off** ($BW = f_c / Q$). While a high $Q$ ($> 40$) increases magnetic field strength, it narrows the RF bandwidth below $340\text{ kHz}$, which severely attenuates the $848\text{ kHz}$ load-modulation sidebands and causes excessive pause ringing during 100% ASK modulation. For 106 kbps Type A, $Q$ must be damped to **$20\text{ to }30$**, and for high-speed 848 kbps, down to **$10\text{ to }15$**."*
+> *"Because of the **Quality Factor vs. Bandwidth trade-off** (BW = f_c / Q). While a high Q (> 40) increases magnetic field strength, it narrows the RF bandwidth below 340 kHz, which severely attenuates the 848 kHz load-modulation sidebands and causes excessive pause ringing during 100% ASK modulation. For 106 kbps Type A, Q must be damped to **20 to 30**, and for high-speed 848 kbps, down to **10 to 15**."*
 
 ### Q5: "What is the 5 ms Guard Time and why is it mandatory?"
-> *"Under ISO/IEC 14443-3 Section 5.1, after the reader powers on the 13.56 MHz carrier, it must wait at least $5.0\text{ ms}$ before transmitting the first command (REQA). A passive tag needs this time to harvest energy from the magnetic field, charge its internal reservoir capacitor, and release its Power-On Reset circuit. Without this delay, the tag fails to wake up and the reader reports 'No Card Found'."*
+> *"Under ISO/IEC 14443-3 Section 5.1, after the reader powers on the 13.56 MHz carrier, it must wait at least 5.0 ms before transmitting the first command (REQA). A passive tag needs this time to harvest energy from the magnetic field, charge its internal reservoir capacitor, and release its Power-On Reset circuit. Without this delay, the tag fails to wake up and the reader reports 'No Card Found'."*

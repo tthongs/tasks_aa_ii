@@ -11,8 +11,8 @@ Welcome to the **VVDN Engineering Hub SPI Protocol Knowledge Base**. This docume
 Unlike asynchronous protocols (UART) or half-duplex addressing buses (I2C), SPI operates on a **synchronous, full-duplex, controller-target architecture**:
 - **Explicit Shared Clock (SCLK)**: Generated exclusively by the bus controller. Clock drift and framing errors are physically eliminated.
 - **Concurrent Full-Duplex Streaming**: Dedicated transmission (**MOSI / COPI**) and reception (**MISO / CIPO**) lines permit continuous two-way data streaming on every single clock edge.
-- **Physical Hardware Addressing**: Target peripherals are enabled via dedicated active-LOW **Chip Select ($\overline{\text{CS}}$ / $\overline{\text{SS}}$)** lines, eliminating in-band addressing bytes and ACK/NACK overhead.
-- **Extreme Throughput**: Readily operates from **$1\,\text{MHz}$ up to $50\,\text{MHz}, 80\,\text{MHz}, \text{and } 100+\,\text{MHz}$**, constrained primarily by PCB trace parasitics, propagation delay, and peripheral setup times.
+- **Physical Hardware Addressing**: Target peripherals are enabled via dedicated active-LOW **Chip Select (NOT(CS) / NOT(SS))** lines, eliminating in-band addressing bytes and ACK/NACK overhead.
+- **Extreme Throughput**: Readily operates from **1 MHz up to 50 MHz, 80 MHz, and 100+ MHz**, constrained primarily by PCB trace parasitics, propagation delay, and peripheral setup times.
 
 ```text
        Controller (Master MCU)                                 Target (Peripheral Sensor / Flash)
@@ -42,7 +42,7 @@ SPI transmission timing is governed by two electrical configuration bits: **Cloc
    └──────┴──────┴──────┴────────────────────────┴─────────────────────┴───────────────────────────┘
 ```
 
-> **Industry Dominance**: **Mode 0** (`CPOL=0, CPHA=0`) and **Mode 3** (`CPOL=1, CPHA=1`) account for over $95\%$ of all commercial sensors, Flash memories, and microcontrollers. Both modes share the critical property of **sampling incoming data on the rising clock edge**.
+> **Industry Dominance**: **Mode 0** (`CPOL=0, CPHA=0`) and **Mode 3** (`CPOL=1, CPHA=1`) account for over 95\% of all commercial sensors, Flash memories, and microcontrollers. Both modes share the critical property of **sampling incoming data on the rising clock edge**.
 
 ---
 
@@ -54,9 +54,9 @@ SPI transmission timing is governed by two electrical configuration bits: **Cloc
 
 ### 2. High-Throughput Multi-I/O Extensions:
 To satisfy high-density NOR/NAND Flash boot memory bandwidth requirements, SPI expanded beyond traditional single-bit architectures:
-- **Dual SPI (DIO)**: Reconfigures MOSI and MISO as bidirectional data lines ($IO_0, IO_1$) to double transfer throughput.
-- **Quad SPI (QSPI)**: Utilizes 4 bidirectional data lines ($IO_0 \dots IO_3$) to stream a 32-bit word in just 8 clock cycles. Enables **Execute-in-Place (XiP)**, executing firmware directly from external Flash without loading into internal SRAM.
-- **Octal SPI (OSPI) & Hexa-SPI**: Employs 8 bidirectional data lines ($IO_0 \dots IO_7$) operating in **Double Data Rate (DDR)**, achieving throughputs exceeding **$200\,\text{MB/s} \dots 400\,\text{MB/s}$**.
+- **Dual SPI (DIO)**: Reconfigures MOSI and MISO as bidirectional data lines (IO_0, IO_1) to double transfer throughput.
+- **Quad SPI (QSPI)**: Utilizes 4 bidirectional data lines (IO_0 ... IO_3) to stream a 32-bit word in just 8 clock cycles. Enables **Execute-in-Place (XiP)**, executing firmware directly from external Flash without loading into internal SRAM.
+- **Octal SPI (OSPI) & Hexa-SPI**: Employs 8 bidirectional data lines (IO_0 ... IO_7) operating in **Double Data Rate (DDR)**, achieving throughputs exceeding **200 MB/s ... 400 MB/s**.
 
 ---
 
@@ -81,7 +81,7 @@ The SPI knowledge base is structured into dedicated technical dossiers:
 1. [**`spi-guide.md`**](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/spi/spi-guide.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/spi/spi-guide.docx)):
    - Complete architectural overview, signal definitions, CPOL/CPHA truth tables, Linux kernel SPI subsystem (`spidev`, Device Tree bindings), modular production C drivers, and RCA troubleshooting matrix.
 2. [**`spi-timing-and-modes.md`**](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/spi/spi-timing-and-modes.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/spi/spi-timing-and-modes.docx)):
-   - AC timing parameter equations ($t_{SU}, t_H, t_{CO}$), round-trip propagation delay budgets, maximum safe clock frequency derivation ($f_{max}$), galvanic isolator delays, transmission line reflections, and series damping resistor sizing ($22\,\Omega - 47\,\Omega$).
+   - AC timing parameter equations (t_SU, t_H, t_CO), round-trip propagation delay budgets, maximum safe clock frequency derivation (f_max), galvanic isolator delays, transmission line reflections, and series damping resistor sizing (22 Ω - 47 Ω).
 3. [**`spi-circuit-and-hardware-connections.md`**](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/spi/spi-circuit-and-hardware-connections.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/spi/spi-circuit-and-hardware-connections.docx)):
    - Practical circuit schematics: Single-slave with damping resistors, multi-slave dedicated CS# star routing, multi-slave shift-register daisy-chaining, high-speed Quad-SPI (QSPI) NOR Flash (W25Q128JV), and galvanically isolated SPI barriers (ADuM3401/ISO7741).
 4. [**`spi-frame-analysis.md`**](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/spi/spi-frame-analysis.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/spi/spi-frame-analysis.docx)):

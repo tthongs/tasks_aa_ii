@@ -35,16 +35,20 @@ The standard board-level open-drain architecture interconnecting a microcontroll
 ```
 
 ### Critical Hardware Sizing Rules:
-1. **Pull-Up Resistor ($R_p$) Sizing Limits**:
-   - **Minimum Resistance ($R_{p(min)}$)**: Dictated by driver current sink capability ($I_{OL} = 3\,\text{mA}$ for Standard/Fast mode):
-     $$R_{p(min)} = \frac{V_{DD} - V_{OL(max)}}{I_{OL}} = \frac{3.3\,\text{V} - 0.4\,\text{V}}{3\,\text{mA}} \approx 966\,\Omega$$
-   - **Maximum Resistance ($R_{p(max)}$)**: Dictated by bus capacitance ($C_b$) and maximum allowed rise-time ($t_r = 1000\,\text{ns}$ for $100\,\text{kbps}$, $300\,\text{ns}$ for $400\,\text{kbps}$):
-     $$R_{p(max)} = \frac{t_{r(max)}}{0.8473 \times C_b} = \frac{300\,\text{ns}}{0.8473 \times 100\,\text{pF}} \approx 3.54\,\text{k}\Omega$$
-   - **Industry Sweet Spot**: $R_p = 2.2\,\text{k}\Omega \dots 4.7\,\text{k}\Omega$ for $3.3\,\text{V}$ systems running at $400\,\text{kbps}$.
-2. **Hardware Address Pin Strapping ($A_0, A_1, A_2$)**:
-   - Unconnected address pins float, causing intermittent address detection. Tie address pins directly to Ground or $V_{DD}$.
+1. **Pull-Up Resistor (R_p) Sizing Limits**:
+   - **Minimum Resistance (R_p(min))**: Dictated by driver current sink capability (I_OL = 3 mA for Standard/Fast mode):
+     ```
+R_p(min) = (V_DD - V_OL(max)) / I_OL = (3.3 V - 0.4 V) / 3 mA ≈ 966 Ω
+```
+   - **Maximum Resistance (R_p(max))**: Dictated by bus capacitance (C_b) and maximum allowed rise-time (t_r = 1000 ns for 100 kbps, 300 ns for 400 kbps):
+     ```
+R_p(max) = t_r(max) / (0.8473 * C_b) = 300 ns / (0.8473 * 100 pF) ≈ 3.54 kΩ
+```
+   - **Industry Sweet Spot**: R_p = 2.2 kΩ ... 4.7 kΩ for 3.3 V systems running at 400 kbps.
+2. **Hardware Address Pin Strapping (A_0, A_1, A_2)**:
+   - Unconnected address pins float, causing intermittent address detection. Tie address pins directly to Ground or V_DD.
 3. **Decoupling Capacitors**:
-   - Every I2C target IC must have its own $0.1\,\mu\text{F}$ ceramic bypass capacitor placed within $3\,\text{mm}$ of its $V_{DD}$ pin.
+   - Every I2C target IC must have its own 0.1 µF ceramic bypass capacitor placed within 3 mm of its V_DD pin.
 
 ---
 
@@ -74,17 +78,17 @@ To bridge a 3.3V microcontroller (STM32/ESP32) with 5V I2C peripherals (legacy 5
 
 ### Three-State Operating Dynamics:
 1. **Idle State (Bus High)**:
-   - Gate is tied to $+3.3\,\text{V}$. Source is held at $+3.3\,\text{V}$ by $R_1$.
-   - $V_{GS} = 3.3\,\text{V} - 3.3\,\text{V} = 0\,\text{V} < V_{TH}$. MOSFET is OFF.
-   - The HV side is independently pulled up to $+5.0\,\text{V}$ by $R_2$. Zero current flows between the two supply domains.
-2. **3.3V Master Pulls Bus LOW ($0\,\text{V}$)**:
-   - Source potential drops to $0\,\text{V}$.
-   - $V_{GS} = 3.3\,\text{V} - 0\,\text{V} = 3.3\,\text{V} > V_{TH}$. The MOSFET turns fully ON.
+   - Gate is tied to +3.3 V. Source is held at +3.3 V by R_1.
+   - V_GS = 3.3 V - 3.3 V = 0 V < V_TH. MOSFET is OFF.
+   - The HV side is independently pulled up to +5.0 V by R_2. Zero current flows between the two supply domains.
+2. **3.3V Master Pulls Bus LOW (0 V)**:
+   - Source potential drops to 0 V.
+   - V_GS = 3.3 V - 0 V = 3.3 V > V_TH. The MOSFET turns fully ON.
    - The conducting channel shorts Drain to Source, discharging the 5V line to Ground.
-3. **5V Slave Pulls Bus LOW ($0\,\text{V}$)**:
-   - Drain potential drops to $0\,\text{V}$.
-   - The intrinsic body diode becomes forward biased, pulling the Source node down to $\approx 0.6\,\text{V}$.
-   - Once Source drops, $V_{GS} = 3.3\,\text{V} - 0.6\,\text{V} = 2.7\,\text{V} > V_{TH}$. The channel turns ON, pulling the 3.3V node down to pure Ground.
+3. **5V Slave Pulls Bus LOW (0 V)**:
+   - Drain potential drops to 0 V.
+   - The intrinsic body diode becomes forward biased, pulling the Source node down to ≈ 0.6 V.
+   - Once Source drops, V_GS = 3.3 V - 0.6 V = 2.7 V > V_TH. The channel turns ON, pulling the 3.3V node down to pure Ground.
 
 ---
 
@@ -109,15 +113,15 @@ Used to solve **hardware I2C address conflicts** when connecting multiple identi
 
 ### Key Engineering Benefits:
 1. **Dynamic Channel Selection**: The host MCU sends a single byte to the multiplexer address (`0x70`) to enable one or more downstream channels:
-   - Write `0x01` $\rightarrow$ Enables Channel 0 only.
-   - Write `0x02` $\rightarrow$ Enables Channel 1 only.
-2. **Capacitive Bus Segmentation**: Upstream and downstream bus segments are physically disconnected when disabled. If each downstream cable has $150\,\text{pF}$ of capacitance, the master only sees the capacitance of the currently active channel, keeping total bus capacitance safely below the $400\,\text{pF}$ specification.
+   - Write `0x01` -> Enables Channel 0 only.
+   - Write `0x02` -> Enables Channel 1 only.
+2. **Capacitive Bus Segmentation**: Upstream and downstream bus segments are physically disconnected when disabled. If each downstream cable has 150 pF of capacitance, the master only sees the capacitance of the currently active channel, keeping total bus capacitance safely below the 400 pF specification.
 
 ---
 
 ## 4. Long-Distance High-Capacitance I2C Bus Extender (NXP P82B715 / P82B96)
 
-Standard I2C drivers cannot drive cables longer than $1 \dots 2\,\text{meters}$ due to wire capacitance exceeding $400\,\text{pF}$. A dedicated **bidirectional bus buffer** scales drive current by $10\times$, extending range up to **$50\,\text{meters}$**:
+Standard I2C drivers cannot drive cables longer than 1 ... 2 meters due to wire capacitance exceeding 400 pF. A dedicated **bidirectional bus buffer** scales drive current by 10*, extending range up to **50 meters**:
 
 ```text
    Local 3.3V I2C Bus                                                   Long-Distance Buffered Bus (up to 50m)
@@ -139,6 +143,6 @@ Standard I2C drivers cannot drive cables longer than $1 \dots 2\,\text{meters}$ 
 ```
 
 ### Operating Principles:
-- The **Sx/Sy** pins interface directly with standard $400\,\text{pF}$ logic-level I2C devices.
-- The **Lx/Ly** buffered pins feature heavy current sink capability ($I_{OL} \ge 30\,\text{mA}$), allowing pull-up resistors as low as $330\,\Omega$ connected to an industrial $+12\,\text{V}$ rail.
+- The **Sx/Sy** pins interface directly with standard 400 pF logic-level I2C devices.
+- The **Lx/Ly** buffered pins feature heavy current sink capability (I_OL >= 30 mA), allowing pull-up resistors as low as 330 Ω connected to an industrial +12 V rail.
 - This slashes RC charge time constants, allowing transmission across multi-nanofarad industrial cables.

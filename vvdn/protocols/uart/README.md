@@ -11,7 +11,7 @@ Welcome to the **VVDN Engineering Hub UART Protocol Knowledge Base**. This docum
 Unlike synchronous buses (SPI, I2C) that transmit an explicit shared clock line, UART is strictly **asynchronous**:
 - **Point-to-Point Full-Duplex**: Independent Transmit (**TX**) and Receive (**RX**) lines permit simultaneous bidirectional communication.
 - **Clockless Transmission**: No clock line connects transmitter and receiver. Both devices must be independently configured to identical communication speeds (**Baud Rates**) prior to data exchange.
-- **Self-Synchronizing Start/Stop Framing**: Every character frame is framed by an active-LOW **Start bit** that triggers receiver local clock counters, followed by $5 \dots 9$ data bits, an optional **Parity bit**, and one or two active-HIGH **Stop bits**.
+- **Self-Synchronizing Start/Stop Framing**: Every character frame is framed by an active-LOW **Start bit** that triggers receiver local clock counters, followed by 5 ... 9 data bits, an optional **Parity bit**, and one or two active-HIGH **Stop bits**.
 
 ```text
        Transmitter (MCU #1)                                    Receiver (MCU #2)
@@ -28,7 +28,7 @@ Unlike synchronous buses (SPI, I2C) that transmit an explicit shared clock line,
 
 ## 2. Physical Layer Transceiver Standards
 
-While microcontrollers generate logic-level signals ($0\,\text{V} \dots 3.3\,\text{V}$ or $5\,\text{V}$ TTL/CMOS), UART frames are frequently translated by external transceiver ICs to withstand harsh industrial environments, severe common-mode offsets, and kilometer-length cables:
+While microcontrollers generate logic-level signals (0 V ... 3.3 V or 5 V TTL/CMOS), UART frames are frequently translated by external transceiver ICs to withstand harsh industrial environments, severe common-mode offsets, and kilometer-length cables:
 
 ```text
                                 Physical Transceiver Comparison
@@ -44,18 +44,18 @@ While microcontrollers generate logic-level signals ($0\,\text{V} \dots 3.3\,\te
 
 ### Detailed Electrical Profiles:
 1. **TTL / CMOS (Logic-Level UART)**:
-   - $0\,\text{V} = \text{Logic } 0$ (Space), $3.3\,\text{V} / 5\,\text{V} = \text{Logic } 1$ (Mark / Idle).
+   - 0 V = Logic 0 (Space), 3.3 V / 5 V = Logic 1 (Mark / Idle).
    - Low noise immunity; strictly intended for board-level chip-to-chip or USB-to-UART bridges (FT232R, CP2102, CH340).
 2. **RS-232 (EIA/TIA-232-F)**:
    - High-voltage bipolar inverted signaling:
-     - **Logic 0 (Space)**: $+3\,\text{V} \dots +15\,\text{V}$
-     - **Logic 1 (Mark / Idle)**: $-3\,\text{V} \dots -15\,\text{V}$
+     - **Logic 0 (Space)**: +3 V ... +15 V
+     - **Logic 1 (Mark / Idle)**: -3 V ... -15 V
    - Generated using internal charge-pump transceivers (MAX232, MAX3232). Provides superior noise margin over logic-level signals for PC COM ports and legacy test equipment.
 3. **RS-485 (EIA/TIA-485-A)**:
-   - Balanced differential signaling over twisted-pair lines ($A$ and $B$, or non-inverting $Y$ and inverting $Z$):
-     - **Logic 1 (Mark / Recessive)**: $V_A - V_B < -200\,\text{mV}$
-     - **Logic 0 (Space / Dominant)**: $V_A - V_B > +200\,\text{mV}$
-   - Handles $-7\,\text{V} \dots +12\,\text{V}$ ground potential differences across long factory cable runs. Requires $120\,\Omega$ termination resistors at both cable ends.
+   - Balanced differential signaling over twisted-pair lines (A and B, or non-inverting Y and inverting Z):
+     - **Logic 1 (Mark / Recessive)**: V_A - V_B < -200 mV
+     - **Logic 0 (Space / Dominant)**: V_A - V_B > +200 mV
+   - Handles -7 V ... +12 V ground potential differences across long factory cable runs. Requires 120 Ω termination resistors at both cable ends.
 
 ---
 
@@ -84,6 +84,6 @@ The UART knowledge base is structured into dedicated engineering dossiers:
 3. [**`uart-circuit-and-hardware-connections.md`**](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/uart/uart-circuit-and-hardware-connections.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/uart/uart-circuit-and-hardware-connections.docx)):
    - Practical circuit schematics: MCU-to-MCU cross-over, USB Type-C bridge (CP2102/FT232), full bipolar RS-232 transceiver (MAX3232), half-duplex RS-485 transceiver (MAX485/SN65HVD72), TVS surge protection, and BSS138 bidirectional 3.3V-to-5V level shifting.
 4. [**`baud-rate-calculations.md`**](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/uart/baud-rate-calculations.md) ([Word DOCX](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/uart/baud-rate-calculations.docx)):
-   - Baud rate vs bit rate physics, Baud Rate Generator (BRG) integer and fractional divider equations, 16x vs 8x oversampling trade-offs, cumulative clock error budget analysis ($<\pm 2.0\%$), and oscilloscope baud measurement.
+   - Baud rate vs bit rate physics, Baud Rate Generator (BRG) integer and fractional divider equations, 16x vs 8x oversampling trade-offs, cumulative clock error budget analysis (<± 2.0\%), and oscilloscope baud measurement.
 5. [**`tools/uart_calc.py`**](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/tools/uart_calc.py) / [**`tools/baud_calc.py`**](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/tools/baud_calc.py):
    - Command-line utilities to calculate BRG divisors, clock error percentages, frame timing budgets, payload throughput, and RS-485 cable turnaround budgets.

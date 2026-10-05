@@ -18,9 +18,9 @@ Unlike packetized network buses that include destination headers and CRCs in eve
 
 ### Frame Component Breakdown:
 1. **Idle State (Mark / Logic 1)**:
-   - When no transmission is active, the line is continuously held at positive supply voltage ($3.3\,\text{V}$ or $5\,\text{V}$). This confirms physical cable continuity. A disconnected or broken wire floating to $0\,\text{V}$ is immediately detectable as a fault condition.
+   - When no transmission is active, the line is continuously held at positive supply voltage (3.3 V or 5 V). This confirms physical cable continuity. A disconnected or broken wire floating to 0 V is immediately detectable as a fault condition.
 2. **Start Bit (Space / Logic 0, exactly 1 bit period)**:
-   - A high-to-low transition ($1 \rightarrow 0$) signals the beginning of a new frame.
+   - A high-to-low transition (1 -> 0) signals the beginning of a new frame.
    - It resynchronizes the receiver's internal baud rate counter for that character.
 3. **Data Bits (Typically 8 bits, configurable 5 to 9 bits)**:
    - Transmitted **LSB (Least Significant Bit, D0) first**, terminating with MSB (D7).
@@ -38,7 +38,7 @@ Unlike packetized network buses that include destination headers and CRCs in eve
 
 ## 2. Receiver Clock Recovery & 16x Oversampling Architecture
 
-Because no shared clock wire connects transmitter and receiver, UART receivers utilize an internal **$16\times$ (or $8\times$) oversampling clock** derived from the local peripheral bus clock to sample incoming bits precisely at their midpoints:
+Because no shared clock wire connects transmitter and receiver, UART receivers utilize an internal **16* (or 8*) oversampling clock** derived from the local peripheral bus clock to sample incoming bits precisely at their midpoints:
 
 ```text
                16x Oversampling Clock Cycles across One Bit Period
@@ -52,13 +52,13 @@ Because no shared clock wire connects transmitter and receiver, UART receivers u
 ```
 
 ### The Synchronization & Majority Voting Algorithm:
-1. **Falling Edge Detection**: The receiver continuously polls the RX line at the $16\times$ clock rate. When a high-to-low transition is detected, a counter starts.
+1. **Falling Edge Detection**: The receiver continuously polls the RX line at the 16* clock rate. When a high-to-low transition is detected, a counter starts.
 2. **Start Bit Verification**: At clock ticks 7, 8, and 9 (the mathematical center of the expected Start bit), the line state is sampled three times. If at least 2 of the 3 samples are Logic 0, the Start bit is validated. If not, the transition is rejected as a transient noise spike, and the receiver resets to the idle polling state.
 3. **Data Bit Sampling**: For each subsequent bit (D0 through Stop), the receiver counts 16 ticks from the center of the previous bit and takes **three consecutive samples at ticks 7, 8, and 9**.
 4. **Majority Voting Logic**:
-   - $\text{Bit Value} = (\text{Sample}_7 \land \text{Sample}_8) \lor (\text{Sample}_7 \land \text{Sample}_9) \lor (\text{Sample}_8 \land \text{Sample}_9)$
-   - If all three samples agree ($0-0-0$ or $1-1-1$), the bit is clean.
-   - If samples disagree ($2:1$ split, e.g., $1-0-1$), the majority value is accepted, but the hardware sets the **Noise Error (NE)** flag in the status register.
+   - Bit Value = (Sample_7 AND Sample_8) OR (Sample_7 AND Sample_9) OR (Sample_8 AND Sample_9)
+   - If all three samples agree (0-0-0 or 1-1-1), the bit is clean.
+   - If samples disagree (2:1 split, e.g., 1-0-1), the majority value is accepted, but the hardware sets the **Noise Error (NE)** flag in the status register.
 
 ---
 
@@ -78,7 +78,7 @@ Modern UART controllers (e.g., STM32 USART, TI eUSCI, Microchip PIC) monitor sig
 
 | Error Flag | Name | Physical Root Cause | Bench Troubleshooting Action |
 | :--- | :--- | :--- | :--- |
-| **FE** | **Framing Error** | Stop bit sampled as Logic 0 instead of Logic 1 | Baud rate mismatch $> 3\%$, clock jitter, or baud divisor miscalculation |
+| **FE** | **Framing Error** | Stop bit sampled as Logic 0 instead of Logic 1 | Baud rate mismatch > 3\%, clock jitter, or baud divisor miscalculation |
 | **ORE** | **Overrun Error** | New byte arrived before CPU/DMA read previous byte | CPU blocked in long ISR; switch to hardware FIFO or DMA circular buffer |
 | **PE** | **Parity Error** | XOR sum of data bits disagrees with received parity bit | Line electrical noise, EMI bursts, or mismatch in parity config (Even vs Odd)|
 | **NE / NF**| **Noise Flag** | Majority voting samples (ticks 7, 8, 9) were not unanimous | Ground loop bounce, long unshielded cables, missing pull-up resistors |
@@ -88,7 +88,7 @@ Modern UART controllers (e.g., STM32 USART, TI eUSCI, Microchip PIC) monitor sig
 ## 4. BREAK Signaling & Multi-Processor 9-Bit Addressing
 
 ### 1. BREAK Signaling (Physical Space Override):
-A **BREAK condition** occurs when the TX line is forcefully driven to **Logic 0 (Space) for longer than an entire frame duration** (typically $\ge 11 \dots 13$ bit times):
+A **BREAK condition** occurs when the TX line is forcefully driven to **Logic 0 (Space) for longer than an entire frame duration** (typically >= 11 ... 13 bit times):
 
 ```text
        Normal 8-N-1 Character                  BREAK Condition (Continuous Space)
@@ -98,7 +98,7 @@ A **BREAK condition** occurs when the TX line is forcefully driven to **Logic 0 
 ```
 - **Primary Uses**:
   - **LIN Bus Synchronization**: In automotive LIN (Local Interconnect Network), the master initiates every frame with a 13-bit minimum BREAK field to wake up slave nodes and reset slave state machines.
-  - **DMX512 Stage Lighting**: Lighting consoles precede 512-byte DMX universe frames with an $88\,\mu\text{s}$ BREAK to synchronize LED fixtures.
+  - **DMX512 Stage Lighting**: Lighting consoles precede 512-byte DMX universe frames with an 88 µs BREAK to synchronize LED fixtures.
   - **Modem / Debug Console Reset**: Terminal software sends a BREAK signal (Serial SysRq) to drop Linux into the kernel debugger or reboot a frozen microcontroller.
 
 ---
@@ -142,14 +142,14 @@ When a high-speed transmitter sends data faster than the receiving microcontroll
 ```
 
 ### Signal Definitions & Active-LOW Polarity:
-- **$\overline{\text{RTS}}$ (Request to Send / Ready to Receive)**: Driven by the receiver. When asserted LOW, it signals: *"My internal FIFO has space; you are authorized to send data."* When the receiver FIFO fills to its high-watermark threshold (e.g., $75\%$), it deasserts RTS (pulls it HIGH), forcing the transmitter to immediately pause.
-- **$\overline{\text{CTS}}$ (Clear to Send)**: Driven by the transmitter. The transmitter monitors CTS before shifting out each byte. If CTS is HIGH, the transmitter halts immediately between characters.
+- **NOT(RTS) (Request to Send / Ready to Receive)**: Driven by the receiver. When asserted LOW, it signals: *"My internal FIFO has space; you are authorized to send data."* When the receiver FIFO fills to its high-watermark threshold (e.g., 75\%), it deasserts RTS (pulls it HIGH), forcing the transmitter to immediately pause.
+- **NOT(CTS) (Clear to Send)**: Driven by the transmitter. The transmitter monitors CTS before shifting out each byte. If CTS is HIGH, the transmitter halts immediately between characters.
 
 ---
 
 ## 6. High-Throughput Buffering: DMA Circular Ring Buffer with IDLE Line Detection
 
-In production firmware, handling high-baud UART (e.g., $921.6\,\text{kbps}$ or $1\,\text{Mbps}$) via byte-by-byte interrupts (`RXNE`) will saturate CPU interrupt bandwidth ($100,000\,\text{ISRs/sec}$). The industry standard architecture combines **Direct Memory Access (DMA)** in **Circular Mode** with **IDLE Line Interrupts**:
+In production firmware, handling high-baud UART (e.g., 921.6 kbps or 1 Mbps) via byte-by-byte interrupts (`RXNE`) will saturate CPU interrupt bandwidth (100,000 ISRs/sec). The industry standard architecture combines **Direct Memory Access (DMA)** in **Circular Mode** with **IDLE Line Interrupts**:
 
 ```text
        Incoming Serial Bytes (Streamed by DMA directly into SRAM without CPU intervention!)
@@ -171,5 +171,7 @@ In production firmware, handling high-baud UART (e.g., $921.6\,\text{kbps}$ or $
    - The UART hardware instantly triggers a single **IDLE Line Interrupt**.
 3. **Variable-Length Packet Processing**:
    - In the IDLE ISR, the CPU reads the remaining DMA counter register (`CNDTR`), calculates exactly how many bytes arrived in the burst:
-     $$\text{Bytes Received} = \text{Buffer Size} - \text{DMA\_CNDTR}$$
+     ```
+Bytes Received = Buffer Size - DMA_CNDTR
+```
    - The CPU dispatches the packet to application processing and updates buffer pointers in mere microseconds!

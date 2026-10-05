@@ -73,11 +73,11 @@ This repository is partitioned into dedicated domain directories, each containin
 
 | Conversion Class | Typical Topologies | Power Range | Typical Efficiency | Dominant Semiconductor | Target Applications |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **DC-DC Isolated** | Flyback, Forward, DAB, LLC, PSFB | $5\,\text{W} \dots 50\,\text{kW}$ | $88\% \dots 98\%$ | MOSFET / SiC / GaN | EV On-board Chargers, Server PSUs, Telecom bricks |
-| **DC-DC Non-Isolated**| Buck, Boost, Buck-Boost, Cuk, SEPIC | $1\,\text{W} \dots 5\,\text{kW}$ | $92\% \dots 98.5\%$ | Low-$R_{DS(on)}$ Trench FET | Point-of-Load (PoL), Battery chargers, LED drivers |
-| **AC-AC Direct** | Cycloconverter, AC Voltage Controller | $1\,\text{kW} \dots 20\,\text{MW}$ | $95\% \dots 99\%$ | Phase-Control Thyristor / TRIAC | Heavy industrial grinding mills, soft starters, dimmers |
-| **DC-AC Inverters** | 1-Phase & 3-Phase VSI, SVPWM | $500\,\text{W} \dots 1\,\text{MW}$ | $95\% \dots 99\%$ | IGBT / SiC MOSFET | EV Traction Inverters, Solar Grid-Tie, Motor Drives |
-| **AC-DC Rectifiers** | Diode Bridge, Active Boost PFC | $10\,\text{W} \dots 500\,\text{kW}$ | $90\% \dots 98.5\%$ | Diode / Fast Recovery / SiC | Power supplies, EV DC Fast Chargers, Industrial DC bus |
+| **DC-DC Isolated** | Flyback, Forward, DAB, LLC, PSFB | 5 W ... 50 kW | 88\% ... 98\% | MOSFET / SiC / GaN | EV On-board Chargers, Server PSUs, Telecom bricks |
+| **DC-DC Non-Isolated**| Buck, Boost, Buck-Boost, Cuk, SEPIC | 1 W ... 5 kW | 92\% ... 98.5\% | Low-R_DS(on) Trench FET | Point-of-Load (PoL), Battery chargers, LED drivers |
+| **AC-AC Direct** | Cycloconverter, AC Voltage Controller | 1 kW ... 20 MW | 95\% ... 99\% | Phase-Control Thyristor / TRIAC | Heavy industrial grinding mills, soft starters, dimmers |
+| **DC-AC Inverters** | 1-Phase & 3-Phase VSI, SVPWM | 500 W ... 1 MW | 95\% ... 99\% | IGBT / SiC MOSFET | EV Traction Inverters, Solar Grid-Tie, Motor Drives |
+| **AC-DC Rectifiers** | Diode Bridge, Active Boost PFC | 10 W ... 500 kW | 90\% ... 98.5\% | Diode / Fast Recovery / SiC | Power supplies, EV DC Fast Chargers, Industrial DC bus |
 
 ---
 

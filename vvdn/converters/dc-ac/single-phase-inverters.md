@@ -29,8 +29,8 @@ The Half-Bridge inverter employs two switches and a split DC bus capacitor divid
             │ Source (S)                  │                   │             │
    GND ─────┴─────────────────────────────┴───────────────────┴─────────────┴─── GND
 ```
-- **Output Swing**: Node A swings between $+V_{dc}/2$ and $-V_{dc}/2$ relative to the neutral point.
-- **Limitation**: The maximum peak fundamental AC voltage is $\hat{V}_{ac} = \frac{V_{dc}}{2}$. To generate $230\,\text{V}_{rms}$ ($325\,\text{V}_{peak}$), a DC bus of at least $650\,\text{V} \dots 700\,\text{V}$ is required.
+- **Output Swing**: Node A swings between +V_dc/2 and -V_dc/2 relative to the neutral point.
+- **Limitation**: The maximum peak fundamental AC voltage is V_pk_ac = V_dc / 2. To generate 230 V_rms (325 V_peak), a DC bus of at least 650 V ... 700 V is required.
 
 ---
 
@@ -86,34 +86,34 @@ The Full-Bridge topology utilizes four switches in two bridge legs (Leg A and Le
 
 | Net Name | Source (Pin / Terminal) | Destination (Pin / Terminal) | Electrical Function | Hardware Engineering Notes |
 | :--- | :--- | :--- | :--- | :--- |
-| **+VDC_BUS** | DC Source / PFC Pre-Regulator | $C_{bus}$ (+), $Q_1$ Drain, $Q_3$ Drain | High-voltage stiff DC link | Symmetrical high-frequency film bypass capacitors placed directly across each phase leg. |
-| **SW_A (Leg A Mid)** | $Q_1$ Source, $Q_2$ Drain | Sine Filter Inductor $L_{f1}$ Pin 1 | High-speed PWM leg A switching node | Swings between $0\,\text{V}$ and $+400\,\text{V}$ at carrier frequency $f_c = 20\,\text{kHz}$; high $dv/dt$ node. |
-| **SW_B (Leg B Mid)** | $Q_3$ Source, $Q_4$ Drain | Sine Filter Inductor $L_{f2}$ Pin 1 | High-speed PWM leg B switching node | Swings between $0\,\text{V}$ and $+400\,\text{V}$; differential voltage $v_{AB} = v_{SW\_A} - v_{SW\_B}$. |
-| **AC_LINE (L)** | Filter Inductor $L_{f1}$ Pin 2 | AC Output Terminal 1, Filter Cap $C_f$ Terminal 1 | Pure sinusoidal AC line rail | Fundamental $230\,\text{V}_{\text{RMS}}, 50\,\text{Hz}$ sine wave; carrier ripple attenuated by $> 40\,\text{dB}$. |
-| **AC_NEUT (N)** | Filter Inductor $L_{f2}$ Pin 2 | AC Output Terminal 2, Filter Cap $C_f$ Terminal 2 | Pure sinusoidal AC neutral rail | Symmetrical inductor $L_{f2}$ ensures balanced common-mode emission attenuation to Earth. |
-| **GND_DC** | $Q_2$ Source, $Q_4$ Source, $C_{bus}$ (-) | DC link return plane | High-current circulating DC ground | Heavy ground copper plane on internal PCB Layer 2. |
+| **+VDC_BUS** | DC Source / PFC Pre-Regulator | C_bus (+), Q_1 Drain, Q_3 Drain | High-voltage stiff DC link | Symmetrical high-frequency film bypass capacitors placed directly across each phase leg. |
+| **SW_A (Leg A Mid)** | Q_1 Source, Q_2 Drain | Sine Filter Inductor L_f1 Pin 1 | High-speed PWM leg A switching node | Swings between 0 V and +400 V at carrier frequency f_c = 20 kHz; high dv/dt node. |
+| **SW_B (Leg B Mid)** | Q_3 Source, Q_4 Drain | Sine Filter Inductor L_f2 Pin 1 | High-speed PWM leg B switching node | Swings between 0 V and +400 V; differential voltage v_AB = v_SW_A - v_SW_B. |
+| **AC_LINE (L)** | Filter Inductor L_f1 Pin 2 | AC Output Terminal 1, Filter Cap C_f Terminal 1 | Pure sinusoidal AC line rail | Fundamental 230 V_RMS, 50 Hz sine wave; carrier ripple attenuated by > 40 dB. |
+| **AC_NEUT (N)** | Filter Inductor L_f2 Pin 2 | AC Output Terminal 2, Filter Cap C_f Terminal 2 | Pure sinusoidal AC neutral rail | Symmetrical inductor L_f2 ensures balanced common-mode emission attenuation to Earth. |
+| **GND_DC** | Q_2 Source, Q_4 Source, C_bus (-) | DC link return plane | High-current circulating DC ground | Heavy ground copper plane on internal PCB Layer 2. |
 
 ### 1.3 Component Bill of Materials & Parametric Specifications:
 
 | RefDes | Component Description | Manufacturer & Part Number | Key Electrical Specifications | Critical Design Constraint |
 | :--- | :--- | :--- | :--- | :--- |
-| **$Q_1 \dots Q_4$** | High-Voltage N-MOSFETs | Infineon IPW65R041CFD7 | $V_{DS} = 650\,\text{V}, I_D = 50\,\text{A}, R_{DS(on)} = 41\,\text{m}\Omega, Q_{rr} = 570\,\text{nC}$ | Integrated fast body diode prevents destructive latchup during inductive freewheeling dead-time. |
-| **$L_{f1}, L_{f2}$** | AC Sine Filter Inductors | Custom Sendust Core (CS468125) | $2 \times 1.5\,\text{mH}, I_{rated} = 20\,\text{A}, DCR = 12\,\text{m}\Omega$ | Low-loss powder core prevents thermal saturation under full $3\,\text{kVA}$ rated load current ($I_{rms} = 13\,\text{A}$). |
-| **$C_f$** | Differential AC Filter Cap | KEMET R46KR447000M2M | $4.7\,\mu\text{F}, 310\,\text{V}_{\text{AC}}, \text{Metallized Polypropylene Film}$ | Handles continuous $50\,\text{Hz}$ AC reactive currents with negligible dissipation factor ($\tan \delta < 0.001$). |
-| **$C_{bus,bulk}$** | DC Link Bulk Capacitor | Nichicon LGN2W681MELC | $680\,\mu\text{F}, 450\,\text{V}_{\text{DC}}, 105^\circ\text{C}, ESR = 0.12\,\Omega$ | Absorbs double grid-frequency ($100\,\text{Hz}$) pulsating power delivered to single-phase AC loads ($P(t) = P_o [1 - \cos 2\omega t]$). |
-| **$U_{drv1}, U_{drv2}$**| High-Voltage Half-Bridge Drivers| TI UCC27282DR | $120\,\text{V} / 650\,\text{V}, 3\,\text{A}$ sink / source, robust $-5\,\text{V}$ negative swing | Built-in shoot-through protection and $150\,\text{ns}$ dead-time prevents rail-to-rail shoot-through. |
-| **$U_{sense}$** | Closed-Loop Current Sensor | LEM CASR 15-NP | Nominal $15\,\text{A}_{\text{RMS}}$, bandwidth DC to $300\,\text{kHz}$, isolated | Provides fast current feedback to DSP for instantaneous current limiting and overcurrent trip. |
+| **Q_1 ... Q_4** | High-Voltage N-MOSFETs | Infineon IPW65R041CFD7 | V_DS = 650 V, I_D = 50 A, R_DS(on) = 41 mΩ, Q_rr = 570 nC | Integrated fast body diode prevents destructive latchup during inductive freewheeling dead-time. |
+| **L_f1, L_f2** | AC Sine Filter Inductors | Custom Sendust Core (CS468125) | 2 * 1.5 mH, I_rated = 20 A, DCR = 12 mΩ | Low-loss powder core prevents thermal saturation under full 3 kVA rated load current (I_rms = 13 A). |
+| **C_f** | Differential AC Filter Cap | KEMET R46KR447000M2M | 4.7 µF, 310 V_AC, Metallized Polypropylene Film | Handles continuous 50 Hz AC reactive currents with negligible dissipation factor (tan δ < 0.001). |
+| **C_bus,bulk** | DC Link Bulk Capacitor | Nichicon LGN2W681MELC | 680 µF, 450 V_DC, 105°C, ESR = 0.12 Ω | Absorbs double grid-frequency (100 Hz) pulsating power delivered to single-phase AC loads (P(t) = P_o [1 - cos 2ω t]). |
+| **U_drv1, U_drv2**| High-Voltage Half-Bridge Drivers| TI UCC27282DR | 120 V / 650 V, 3 A sink / source, robust -5 V negative swing | Built-in shoot-through protection and 150 ns dead-time prevents rail-to-rail shoot-through. |
+| **U_sense** | Closed-Loop Current Sensor | LEM CASR 15-NP | Nominal 15 A_RMS, bandwidth DC to 300 kHz, isolated | Provides fast current feedback to DSP for instantaneous current limiting and overcurrent trip. |
 
-- **Output Swing**: Differential voltage $v_{AB} = v_A - v_B$ swings across three discrete levels: $+V_{dc}$, $0\,\text{V}$, and $-V_{dc}$.
-- **Advantage**: Peak AC output voltage equals full $V_{dc}$ ($\hat{V}_{ac} = V_{dc}$), requiring only half the DC bus voltage of a half bridge ($V_{dc} \approx 350\,\text{V} \dots 400\,\text{V}$ for $230\,\text{V}_{rms}$).
+- **Output Swing**: Differential voltage v_AB = v_A - v_B swings across three discrete levels: +V_dc, 0 V, and -V_dc.
+- **Advantage**: Peak AC output voltage equals full V_dc (V_pk_ac = V_dc), requiring only half the DC bus voltage of a half bridge (V_dc ≈ 350 V ... 400 V for 230 V_rms).
 
 ---
 
 ## 2. Modulation Techniques: Bipolar vs. Unipolar SPWM
 
-In **Sinusoidal Pulse-Width Modulation (SPWM)**, a high-frequency triangular carrier wave $v_{tri}(t)$ at switching frequency $f_c$ is compared against a low-frequency reference sine wave $v_{ref}(t)$ at grid frequency $f_m$ ($50\,\text{Hz}$):
-- Amplitude Modulation Index: $m_a = \frac{\hat{V}_{ref}}{\hat{V}_{tri}} \quad (0 \le m_a \le 1)$
-- Frequency Modulation Ratio: $m_f = \frac{f_c}{f_m}$
+In **Sinusoidal Pulse-Width Modulation (SPWM)**, a high-frequency triangular carrier wave v_tri(t) at switching frequency f_c is compared against a low-frequency reference sine wave v_ref(t) at grid frequency f_m (50 Hz):
+- Amplitude Modulation Index: m_a = V_pk_ref / V_pk_tri (0 <= m_a <= 1)
+- Frequency Modulation Ratio: m_f = f_c / f_m
 
 ```text
                   Bipolar SPWM vs. Unipolar SPWM Output Waveforms
@@ -135,39 +135,43 @@ In **Sinusoidal Pulse-Width Modulation (SPWM)**, a high-frequency triangular car
 ```
 
 ### 2.1 Bipolar SPWM:
-- Diagonal switch pairs are driven simultaneously: $(S_1, S_4)$ ON together, or $(S_2, S_3)$ ON together.
-- Output voltage $v_{AB}$ switches violently between $+V_{dc}$ and $-V_{dc}$.
-- The dominant harmonic cluster appears around **carrier frequency $f_c$**.
-- High $dv/dt$ stress and requires a large output filter inductor.
+- Diagonal switch pairs are driven simultaneously: (S_1, S_4) ON together, or (S_2, S_3) ON together.
+- Output voltage v_AB switches violently between +V_dc and -V_dc.
+- The dominant harmonic cluster appears around **carrier frequency f_c**.
+- High dv/dt stress and requires a large output filter inductor.
 
 ### 2.2 Unipolar SPWM (The Modern Standard):
-- Bridge legs are modulated with two $180^\circ$ phase-opposed reference waves:
-  - Leg A compares $v_{ref}(t)$ with $v_{tri}(t)$.
-  - Leg B compares $-v_{ref}(t)$ with $v_{tri}(t)$.
-- During the positive AC half-cycle, $v_{AB}$ alternates smoothly between **$+V_{dc}$ and $0\,\text{V}$**.
-- During the negative AC half-cycle, $v_{AB}$ alternates smoothly between **$0\,\text{V}$ and $-V_{dc}$**.
-- **Harmonic Doubling Feature**: The switching frequency ripple in Leg A and Leg B cancels differentially. The first major harmonic band appears at **$2 \cdot f_c$**!
-  - For a $20\,\text{kHz}$ MOSFET switching frequency, the output filter only needs to attenuate ripple starting at **$40\,\text{kHz}$**, dramatically reducing inductor size and core losses.
+- Bridge legs are modulated with two 180° phase-opposed reference waves:
+  - Leg A compares v_ref(t) with v_tri(t).
+  - Leg B compares -v_ref(t) with v_tri(t).
+- During the positive AC half-cycle, v_AB alternates smoothly between **+V_dc and 0 V**.
+- During the negative AC half-cycle, v_AB alternates smoothly between **0 V and -V_dc**.
+- **Harmonic Doubling Feature**: The switching frequency ripple in Leg A and Leg B cancels differentially. The first major harmonic band appears at **2 * f_c**!
+  - For a 20 kHz MOSFET switching frequency, the output filter only needs to attenuate ripple starting at **40 kHz**, dramatically reducing inductor size and core losses.
 
 ---
 
 ## 3. Mathematical Formulations & Harmonic Spectrum
 
 ### 3.1 Fundamental Output Voltage:
-In the linear modulation range ($m_a \le 1.0$):
-$$\hat{V}_{fund} = m_a \cdot V_{dc} \implies V_{rms,fund} = \frac{m_a \cdot V_{dc}}{\sqrt{2}} \approx 0.707 \cdot m_a \cdot V_{dc}$$
+In the linear modulation range (m_a <= 1.0):
+```
+V_pk_fund = m_a * V_dc => V_rms,fund = (m_a * V_dc) / sqrt(2) ≈ 0.707 * m_a * V_dc
+```
 
 ### 3.2 Total Harmonic Distortion (THD) Standards:
-$$\text{THD}_v = \frac{\sqrt{\sum_{h=2}^{\infty} V_h^2}}{V_1} \times 100\%$$
+```
+THD_v = (sqrt(Sum(h=2 to inf) V_h^2)) / V_1 * 100\%
+```
 - Grid-tied standards (**IEEE 519 / IEC 61000-3-2**) mandate:
-  - Individual voltage harmonics: $\le 3\%$
-  - Total Voltage THD: $\le 5\%$
+  - Individual voltage harmonics: <= 3\%
+  - Total Voltage THD: <= 5\%
 
 ---
 
 ## 4. LC Output Low-Pass Filter Design
 
-To transform the high-frequency pulsed PWM waveform into a clean $50\,\text{Hz}$ sine wave with $\text{THD} < 2\%$, a second-order LC low-pass filter is required:
+To transform the high-frequency pulsed PWM waveform into a clean 50 Hz sine wave with THD < 2\%, a second-order LC low-pass filter is required:
 
 ```text
                              LC Low-Pass Filter Topology
@@ -182,35 +186,55 @@ To transform the high-frequency pulsed PWM waveform into a clean $50\,\text{Hz}$
 ```
 
 ### 4.1 Filter Cutoff Frequency Selection:
-The corner frequency $f_{cut}$ must be positioned comfortably between the fundamental line frequency ($f_m$) and the effective switching frequency ($f_{sw,eff} = 2 f_c$ for unipolar):
-$$10 \cdot f_m \le f_{cut} \le \frac{1}{5} \cdot f_{sw,eff}$$
-$$f_{cut} = \frac{1}{2\pi \sqrt{L_f \cdot C_f}}$$
+The corner frequency f_cut must be positioned comfortably between the fundamental line frequency (f_m) and the effective switching frequency (f_sw,eff = 2 f_c for unipolar):
+```
+10 * f_m <= f_cut <= 1 / 5 * f_sw,eff
+```
+```
+f_cut = 1 / (2π sqrt(L_f * C_f))
+```
 
-### 4.2 Inductor Sizing ($L_f$):
-The filter inductor limits the high-frequency ripple current. To restrict peak-to-peak ripple $\Delta I_L$ to $20\% \dots 30\%$ of rated peak load current $I_{pk}$:
-$$L_f \ge \frac{V_{dc}}{8 \cdot f_{sw,eff} \cdot \Delta I_L}$$
+### 4.2 Inductor Sizing (L_f):
+The filter inductor limits the high-frequency ripple current. To restrict peak-to-peak ripple Δ I_L to 20\% ... 30\% of rated peak load current I_pk:
+```
+L_f >= V_dc / (8 * f_sw,eff * Δ I_L)
+```
 
-### 4.3 Capacitor Sizing ($C_f$):
-The capacitor must attenuate switching frequency harmonics without drawing excessive reactive VAR current at the fundamental frequency ($Q_{cap} \le 5\% \cdot S_{rated}$):
-$$C_f \le \frac{0.05 \cdot P_{rated}}{2\pi \cdot f_m \cdot V_{ac,rms}^2}$$
+### 4.3 Capacitor Sizing (C_f):
+The capacitor must attenuate switching frequency harmonics without drawing excessive reactive VAR current at the fundamental frequency (Q_cap <= 5\% * S_rated):
+```
+C_f <= (0.05 * P_rated) / (2π * f_m * V_ac,rms^2)
+```
 And satisfies the corner frequency requirement:
-$$C_f = \frac{1}{(2\pi f_{cut})^2 \cdot L_f}$$
+```
+C_f = 1 / ((2π f_cut)^2 * L_f)
+```
 *Component Rule*: Always specify low-dissipation-factor Metalized Polypropylene (MKP) film capacitors rated for continuous AC voltage (X2 / Snubber grade).
 
 ---
 
 ## 5. Practical Design Example: 3 kW 230V/50Hz Solar Inverter
 
-- **DC Bus Voltage**: $V_{dc} = 400\,\text{V}$
-- **Output Rating**: $V_o = 230\,\text{V}_{rms}$, $50\,\text{Hz}$, $P_o = 3000\,\text{W}$ ($I_{rms} = 13.04\,\text{A}$, $I_{pk} = 18.44\,\text{A}$)
-- **Switching Frequency**: $f_c = 25\,\text{kHz}$ (Unipolar SPWM $\implies f_{sw,eff} = 50\,\text{kHz}$)
+- **DC Bus Voltage**: V_dc = 400 V
+- **Output Rating**: V_o = 230 V_rms, 50 Hz, P_o = 3000 W (I_rms = 13.04 A, I_pk = 18.44 A)
+- **Switching Frequency**: f_c = 25 kHz (Unipolar SPWM => f_sw,eff = 50 kHz)
 - **Modulation Index**:
-  $$m_a = \frac{\sqrt{2} \cdot 230\,\text{V}}{400\,\text{V}} = \frac{325.3\,\text{V}}{400\,\text{V}} \approx 0.813$$
-- **Inductor Sizing ($\Delta I_L = 20\% \cdot I_{pk} = 3.69\,\text{A}$)**:
-  $$L_f = \frac{400\,\text{V}}{8 \cdot 50\,000\,\text{Hz} \cdot 3.69\,\text{A}} \approx 0.271\,\text{mH} \implies \text{Select } 0.33\,\text{mH}$$
+  ```
+m_a = (sqrt(2) * 230 V) / 400 V = 325.3 V / 400 V ≈ 0.813
+```
+- **Inductor Sizing (Δ I_L = 20\% * I_pk = 3.69 A)**:
+  ```
+L_f = 400 V / (8 * 50 000 Hz * 3.69 A) ≈ 0.271 mH => Select 0.33 mH
+```
 - **Corner Frequency Selection**:
-  $$f_{cut} = 2.5\,\text{kHz} \quad (10 \cdot 50\,\text{Hz} \ll 2.5\,\text{kHz} \ll 50\,\text{kHz})$$
+  ```
+f_cut = 2.5 kHz (10 * 50 Hz << 2.5 kHz << 50 kHz)
+```
 - **Capacitor Sizing**:
-  $$C_f = \frac{1}{(2\pi \cdot 2500)^2 \cdot 0.33 \cdot 10^{-3}} \approx 12.3\,\mu\text{F} \implies \text{Select } 10\,\mu\text{F / 300VAC MKP}$$
+  ```
+C_f = 1 / ((2π * 2500)^2 * 0.33 * 10^-3) ≈ 12.3 µF => Select 10 µF / 300VAC MKP
+```
 - **Reactive VAR Verification**:
-  $$Q_c = 2\pi \cdot 50 \cdot 10\,\mu\text{F} \cdot (230\,\text{V})^2 \approx 166\,\text{VAR} \quad \left(\frac{166}{3000} \approx 5.5\% \text{ of rated power - fully compliant}\right)$$
+  ```
+Q_c = 2π * 50 * 10 µF * (230 V)^2 ≈ 166 VAR (166 / 3000 ≈ 5.5\% of rated power - fully compliant)
+```

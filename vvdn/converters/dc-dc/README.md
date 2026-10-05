@@ -28,34 +28,34 @@ Welcome to the **VVDN Engineering Hub DC-DC Converters Knowledge Base**. This mo
 
 ## 2. Comprehensive Topology Benchmark & Comparison Matrix
 
-| Topology | Isolation? | Voltage Gain ($\frac{V_{OUT}}{V_{IN}}$) | Power Spectrum | Switch Voltage Stress ($V_{sw}$) | Switch Current Stress ($I_{sw}$) | Magnetic Core Utilization | Target Applications |
+| Topology | Isolation? | Voltage Gain (V_OUT / V_IN) | Power Spectrum | Switch Voltage Stress (V_sw) | Switch Current Stress (I_sw) | Magnetic Core Utilization | Target Applications |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Buck** | No | $D$ | $1\,\text{W} \dots 2\,\text{kW}$ | $V_{IN}$ | $I_{OUT}$ | Single inductor, DC bias | PoL, CPU VRM, battery chargers |
-| **Boost** | No | $\frac{1}{1 - D}$ | $5\,\text{W} \dots 5\,\text{kW}$ | $V_{OUT}$ | $\frac{I_{OUT}}{1 - D}$ | Single inductor, DC bias | PFC pre-regulators, Solar boost, LED |
-| **Buck-Boost** | No | $-\frac{D}{1 - D}$ | $5\,\text{W} \dots 500\,\text{W}$ | $V_{IN} + V_{OUT}$ | $\frac{I_{OUT}}{1 - D}$ | Single inductor, DC bias | Automotive battery systems, Handhelds |
-| **Cuk** | No | $-\frac{D}{1 - D}$ | $10\,\text{W} \dots 1\,\text{kW}$ | $V_{IN} + V_{OUT}$ | $\frac{I_{OUT}}{1 - D}$ | Dual inductors (can couple)| Low-noise bipolar rails, audio |
-| **SEPIC** | No | $\frac{D}{1 - D}$ | $5\,\text{W} \dots 500\,\text{W}$ | $V_{IN} + V_{OUT}$ | $\frac{I_{OUT}}{1 - D}$ | Dual inductors / coupled | Battery-powered devices, LED drivers |
-| **Zeta** | No | $\frac{D}{1 - D}$ | $5\,\text{W} \dots 500\,\text{W}$ | $V_{IN} + V_{OUT}$ | $\frac{I_{OUT}}{1 - D}$ | Dual inductors / coupled | Telecom low-ripple supplies |
-| **Flyback** | Yes | $n \cdot \frac{D}{1 - D}$ | $1\,\text{W} \dots 150\,\text{W}$ | $V_{IN} + n V_{OUT}$ | $\frac{I_{OUT}}{n(1 - D)}$ | Unipolar coupled inductor | Standby supplies, AC adapters, Gate bias |
-| **Forward** | Yes | $n \cdot D$ ($D < 0.5$) | $50\,\text{W} \dots 500\,\text{W}$ | $2 V_{IN}$ (1-switch) | $\frac{n I_{OUT}}{D}$ | Unipolar transformer + reset| Industrial telecom bricks, DC-DC isolated |
-| **Push-Pull** | Yes | $2n \cdot D$ | $100\,\text{W} \dots 1.5\,\text{kW}$ | $2 V_{IN}$ | $n I_{OUT}$ | Bipolar (Symmetric quadrants) | 12V/24V inverters, automotive DC-DC |
-| **Half-Bridge**| Yes | $n \cdot D$ | $100\,\text{W} \dots 1.5\,\text{kW}$ | $V_{IN}$ | $2n I_{OUT}$ | Bipolar (Symmetric quadrants) | PC power supplies, server auxiliary |
-| **Full-Bridge**| Yes | $2n \cdot D$ (PSFB) | $1\,\text{kW} \dots 20\,\text{kW}$ | $V_{IN}$ | $n I_{OUT}$ | Bipolar (Symmetric quadrants) | EV fast charging, industrial welders |
-| **Dual Active Bridge**| Yes | $n \cdot \frac{\phi(\pi - |\phi|)}{\pi^2 f L}$ | $1\,\text{kW} \dots 100\,\text{kW}$ | $V_{IN}$ / $V_{OUT}$ | Continuous AC peak | Bipolar AC transformer | Solid-state transformers, V2G EV chargers |
-| **LLC Resonant**| Yes | $n \cdot M(f_n, Q, k)$ | $100\,\text{W} \dots 10\,\text{kW}$ | $V_{IN}$ (ZVS turn-on) | Resonant sinusoidal | Bipolar resonant transformer | Server PSUs, Flat-panel TV, EV OBC |
+| **Buck** | No | D | 1 W ... 2 kW | V_IN | I_OUT | Single inductor, DC bias | PoL, CPU VRM, battery chargers |
+| **Boost** | No | 1 / (1 - D) | 5 W ... 5 kW | V_OUT | I_OUT / (1 - D) | Single inductor, DC bias | PFC pre-regulators, Solar boost, LED |
+| **Buck-Boost** | No | -D / (1 - D) | 5 W ... 500 W | V_IN + V_OUT | I_OUT / (1 - D) | Single inductor, DC bias | Automotive battery systems, Handhelds |
+| **Cuk** | No | -D / (1 - D) | 10 W ... 1 kW | V_IN + V_OUT | I_OUT / (1 - D) | Dual inductors (can couple)| Low-noise bipolar rails, audio |
+| **SEPIC** | No | D / (1 - D) | 5 W ... 500 W | V_IN + V_OUT | I_OUT / (1 - D) | Dual inductors / coupled | Battery-powered devices, LED drivers |
+| **Zeta** | No | D / (1 - D) | 5 W ... 500 W | V_IN + V_OUT | I_OUT / (1 - D) | Dual inductors / coupled | Telecom low-ripple supplies |
+| **Flyback** | Yes | n * D / (1 - D) | 1 W ... 150 W | V_IN + n V_OUT | I_OUT / (n(1 - D)) | Unipolar coupled inductor | Standby supplies, AC adapters, Gate bias |
+| **Forward** | Yes | n * D (D < 0.5) | 50 W ... 500 W | 2 V_IN (1-switch) | (n I_OUT) / D | Unipolar transformer + reset| Industrial telecom bricks, DC-DC isolated |
+| **Push-Pull** | Yes | 2n * D | 100 W ... 1.5 kW | 2 V_IN | n I_OUT | Bipolar (Symmetric quadrants) | 12V/24V inverters, automotive DC-DC |
+| **Half-Bridge**| Yes | n * D | 100 W ... 1.5 kW | V_IN | 2n I_OUT | Bipolar (Symmetric quadrants) | PC power supplies, server auxiliary |
+| **Full-Bridge**| Yes | 2n * D (PSFB) | 1 kW ... 20 kW | V_IN | n I_OUT | Bipolar (Symmetric quadrants) | EV fast charging, industrial welders |
+| **Dual Active Bridge**| Yes | n * (φ(π - |φ|)) / (π^2 f L) | 1 kW ... 100 kW | V_IN / V_OUT | Continuous AC peak | Bipolar AC transformer | Solid-state transformers, V2G EV chargers |
+| **LLC Resonant**| Yes | n * M(f_n, Q, k) | 100 W ... 10 kW | V_IN (ZVS turn-on) | Resonant sinusoidal | Bipolar resonant transformer | Server PSUs, Flat-panel TV, EV OBC |
 
 ---
 
 ## 3. Directory Navigation & Technical Dossiers
 
 ### Isolated DC-DC Topologies:
-- [**`isolated/forward-converter.md`**](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/converters/dc-dc/isolated/forward-converter.md): Forward converter operating mechanics, tertiary demagnetizing winding reset, two-switch forward, output inductor filter, and duty-cycle constraints ($D < 50\%$).
+- [**`isolated/forward-converter.md`**](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/converters/dc-dc/isolated/forward-converter.md): Forward converter operating mechanics, tertiary demagnetizing winding reset, two-switch forward, output inductor filter, and duty-cycle constraints (D < 50\%).
 - [**`isolated/flyback-converter.md`**](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/converters/dc-dc/isolated/flyback-converter.md): Flyback coupled inductor, Discontinuous (DCM) vs Continuous (CCM) conduction, RCD clamp snubber calculation, and multi-output isolated generation.
 - [**`isolated/dual-active-bridge.md`**](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/converters/dc-dc/isolated/dual-active-bridge.md): Dual Active Bridge (DAB) bidirectional power conversion, single/dual/triple phase-shift modulation (SPS/DPS/TPS), leakage inductance energy transfer, and Zero-Voltage Switching (ZVS) boundaries.
 - [**`isolated/full-bridge-converter.md`**](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/converters/dc-dc/isolated/full-bridge-converter.md): Phase-Shifted Full-Bridge (PSFB), diagonal vs phase-shift modulation, soft-switching ZVS mechanisms, secondary diode ringing, and active clamp snubbers.
-- [**`isolated/half-bridge-converter.md`**](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/converters/dc-dc/isolated/half-bridge-converter.md): Isolated half-bridge DC-DC converter, capacitive voltage divider, automatic core volt-second balancing, and switch voltage clamping to $V_{IN}$.
+- [**`isolated/half-bridge-converter.md`**](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/converters/dc-dc/isolated/half-bridge-converter.md): Isolated half-bridge DC-DC converter, capacitive voltage divider, automatic core volt-second balancing, and switch voltage clamping to V_IN.
 - [**`isolated/push-pull-converter.md`**](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/converters/dc-dc/isolated/push-pull-converter.md): Push-pull topology, center-tapped transformer, ground-referenced primary low-side switches, core saturation / flux walking hazard and active balance control.
-- [**`isolated/resonant-converters.md`**](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/converters/dc-dc/isolated/resonant-converters.md): **[HIGH IMPORTANCE]** Deep dive into Series Resonant (SRC), Parallel Resonant (PRC), and LLC Resonant Half-Bridge converters. Resonant tank impedance ($Z_r$), quality factor ($Q$), inductance ratio ($k$), normalized voltage gain curves, and complete ZVS/ZCS design procedures.
+- [**`isolated/resonant-converters.md`**](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/converters/dc-dc/isolated/resonant-converters.md): **[HIGH IMPORTANCE]** Deep dive into Series Resonant (SRC), Parallel Resonant (PRC), and LLC Resonant Half-Bridge converters. Resonant tank impedance (Z_r), quality factor (Q), inductance ratio (k), normalized voltage gain curves, and complete ZVS/ZCS design procedures.
 
 ### Non-Isolated DC-DC Topologies:
 - [**`non-isolated/buck-converter.md`**](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/converters/dc-dc/non-isolated/buck-converter.md): Step-Down Buck converter, CCM/DCM boundary condition, inductor & capacitor ripple formulations, synchronous rectification, and closed-loop control.

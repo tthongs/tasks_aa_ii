@@ -1,6 +1,6 @@
 # Active Power Factor Correction (PFC) Rectifiers: Boost, Totem-Pole GaN & Vienna
 
-Welcome to the **VVDN Engineering Hub Technical Dossier on Active Power Factor Correction (PFC) Rectifiers**. To comply with international grid harmonic regulations (**IEC 61000-3-2 Class D** and **IEEE 519**), every offline power supply exceeding $75\,\text{W}$—from server power supplies and laptop adapters to EV on-board chargers and telecom rectifiers—must incorporate Active PFC.
+Welcome to the **VVDN Engineering Hub Technical Dossier on Active Power Factor Correction (PFC) Rectifiers**. To comply with international grid harmonic regulations (**IEC 61000-3-2 Class D** and **IEEE 519**), every offline power supply exceeding 75 W—from server power supplies and laptop adapters to EV on-board chargers and telecom rectifiers—must incorporate Active PFC.
 
 This guide provides an exhaustive hardware engineering analysis of the classic **Active Boost PFC Pre-regulator**, the ultra-high-efficiency **Bridgeless Totem-Pole GaN PFC**, and the multi-megawatt **Three-Phase Three-Level Vienna Rectifier**.
 
@@ -8,7 +8,7 @@ This guide provides an exhaustive hardware engineering analysis of the classic *
 
 ## 1. Why Active PFC? Regulatory Mandates & Power Quality
 
-A passive diode rectifier draws narrow current spikes, resulting in poor power factor ($\text{PF} \approx 0.60$) and massive harmonic injection ($\text{THD}_i > 80\%$). 
+A passive diode rectifier draws narrow current spikes, resulting in poor power factor (PF ≈ 0.60) and massive harmonic injection (THD_i > 80\%). 
 
 ```text
                Passive Diode Current vs. Active PFC Current Waveforms
@@ -25,10 +25,12 @@ A passive diode rectifier draws narrow current spikes, resulting in poor power f
 ```
 
 ### True Power Factor Decomposition:
-$$\text{PF} = \frac{\text{Real Power } (P)}{\text{Apparent Power } (S)} = \frac{1}{\sqrt{1 + \text{THD}_i^2}} \cdot \cos \phi_1$$
-To achieve $\text{PF} \approx 1.0$, the power supply must concurrently:
-1. Drive phase displacement angle to zero ($\cos \phi_1 \rightarrow 1.0$).
-2. Force harmonic distortion to near zero ($\text{THD}_i \rightarrow 0 \implies \frac{1}{\sqrt{1 + \text{THD}_i^2}} \rightarrow 1.0$).
+```
+PF = (Real Power (P)) / (Apparent Power (S)) = 1 / (sqrt(1 + THD_i^2)) * cos φ_1
+```
+To achieve PF ≈ 1.0, the power supply must concurrently:
+1. Drive phase displacement angle to zero (cos φ_1 -> 1.0).
+2. Force harmonic distortion to near zero (THD_i -> 0 => 1 / (sqrt(1 + THD_i^2)) -> 1.0).
 
 ---
 
@@ -107,31 +109,31 @@ The standard **Active Boost PFC** cascades a full-wave diode bridge with a high-
 
 | Net Name | Source (Pin / Terminal) | Destination (Pin / Terminal) | Electrical Function | Hardware Engineering Notes |
 | :--- | :--- | :--- | :--- | :--- |
-| **RECT_OUT (+)** | Full-Wave Bridge (+) | Inrush Diode $D_{inrush}$ Anode, Boost Choke $L_{pfc}$ Pin 1, $C_{in,HF}$ | 100Hz/120Hz rectified haversine input | High-frequency film cap $C_{in,HF}$ prevents 100kHz ripple from feeding back into bridge diodes. |
-| **SW (PFC Node)** | Boost Choke $L_{pfc}$ Pin 2, $Q_1$ Drain | SiC Diode $D_{pfc}$ Anode, Snubber | High-voltage 100kHz boost switching node | Heavy trace routing; minimize loop area between $Q_1$ drain, $D_{pfc}$ anode, and $C_{bulk}$ return. |
-| **+VDC (400V Bus)** | Diode $D_{pfc}$ Cathode, $D_{inrush}$ Cathode | $C_{bulk}$ bank (+), Feedback Divider, Downstream PSU | Regulated +400V DC intermediate bus | Inrush diode $D_{inrush}$ bypasses boost choke during plug-in to prevent core saturation. |
-| **ISENSE_P / N** | Current Shunt $R_{shunt}$ Kelvin Pads | PFC Controller Current Loop Amplifier | Average inductor current sensing | Route as shielded differential pair; carries rectified sinusoidal current wave. |
-| **V_FB** | Resistor Divider $R_{fb1-3}$ Junction | PFC Controller Voltage Loop Amp (Pin 1) | Output voltage regulation feedback | Total divider resistance $\approx 2\,\text{M}\Omega$ to minimize quiescent bleeder power dissipation. |
-| **GND_PWR** | Bridge (-), $R_{shunt}$ (-), $C_{bulk}$ (-) | High-current power return plane | Circulating power stage ground | Solid ground plane; isolated from quiet analog signal ground AGND. |
+| **RECT_OUT (+)** | Full-Wave Bridge (+) | Inrush Diode D_inrush Anode, Boost Choke L_pfc Pin 1, C_in,HF | 100Hz/120Hz rectified haversine input | High-frequency film cap C_in,HF prevents 100kHz ripple from feeding back into bridge diodes. |
+| **SW (PFC Node)** | Boost Choke L_pfc Pin 2, Q_1 Drain | SiC Diode D_pfc Anode, Snubber | High-voltage 100kHz boost switching node | Heavy trace routing; minimize loop area between Q_1 drain, D_pfc anode, and C_bulk return. |
+| **+VDC (400V Bus)** | Diode D_pfc Cathode, D_inrush Cathode | C_bulk bank (+), Feedback Divider, Downstream PSU | Regulated +400V DC intermediate bus | Inrush diode D_inrush bypasses boost choke during plug-in to prevent core saturation. |
+| **ISENSE_P / N** | Current Shunt R_shunt Kelvin Pads | PFC Controller Current Loop Amplifier | Average inductor current sensing | Route as shielded differential pair; carries rectified sinusoidal current wave. |
+| **V_FB** | Resistor Divider R_fb1-3 Junction | PFC Controller Voltage Loop Amp (Pin 1) | Output voltage regulation feedback | Total divider resistance ≈ 2 MΩ to minimize quiescent bleeder power dissipation. |
+| **GND_PWR** | Bridge (-), R_shunt (-), C_bulk (-) | High-current power return plane | Circulating power stage ground | Solid ground plane; isolated from quiet analog signal ground AGND. |
 
 ### 2.2 Component Bill of Materials & Parametric Specifications:
 
 | RefDes | Component Description | Manufacturer & Part Number | Key Electrical Specifications | Critical Design Constraint |
 | :--- | :--- | :--- | :--- | :--- |
-| **$Q_1$** | PFC Boost N-MOSFET | Infineon IPW60R045CP | $V_{DS} = 650\,\text{V}, I_D = 60\,\text{A}, R_{DS(on)} = 45\,\text{m}\Omega, Q_g = 150\,\text{nC}$ | Superjunction CoolMOS provides ultra-low conduction losses at high RMS current ($I_{rms} \approx 6.5\,\text{A}$ at $90\,\text{V}_{ac}$). |
-| **$D_{pfc}$** | SiC Boost Rectifier Diode | Wolfspeed C3D06060A | $V_{RRM} = 600\,\text{V}, I_F = 6\,\text{A}, Q_c = 14\,\text{nC}, V_F = 1.5\,\text{V}$ | **Zero Reverse Recovery ($Q_{rr} \approx 0$)**: Essential for continuous conduction mode (CCM) to avoid turn-on shoot-through. |
-| **$D_{inrush}$** | Startup Inrush Bypass Diode | Diodes Inc. S10MC | $V_{RRM} = 1000\,\text{V}, I_F = 10\,\text{A}, I_{FSM} = 300\,\text{A}$ | Conducts initial $80\,\text{A}$ surge at AC plug-in; prevents $L_{pfc}$ saturation and protects $D_{pfc}$. |
-| **$L_{pfc}$** | Boost PFC Inductor | Custom Sendust Core (CS33125) | $L = 450\,\mu\text{H}, I_{sat} = 11\,\text{A}, I_{rms} = 7.5\,\text{A}, DCR = 45\,\text{m}\Omega$ | Low-permeability Sendust material ($\mu_r = 60$) maintains soft saturation characteristics without overheating. |
-| **$C_{bulk}$** | DC Bus Bulk Capacitors | Nichicon LGN2W331MELY | $2 \times 330\,\mu\text{F}, 450\,\text{V}_{\text{DC}}, 105^\circ\text{C}, ESR = 0.18\,\Omega$ | Accommodates 100Hz double-frequency ripple current ($I_{ripple} \approx 2.8\,\text{A}_{rms}$) and 20ms hold-up. |
-| **$R_{shunt}$** | Inductor Current Sense Shunt | Isabellenhütte ISA-WELD | $20\,\text{m}\Omega, 3.0\,\text{W}, 1\%, TCR < 20\,\text{ppm}/^\circ\text{C}$ | Non-inductive electron-beam welded manganin construction ensures clean current measurement. |
-| **$U_1$ (PFC IC)** | CCM PFC Controller | TI UCC28019A / UCC28180 | Continuous average current mode, internal ramp sync | Eliminates external AC voltage sensing; requires only current and output voltage sense. |
+| **Q_1** | PFC Boost N-MOSFET | Infineon IPW60R045CP | V_DS = 650 V, I_D = 60 A, R_DS(on) = 45 mΩ, Q_g = 150 nC | Superjunction CoolMOS provides ultra-low conduction losses at high RMS current (I_rms ≈ 6.5 A at 90 V_ac). |
+| **D_pfc** | SiC Boost Rectifier Diode | Wolfspeed C3D06060A | V_RRM = 600 V, I_F = 6 A, Q_c = 14 nC, V_F = 1.5 V | **Zero Reverse Recovery (Q_rr ≈ 0)**: Essential for continuous conduction mode (CCM) to avoid turn-on shoot-through. |
+| **D_inrush** | Startup Inrush Bypass Diode | Diodes Inc. S10MC | V_RRM = 1000 V, I_F = 10 A, I_FSM = 300 A | Conducts initial 80 A surge at AC plug-in; prevents L_pfc saturation and protects D_pfc. |
+| **L_pfc** | Boost PFC Inductor | Custom Sendust Core (CS33125) | L = 450 µH, I_sat = 11 A, I_rms = 7.5 A, DCR = 45 mΩ | Low-permeability Sendust material (µ_r = 60) maintains soft saturation characteristics without overheating. |
+| **C_bulk** | DC Bus Bulk Capacitors | Nichicon LGN2W331MELY | 2 * 330 µF, 450 V_DC, 105°C, ESR = 0.18 Ω | Accommodates 100Hz double-frequency ripple current (I_ripple ≈ 2.8 A_rms) and 20ms hold-up. |
+| **R_shunt** | Inductor Current Sense Shunt | Isabellenhütte ISA-WELD | 20 mΩ, 3.0 W, 1\%, TCR < 20 ppm/°C | Non-inductive electron-beam welded manganin construction ensures clean current measurement. |
+| **U_1 (PFC IC)** | CCM PFC Controller | TI UCC28019A / UCC28180 | Continuous average current mode, internal ramp sync | Eliminates external AC voltage sensing; requires only current and output voltage sense. |
 
 
-### 2.1 The Boost Requirement ($V_{dc} = 400\,\text{V}$):
-Because a Boost converter can only step *up* voltage ($V_{out} > V_{in}$), the regulated DC bus must exceed the peak of the highest AC input line voltage:
-- Universal AC Mains: $85\,\text{V} \dots 265\,\text{V}_{rms}$
-- Maximum Peak AC Line: $V_{pk,max} = \sqrt{2} \cdot 265\,\text{V} \approx 375\,\text{V}$
-- Standard Industry DC Bus: **$V_{dc} = 390\,\text{V} \dots 400\,\text{V}$ DC**.
+### 2.1 The Boost Requirement (V_dc = 400 V):
+Because a Boost converter can only step *up* voltage (V_out > V_in), the regulated DC bus must exceed the peak of the highest AC input line voltage:
+- Universal AC Mains: 85 V ... 265 V_rms
+- Maximum Peak AC Line: V_pk,max = sqrt(2) * 265 V ≈ 375 V
+- Standard Industry DC Bus: **V_dc = 390 V ... 400 V DC**.
 
 ---
 
@@ -165,18 +167,18 @@ Because a Boost converter can only step *up* voltage ($V_{out} > V_{in}$), the r
    Inductor Current i_L ──┴──────┘
 ```
 
-1. **Slow Outer Voltage Loop ($\sim 10 \dots 20\,\text{Hz}$)**:
-   - Compares the $400\,\text{V}$ DC bus with a reference to maintain voltage regulation.
-   - **Crucial Engineering Rule**: The loop bandwidth must be strictly below $20\,\text{Hz}$ to avoid tracking the $100\,\text{Hz} / 120\,\text{Hz}$ rectified AC line ripple. If the voltage loop were fast, it would distort the input current reference!
-2. **Fast Inner Current Loop ($\sim 10 \dots 20\,\text{kHz}$)**:
-   - Multiplies the voltage error signal $V_{comp}$ by the instantaneous rectified AC line waveform $|v_{in}(t)|$ to construct an instantaneous reference current $i_{ref}(t)$.
-   - Modulates the switch duty cycle cycle-by-cycle to force the inductor current $i_L(t)$ to perfectly match $i_{ref}(t)$.
+1. **Slow Outer Voltage Loop (sim 10 ... 20 Hz)**:
+   - Compares the 400 V DC bus with a reference to maintain voltage regulation.
+   - **Crucial Engineering Rule**: The loop bandwidth must be strictly below 20 Hz to avoid tracking the 100 Hz / 120 Hz rectified AC line ripple. If the voltage loop were fast, it would distort the input current reference!
+2. **Fast Inner Current Loop (sim 10 ... 20 kHz)**:
+   - Multiplies the voltage error signal V_comp by the instantaneous rectified AC line waveform |v_in(t)| to construct an instantaneous reference current i_ref(t).
+   - Modulates the switch duty cycle cycle-by-cycle to force the inductor current i_L(t) to perfectly match i_ref(t).
 
 ---
 
 ## 3. Advanced Bridgeless Totem-Pole GaN PFC
 
-Conventional Boost PFC suffers conduction losses from the diode bridge ($2 \times V_F \approx 2 \times 0.8\,\text{V} = 1.6\,\text{V}$ drop $\implies 16\,\text{W}$ lost at $10\,\text{A}$). The **Bridgeless Totem-Pole PFC** eliminates the diode bridge entirely:
+Conventional Boost PFC suffers conduction losses from the diode bridge (2 * V_F ≈ 2 * 0.8 V = 1.6 V drop => 16 W lost at 10 A). The **Bridgeless Totem-Pole PFC** eliminates the diode bridge entirely:
 
 ```text
                      Bridgeless Totem-Pole PFC Power Stage
@@ -206,15 +208,15 @@ Conventional Boost PFC suffers conduction losses from the diode bridge ($2 \time
 
 ### 3.1 Why Silicon MOSFETs Fail in Totem-Pole (The GaN Revolution):
 - In the totem-pole configuration, the high-frequency switches operate in continuous conduction mode (CCM) half-bridge hard switching.
-- Standard silicon MOSFETs possess massive body-diode reverse recovery charge ($Q_{rr} \approx 500 \dots 2000\,\text{nC}$). When the opposite switch turns ON, this $Q_{rr}$ causes destructive shoot-through spikes and extreme switching losses.
-- **Gallium Nitride (GaN) HEMTs have ZERO reverse recovery ($Q_{rr} = 0\,\text{nC}$)**.
-- GaN enables the Totem-Pole topology to operate in CCM at $> 100\,\text{kHz}$, achieving unprecedented **$99.2\%$ conversion efficiency**!
+- Standard silicon MOSFETs possess massive body-diode reverse recovery charge (Q_rr ≈ 500 ... 2000 nC). When the opposite switch turns ON, this Q_rr causes destructive shoot-through spikes and extreme switching losses.
+- **Gallium Nitride (GaN) HEMTs have ZERO reverse recovery (Q_rr = 0 nC)**.
+- GaN enables the Totem-Pole topology to operate in CCM at > 100 kHz, achieving unprecedented **99.2\% conversion efficiency**!
 
 ---
 
 ## 4. Three-Phase Three-Level Vienna Rectifier
 
-For high-power EV DC fast charging stations ($50\,\text{kW} \dots 350\,\text{kW}$) and megawatt data centers, the **Vienna Rectifier** is the premier unidirectional active PFC topology:
+For high-power EV DC fast charging stations (50 kW ... 350 kW) and megawatt data centers, the **Vienna Rectifier** is the premier unidirectional active PFC topology:
 
 ```text
                      Three-Phase Three-Level Vienna Rectifier
@@ -235,28 +237,36 @@ For high-power EV DC fast charging stations ($50\,\text{kW} \dots 350\,\text{kW}
 ```
 
 ### Key Engineering Advantages:
-1. **Three-Level Voltage Synthesis**: Node voltages switch between $+\frac{V_{dc}}{2}, 0\,\text{V},$ and $-\frac{V_{dc}}{2}$.
-2. **Halved Switch Voltage Stress**: Each MOSFET switch $Q_1$ experiences only half the total DC-link voltage ($400\,\text{V}$ stress on an $800\,\text{V}$ EV bus!), allowing the use of low-cost, ultra-fast $650\,\text{V}$ Superjunction or GaN FETs instead of expensive $1200\,\text{V}$ SiC modules.
-3. **Pristine Grid Quality**: Inherent 3-level PWM cuts inductor ripple in half, achieving $\text{THD}_i < 2.0\%$ and $\text{PF} > 0.998$.
+1. **Three-Level Voltage Synthesis**: Node voltages switch between +V_dc / 2, 0 V, and -V_dc / 2.
+2. **Halved Switch Voltage Stress**: Each MOSFET switch Q_1 experiences only half the total DC-link voltage (400 V stress on an 800 V EV bus!), allowing the use of low-cost, ultra-fast 650 V Superjunction or GaN FETs instead of expensive 1200 V SiC modules.
+3. **Pristine Grid Quality**: Inherent 3-level PWM cuts inductor ripple in half, achieving THD_i < 2.0\% and PF > 0.998.
 
 ---
 
 ## 5. Component Sizing & Bulk Capacitor Hold-Up Time
 
-### 5.1 Inductor Sizing ($L_{pfc}$):
+### 5.1 Inductor Sizing (L_pfc):
 Worst-case ripple occurs at the peak of the minimum AC line voltage:
-$$L_{pfc} \ge \frac{V_{in,pk,min} \cdot \left( 1 - \frac{V_{in,pk,min}}{V_{dc}} \right)}{f_s \cdot \Delta I_L}$$
-Where $V_{in,pk,min} = \sqrt{2} \cdot 85\,\text{V} \approx 120\,\text{V}$, $V_{dc} = 400\,\text{V}$, and $\Delta I_L = 20\% \cdot I_{pk,max}$.
+```
+L_pfc >= (V_in,pk,min * ( 1 - V_in,pk,min / V_dc )) / (f_s * Δ I_L)
+```
+Where V_in,pk,min = sqrt(2) * 85 V ≈ 120 V, V_dc = 400 V, and Δ I_L = 20\% * I_pk,max.
 
-### 5.2 Bulk Capacitor Sizing for Hold-Up Time ($t_{hold}$):
-Server and telecom specifications (e.g., Intel ATX / Open Compute) mandate that the DC bus must sustain full output power during a complete AC line dropout of $1 \dots 2$ missing AC cycles ($t_{hold} = 16.67\,\text{ms} \dots 20\,\text{ms}$) without $V_{dc}$ falling below the downstream DC-DC converter's minimum drop-out threshold ($V_{dc,min} \approx 300\,\text{V}$):
+### 5.2 Bulk Capacitor Sizing for Hold-Up Time (t_hold):
+Server and telecom specifications (e.g., Intel ATX / Open Compute) mandate that the DC bus must sustain full output power during a complete AC line dropout of 1 ... 2 missing AC cycles (t_hold = 16.67 ms ... 20 ms) without V_dc falling below the downstream DC-DC converter's minimum drop-out threshold (V_dc,min ≈ 300 V):
 
-$$\Delta E = P_{out} \cdot t_{hold} = \frac{1}{2} C_{bulk} \left( V_{dc,nom}^2 - V_{dc,min}^2 \right)$$
-$$C_{bulk} \ge \frac{2 \cdot P_{out} \cdot t_{hold}}{\eta \cdot \left( V_{dc,nom}^2 - V_{dc,min}^2 \right)}$$
+```
+Δ E = P_out * t_hold = 1 / 2 C_bulk ( V_dc,nom^2 - V_dc,min^2 )
+```
+```
+C_bulk >= (2 * P_out * t_hold) / (η * ( V_dc,nom^2 - V_dc,min^2 ))
+```
 
-#### Practical Sizing Example ($1000\,\text{W}$ Server PSU):
-- $P_{out} = 1000\,\text{W}$, $\eta = 0.95$
-- $V_{dc,nom} = 400\,\text{V}$, $V_{dc,min} = 300\,\text{V}$
-- $t_{hold} = 20\,\text{ms}$ ($0.020\,\text{s}$)
-$$C_{bulk} \ge \frac{2 \cdot 1000 \cdot 0.020}{0.95 \cdot (400^2 - 300^2)} = \frac{40}{0.95 \cdot (160000 - 90000)} = \frac{40}{66500} \approx 601\,\mu\text{F}$$
-*Design Recommendation*: Specify two $330\,\mu\text{F} / 450\,\text{V}$ ($660\,\mu\text{F}$ total) high-temperature $105^\circ\text{C}$ aluminum electrolytic capacitors in parallel.
+#### Practical Sizing Example (1000 W Server PSU):
+- P_out = 1000 W, η = 0.95
+- V_dc,nom = 400 V, V_dc,min = 300 V
+- t_hold = 20 ms (0.020 s)
+```
+C_bulk >= (2 * 1000 * 0.020) / (0.95 * (400^2 - 300^2)) = 40 / (0.95 * (160000 - 90000)) = 40 / 66500 ≈ 601 µF
+```
+*Design Recommendation*: Specify two 330 µF / 450 V (660 µF total) high-temperature 105°C aluminum electrolytic capacitors in parallel.

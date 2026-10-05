@@ -22,7 +22,7 @@ A complete LIN communication transaction is termed a **Frame**. Every LIN frame 
 ### 1.1 The Master Header Components
 
 #### A. Synch Break Field (Break)
-- **Dominant Period**: The Master holds the bus Dominant for a minimum of **13 bit periods** (typically $13 \dots 26$ bit times). Because standard UART bytes cannot hold a zero longer than 9 or 10 bit times (Start + 8 data zeros before the mandatory Stop bit), a $\ge 13$-bit dominant pulse is a deliberate framing violation that alerts every slave that a new frame has commenced.
+- **Dominant Period**: The Master holds the bus Dominant for a minimum of **13 bit periods** (typically 13 ... 26 bit times). Because standard UART bytes cannot hold a zero longer than 9 or 10 bit times (Start + 8 data zeros before the mandatory Stop bit), a >= 13-bit dominant pulse is a deliberate framing violation that alerts every slave that a new frame has commenced.
 - **Break Delimiter**: Immediately follows the dominant break with at least **1 bit period of Recessive ('1')**.
 
 #### B. Synch Byte Field
@@ -36,7 +36,7 @@ A complete LIN communication transaction is termed a **Frame**. Every LIN frame 
                     |<----------------- Exactly 8 Bit Periods ---------------->|
 ```
 
-- **Dynamic Auto-Baud**: Slaves measure the precise elapsed time between Edge 1 (falling edge of the Start bit) and Edge 5 (falling edge of bit 7). Dividing this interval by 8 yields the Master's exact bit period ($T_{bit}$), allowing slaves with cheap RC oscillators to lock their baud rates!
+- **Dynamic Auto-Baud**: Slaves measure the precise elapsed time between Edge 1 (falling edge of the Start bit) and Edge 5 (falling edge of bit 7). Dividing this interval by 8 yields the Master's exact bit period (T_bit), allowing slaves with cheap RC oscillators to lock their baud rates!
 
 ---
 
@@ -53,10 +53,14 @@ The PID is an 8-bit byte containing a **6-bit Frame Identifier (`ID0` to `ID5`)*
 ```
 
 #### Parity Calculation Equations:
-- **Parity Bit 0 ($P0$)** is an **even parity** over bits 0, 1, 2, and 4:
-  $$P0 = ID0 \oplus ID1 \oplus ID2 \oplus ID4$$
-- **Parity Bit 1 ($P1$)** is an **inverted odd parity** over bits 1, 3, 4, and 5:
-  $$P1 = \overline{ID1 \oplus ID3 \oplus ID4 \oplus ID5} = 1 \oplus (ID1 \oplus ID3 \oplus ID4 \oplus ID5)$$
+- **Parity Bit 0 (P0)** is an **even parity** over bits 0, 1, 2, and 4:
+  ```
+P0 = ID0 XOR ID1 XOR ID2 XOR ID4
+```
+- **Parity Bit 1 (P1)** is an **inverted odd parity** over bits 1, 3, 4, and 5:
+  ```
+P1 = NOT(ID1 XOR ID3 XOR ID4 XOR ID5) = 1 XOR (ID1 XOR ID3 XOR ID4 XOR ID5)
+```
 
 ```c
 /* C Implementation of LIN PID Parity Generation */
@@ -83,15 +87,15 @@ uint8_t lin_calculate_pid(uint8_t raw_id) {
 
 ### 1.2 LIN 64-Identifier Allocation Map
 
-The 6-bit identifier yields 64 total values ($0x00 \dots 0x3F$), strictly cataloged by the LIN specification:
+The 6-bit identifier yields 64 total values (0x00 ... 0x3F), strictly cataloged by the LIN specification:
 
 | Raw ID Range | PID Values | Frame Type / Designation | Usage & Characteristics |
 | :--- | :--- | :--- | :--- |
-| **`0x00` – `0x3B`** ($0 - 59$) | `0x00` – `0xBB` | **Unconditional Frames** | Carries normal real-time sensor/actuator payload ($1 \dots 8$ bytes). |
-| **`0x3C`** ($60$) | **`0x3C`** ($P0=0, P1=0$) | **Master Request Frame** | Carries diagnostic commands, node configuration, and sleep requests from Master. Always uses Classic Checksum. |
-| **`0x3D`** ($61$) | **`0x7D`** ($P0=1, P1=0$) | **Slave Response Frame** | Designated slave transmits diagnostic telemetry or EOL configuration responses. Always uses Classic Checksum. |
-| **`0x3E`** ($62$) | **`0xFE`** ($P0=1, P1=1$) | **User-Defined Extension** | OEM-specific proprietary test harness frame. |
-| **`0x3F`** ($63$) | **`0xBF`** ($P0=0, P1=1$) | **Reserved** | Reserved for future protocol enhancements. |
+| **`0x00` – `0x3B`** (0 - 59) | `0x00` – `0xBB` | **Unconditional Frames** | Carries normal real-time sensor/actuator payload (1 ... 8 bytes). |
+| **`0x3C`** (60) | **`0x3C`** (P0=0, P1=0) | **Master Request Frame** | Carries diagnostic commands, node configuration, and sleep requests from Master. Always uses Classic Checksum. |
+| **`0x3D`** (61) | **`0x7D`** (P0=1, P1=0) | **Slave Response Frame** | Designated slave transmits diagnostic telemetry or EOL configuration responses. Always uses Classic Checksum. |
+| **`0x3E`** (62) | **`0xFE`** (P0=1, P1=1) | **User-Defined Extension** | OEM-specific proprietary test harness frame. |
+| **`0x3F`** (63) | **`0xBF`** (P0=0, P1=1) | **Reserved** | Reserved for future protocol enhancements. |
 
 ---
 
@@ -110,12 +114,18 @@ The response consists of **1 to 8 Data Bytes** followed by an **8-bit Checksum**
 
 The checksum algorithm performs an 8-bit modulo-256 addition where every overflow carry bit is immediately added back into the least significant bit (known as an **end-around carry** or one's complement sum):
 
-$$\text{Sum} = \text{PID (if Enhanced)} + \sum_{i=1}^{N} \text{Data}_i + \text{Carries}$$
-$$\text{Checksum} = \neg (\text{Sum} \ \& \ \text{0xFF}) = (\sim\text{Sum}) \ \& \ \text{0xFF}$$
+```
+Sum = PID (if Enhanced) + Sum(i=1 to N) Data_i + Carries
+```
+```
+Checksum = !=g (Sum \ & \ 0xFF) = (simSum) \ & \ 0xFF
+```
 
 #### Verification at Receiver:
 Adding the received checksum to the calculated sum must equal **`0xFF`**:
-$$\text{Sum} + \text{Received\_Checksum} = 0\text{xFF}$$
+```
+Sum + Received_Checksum = 0xFF
+```
 
 ```c
 /* Production-Grade LIN Checksum Implementation in C */
@@ -145,7 +155,7 @@ uint8_t lin_calculate_checksum(uint8_t pid, const uint8_t *data, uint8_t length,
 ## 3. LIN Communication Frame Types
 
 1. **Unconditional Frames**:
-   - The standard communication vehicle. The Master sends a header with PID $0x00 \dots 0x3B$. The designated slave (or master) immediately responds in the same time slot.
+   - The standard communication vehicle. The Master sends a header with PID 0x00 ... 0x3B. The designated slave (or master) immediately responds in the same time slot.
 2. **Event-Triggered Frames**:
    - Allows multiple slave nodes to share a single scheduled time slot to report infrequent events (e.g., any door lock status changing).
    - If only one slave responds, the Master receives the frame normally.

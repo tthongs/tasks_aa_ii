@@ -1,6 +1,6 @@
 # N-Channel Enhancement-Mode MOSFET (e-NMOS): Physics, Design & Applications
 
-An **N-Channel Enhancement-Mode MOSFET** (commonly designated **e-NMOS**) is the most ubiquitous discrete transistor and integrated circuit building block in electronics. Being a **normally-off** device, no conduction channel exists at zero gate bias ($V_{GS} = 0\,\text{V}$). It relies on an applied positive gate potential ($V_{GS} > V_{TH}$) to electrostatically induce an electron inversion layer in a p-type substrate.
+An **N-Channel Enhancement-Mode MOSFET** (commonly designated **e-NMOS**) is the most ubiquitous discrete transistor and integrated circuit building block in electronics. Being a **normally-off** device, no conduction channel exists at zero gate bias (V_GS = 0 V). It relies on an applied positive gate potential (V_GS > V_TH) to electrostatically induce an electron inversion layer in a p-type substrate.
 
 ---
 
@@ -28,23 +28,23 @@ An **N-Channel Enhancement-Mode MOSFET** (commonly designated **e-NMOS**) is the
 ```
 
 ### Physical Working Steps:
-1. **Zero Gate Bias ($V_{GS} = 0\,\text{V}$)**:
-   - The $n^+$ Source, $p$ Substrate, and $n^+$ Drain form two back-to-back $p-n$ diodes ($n^+-p$ and $p-n^+$).
-   - Any voltage applied across Drain-to-Source ($V_{DS} > 0$) reverse-biases the Drain-to-Body junction. Only tiny reverse leakage current ($I_{DSS} \approx \text{nA}$) flows.
-2. **Threshold Formation ($V_{GS} = V_{TH}$)**:
-   - A positive voltage on the gate creates a vertical downward electric field ($E_{vert}$).
-   - Mobile holes ($h^+$) in the p-substrate are repelled away from the $\text{Si-SiO}_2$ interface, uncovering negatively charged immobile acceptor ions ($N_A^-$) to form a depletion region.
-   - When $V_{GS}$ reaches the **Threshold Voltage ($V_{TH} \approx 1.5\,\text{V} - 4.0\,\text{V}$)**, the conduction band bends below the Fermi level at the surface, pulling in free minority electrons ($e^-$). This forms an $n$-type **surface inversion channel**.
-3. **Channel Conduction ($V_{GS} > V_{TH}$)**:
-   - Because electrons are the majority carriers in the channel, they possess high drift mobility ($\mu_n \approx 1350 - 1450\,\text{cm}^2/\text{V}\cdot\text{s}$ in bulk Silicon), enabling very low on-resistance per unit die area compared to PMOS.
+1. **Zero Gate Bias (V_GS = 0 V)**:
+   - The n^+ Source, p Substrate, and n^+ Drain form two back-to-back p-n diodes (n^+-p and p-n^+).
+   - Any voltage applied across Drain-to-Source (V_DS > 0) reverse-biases the Drain-to-Body junction. Only tiny reverse leakage current (I_DSS ≈ nA) flows.
+2. **Threshold Formation (V_GS = V_TH)**:
+   - A positive voltage on the gate creates a vertical downward electric field (E_vert).
+   - Mobile holes (h^+) in the p-substrate are repelled away from the Si-SiO_2 interface, uncovering negatively charged immobile acceptor ions (N_A^-) to form a depletion region.
+   - When V_GS reaches the **Threshold Voltage (V_TH ≈ 1.5 V - 4.0 V)**, the conduction band bends below the Fermi level at the surface, pulling in free minority electrons (e^-). This forms an n-type **surface inversion channel**.
+3. **Channel Conduction (V_GS > V_TH)**:
+   - Because electrons are the majority carriers in the channel, they possess high drift mobility (µ_n ≈ 1350 - 1450 cm^2/V*s in bulk Silicon), enabling very low on-resistance per unit die area compared to PMOS.
 
 ---
 
 ## 2. Detailed Characteristic Curves & Working Region Waveforms
 
-The N-channel enhancement MOSFET operates across distinct physical regimes depending on gate-source voltage ($V_{GS}$) and drain-source voltage ($V_{DS}$).
+The N-channel enhancement MOSFET operates across distinct physical regimes depending on gate-source voltage (V_GS) and drain-source voltage (V_DS).
 
-### 2.1 Static Output Characteristics Waveform ($I_D$ vs. $V_{DS}$)
+### 2.1 Static Output Characteristics Waveform (I_D vs. V_DS)
 
 ```text
                Drain Current (Id) vs. Drain-to-Source Voltage (Vds)
@@ -76,26 +76,34 @@ The N-channel enhancement MOSFET operates across distinct physical regimes depen
 ```
 
 #### Working Region Operating Equations:
-1. **Cutoff Region ($V_{GS} < V_{TH}$)**:
+1. **Cutoff Region (V_GS < V_TH)**:
    - Inversion channel is absent; only subthreshold diffusion leakage flows:
-     $$I_D \approx I_{0} \cdot \exp\left(\frac{q(V_{GS} - V_{TH})}{n k T}\right) \cdot \left[1 - \exp\left(-\frac{q V_{DS}}{k T}\right)\right] \approx 0$$
-2. **Linear / Triode / Ohmic Region ($V_{GS} > V_{TH}$ and $V_{DS} < V_{GS} - V_{TH}$)**:
+     ```
+I_D ≈ I_0 * exp((q(V_GS - V_TH)) / (n k T)) * [1 - exp(-(q V_DS) / (k T))] ≈ 0
+```
+2. **Linear / Triode / Ohmic Region (V_GS > V_TH and V_DS < V_GS - V_TH)**:
    - Electron channel connects Source to Drain continuously:
-     $$I_D = \mu_n C_{ox} \left(\frac{W}{L}\right) \left[ (V_{GS} - V_{TH}) V_{DS} - \frac{1}{2} V_{DS}^2 \right]$$
-   - For very low $V_{DS} \ll 2(V_{GS} - V_{TH})$, the channel acts as an ideal resistor $R_{DS(on)}$:
-     $$R_{DS(on)} = \frac{1}{\mu_n C_{ox} (W/L) (V_{GS} - V_{TH})}$$
-3. **Pinch-Off Point ($V_{DS} = V_{GS} - V_{TH}$)**:
+     ```
+I_D = µ_n C_ox (W / L) [ (V_GS - V_TH) V_DS - 1 / 2 V_DS^2 ]
+```
+   - For very low V_DS << 2(V_GS - V_TH), the channel acts as an ideal resistor R_DS(on):
+     ```
+R_DS(on) = 1 / (µ_n C_ox (W/L) (V_GS - V_TH))
+```
+3. **Pinch-Off Point (V_DS = V_GS - V_TH)**:
    - Local surface inversion depth at the drain corner collapses to zero.
-4. **Saturation (Active) Region ($V_{GS} > V_{TH}$ and $V_{DS} \ge V_{GS} - V_{TH}$)**:
+4. **Saturation (Active) Region (V_GS > V_TH and V_DS >= V_GS - V_TH)**:
    - Pinch-off point moves slightly toward the source; current is constrained by carrier drift:
-     $$I_{D(sat)} = \frac{1}{2} \mu_n C_{ox} \left(\frac{W}{L}\right) (V_{GS} - V_{TH})^2 (1 + \lambda V_{DS})$$
-   - Small-signal transconductance: $g_m = \sqrt{2 \mu_n C_{ox} (W/L) I_D} = \frac{2 I_D}{V_{GS} - V_{TH}}$.
-5. **Avalanche Breakdown Region ($V_{DS} \ge V_{BR(DSS)}$)**:
+     ```
+I_D(sat) = 1 / 2 µ_n C_ox (W / L) (V_GS - V_TH)^2 (1 + λ V_DS)
+```
+   - Small-signal transconductance: g_m = sqrt(2 µ_n C_ox (W/L) I_D) = (2 I_D) / (V_GS - V_TH).
+5. **Avalanche Breakdown Region (V_DS >= V_BR(DSS))**:
    - Carrier multiplication due to high reverse field across the drain-body junction.
 
 ---
 
-### 2.2 Transfer Characteristics Waveform ($I_D$ vs. $V_{GS}$)
+### 2.2 Transfer Characteristics Waveform (I_D vs. V_GS)
 
 ```text
        Linear Scale (Square-Law Conduction)              Logarithmic Scale (Subthreshold Swing)
@@ -119,7 +127,7 @@ The N-channel enhancement MOSFET operates across distinct physical regimes depen
 
 ---
 
-### 2.3 Third-Quadrant Reverse Conduction Waveform ($V_{DS} < 0\,\text{V}$)
+### 2.3 Third-Quadrant Reverse Conduction Waveform (V_DS < 0 V)
 
 ```text
                Quadrant III Conduction: Body Diode vs. Synchronous Rectification
@@ -177,10 +185,10 @@ REGION: │  1. CUTOFF  │ 2.ACTIVE │ 3.ACTIVE-> │ 4. LINEAR │
 ────────┴─────────────┴──────────┴────────────┴───────────┘
 ```
 
-1. **Turn-on Delay ($t_{d(on)}$)**: Device is in **Cutoff** ($V_{GS} < V_{TH}$). $I_D = 0$, $V_{DS} = V_{BUS}$.
-2. **Current Rise ($t_{ri}$)**: Device enters **Saturation** ($V_{GS} > V_{TH}$, $V_{DS} \ge V_{GS} - V_{TH}$). $I_D$ ramps up to load current while $V_{DS}$ remains clamped at $V_{BUS}$.
-3. **Voltage Fall / Miller Plateau ($t_{vf}$)**: Device traverses from **Saturation toward Linear** boundary. Gate voltage is held at $V_{plateau}$ while $C_{gd}$ is discharged and $V_{DS}$ collapses.
-4. **Channel Enhancement ($t_{enh}$)**: Device enters **Deep Linear (Ohmic)** regime. $V_{GS}$ rises to $V_{DRIVE}$, settling $R_{DS(on)}$ to minimum.
+1. **Turn-on Delay (t_d(on))**: Device is in **Cutoff** (V_GS < V_TH). I_D = 0, V_DS = V_BUS.
+2. **Current Rise (t_ri)**: Device enters **Saturation** (V_GS > V_TH, V_DS >= V_GS - V_TH). I_D ramps up to load current while V_DS remains clamped at V_BUS.
+3. **Voltage Fall / Miller Plateau (t_vf)**: Device traverses from **Saturation toward Linear** boundary. Gate voltage is held at V_plateau while C_gd is discharged and V_DS collapses.
+4. **Channel Enhancement (t_enh)**: Device enters **Deep Linear (Ohmic)** regime. V_GS rises to V_DRIVE, settling R_DS(on) to minimum.
 
 ## 3. Circuit Implementation: Low-Side Switch Architecture
 
@@ -210,14 +218,14 @@ GPIO              │     │
 ```
 
 ### Hardware Design Rules:
-1. **Pull-Down Resistor ($R_{pd} \approx 10\,\text{k}\Omega - 100\,\text{k}\Omega$)**:
+1. **Pull-Down Resistor (R_pd ≈ 10 kΩ - 100 kΩ)**:
    - Placed directly between Gate and Source.
    - Prevents the high-impedance gate from floating during MCU reset, bootloader execution, or high-Z uninitialized GPIO states, which would cause parasitic turn-on and burn out the transistor.
-2. **Series Gate Resistor ($R_{gate} \approx 10\,\Omega - 100\,\Omega$)**:
-   - Damps LC ringing formed between trace parasitic inductance ($L_{gate}$) and MOSFET input capacitance ($C_{iss}$).
+2. **Series Gate Resistor (R_gate ≈ 10 Ω - 100 Ω)**:
+   - Damps LC ringing formed between trace parasitic inductance (L_gate) and MOSFET input capacitance (C_iss).
    - Limits the peak transient sourcing/sinking current pulled from the MCU GPIO.
 3. **Freewheeling Diode**:
-   - Required for inductive loads. When the NMOS abruptly turns off, inductor current cannot instantaneously drop to zero ($\Delta V = -L \frac{di}{dt}$), causing a positive voltage spike at the Drain that will exceed $V_{(BR)DSS}$ and destroy the device if not clamped.
+   - Required for inductive loads. When the NMOS abruptly turns off, inductor current cannot instantaneously drop to zero (Δ V = -L di / dt), causing a positive voltage spike at the Drain that will exceed V_(BR)DSS and destroy the device if not clamped.
 
 ---
 
@@ -225,21 +233,21 @@ GPIO              │     │
 
 | Datasheet Parameter | Symbol | Critical Significance | Design Rule of Thumb |
 | :--- | :--- | :--- | :--- |
-| **Drain-Source Breakdown Voltage** | $V_{(BR)DSS}$ | Maximum voltage across D-S before avalanche occurs | Select with $\ge 20\% - 50\%$ margin above supply bus |
-| **Gate-Source Voltage Limit** | $V_{GS(max)}$ | Dielectric breakdown rating of thin $\text{SiO}_2$ (typically $\pm 20\,\text{V}$) | Clamp with $15\,\text{V} - 18\,\text{V}$ TVS / Zener if transients exist |
-| **Threshold Voltage** | $V_{GS(th)}$ | Gate voltage where $I_D \approx 250\,\mu\text{A}$ begins conduction | Must NOT be confused with fully enhanced drive voltage ($V_{GS} \ge 10\,\text{V}$) |
-| **Static Drain-Source On-Resistance**| $R_{DS(on)}$ | Internal resistance when fully ON at specified $V_{GS}$ and $T_j$ | Derate by $1.5\times - 2.0\times$ for $T_j = 125^\circ\text{C}$ operation |
-| **Total Gate Charge** | $Q_g$ | Total charge needed to raise $V_{GS}$ to operating level | Determines driver current requirements: $I_{drive} = Q_g / t_{target}$ |
-| **Reverse Recovery Charge** | $Q_{rr}$ | Body diode recovery charge during commutation | Causes shoot-through and ringing in half-bridge converters |
+| **Drain-Source Breakdown Voltage** | V_(BR)DSS | Maximum voltage across D-S before avalanche occurs | Select with >= 20\% - 50\% margin above supply bus |
+| **Gate-Source Voltage Limit** | V_GS(max) | Dielectric breakdown rating of thin SiO_2 (typically ± 20 V) | Clamp with 15 V - 18 V TVS / Zener if transients exist |
+| **Threshold Voltage** | V_GS(th) | Gate voltage where I_D ≈ 250 µA begins conduction | Must NOT be confused with fully enhanced drive voltage (V_GS >= 10 V) |
+| **Static Drain-Source On-Resistance**| R_DS(on) | Internal resistance when fully ON at specified V_GS and T_j | Derate by 1.5* - 2.0* for T_j = 125°C operation |
+| **Total Gate Charge** | Q_g | Total charge needed to raise V_GS to operating level | Determines driver current requirements: I_drive = Q_g / t_target |
+| **Reverse Recovery Charge** | Q_rr | Body diode recovery charge during commutation | Causes shoot-through and ringing in half-bridge converters |
 
 ---
 
 ## 5. Commercial Part Catalog & Selection
 
-| Part Number | Manufacturer | Package | $V_{DS(max)}$ | $I_{D(max)}$ | $R_{DS(on)}$ (@10V) | Typical Use-Case |
+| Part Number | Manufacturer | Package | V_DS(max) | I_D(max) | R_DS(on) (@10V) | Typical Use-Case |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **2N7002** | onsemi / Diodes Inc | SOT-23 | $60\,\text{V}$ | $300\,\text{mA}$ | $5.0\,\Omega$ | Small-signal level shifting, LED drive, logic gates |
-| **BSS138** | onsemi / Fairchild | SOT-23 | $50\,\text{V}$ | $220\,\text{mA}$ | $3.5\,\Omega$ | $I^2C$ bidirectional level translator |
-| **IRLZ44N** | Infineon (IR) | TO-220 | $55\,\text{V}$ | $47\,\text{A}$ | $22\,\text{m}\Omega$ | 5V Logic-level hobbyist/industrial load switching |
-| **IRF540N** | Infineon (IR) | TO-220 | $100\,\text{V}$ | $33\,\text{A}$ | $44\,\text{m}\Omega$ | Classical power switching, audio amplifier, solenoids |
-| **BSC030N04NS** | Infineon | TDSON-8 (SuperSO8)| $40\,\text{V}$ | $100\,\text{A}$ | $3.0\,\text{m}\Omega$ | Automotive synchronous buck, high-efficiency PoL |
+| **2N7002** | onsemi / Diodes Inc | SOT-23 | 60 V | 300 mA | 5.0 Ω | Small-signal level shifting, LED drive, logic gates |
+| **BSS138** | onsemi / Fairchild | SOT-23 | 50 V | 220 mA | 3.5 Ω | I^2C bidirectional level translator |
+| **IRLZ44N** | Infineon (IR) | TO-220 | 55 V | 47 A | 22 mΩ | 5V Logic-level hobbyist/industrial load switching |
+| **IRF540N** | Infineon (IR) | TO-220 | 100 V | 33 A | 44 mΩ | Classical power switching, audio amplifier, solenoids |
+| **BSC030N04NS** | Infineon | TDSON-8 (SuperSO8)| 40 V | 100 A | 3.0 mΩ | Automotive synchronous buck, high-efficiency PoL |

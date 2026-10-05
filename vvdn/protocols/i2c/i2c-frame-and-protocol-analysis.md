@@ -33,7 +33,7 @@ If the SDA line toggles while SCL is HIGH, the physical layer interprets this as
 
 ---
 
-### 1.2 START Condition ($S$)
+### 1.2 START Condition (S)
 
 A **START condition** signals to all peripherals that a controller is taking control of the bus to begin a transaction.
 
@@ -54,13 +54,13 @@ SDA:      ────────┐
 
 ---
 
-### 1.3 STOP Condition ($P$)
+### 1.3 STOP Condition (P)
 
 A **STOP condition** terminates a transaction and releases the bus back to the IDLE state.
 
 - **Definition**: A **LOW-to-HIGH transition on SDA** while **SCL remains HIGH**.
 - Initiated exclusively by the Controller.
-- The bus is considered **FREE (IDLE)** after the bus free time ($t_{BUF}$) following a STOP condition.
+- The bus is considered **FREE (IDLE)** after the bus free time (t_BUF) following a STOP condition.
 
 ```text
 SCL:      ────────────────────────┐
@@ -75,9 +75,9 @@ SDA:                              ┌───────────
 
 ---
 
-### 1.4 REPEATED START Condition ($S_r$)
+### 1.4 REPEATED START Condition (S_r)
 
-A **REPEATED START condition** (denoted as **$S_r$**) occurs when a controller generates a new START condition without first releasing the bus with a STOP condition.
+A **REPEATED START condition** (denoted as **S_r**) occurs when a controller generates a new START condition without first releasing the bus with a STOP condition.
 
 ```text
 SCL:   ───┐   ┌───┐   ┌───────┐       ┌───┐
@@ -117,22 +117,22 @@ SDA:  ──[ B7 ]───[ B6 ]───[ B5 ]───[ B4 ]───[ B3 ]�
 ### 2.1 The ACK (Acknowledge) Mechanism
 - During the 9th clock pulse, the **transmitter releases the SDA line** (allowing it to float HIGH).
 - The **receiver pulls SDA LOW** and holds it LOW during the entire HIGH period of the 9th SCL clock pulse.
-- When the transmitter samples SDA during the 9th clock pulse and reads **LOW ($0\,\text{V}$)**, an **ACK (0)** is registered.
+- When the transmitter samples SDA during the 9th clock pulse and reads **LOW (0 V)**, an **ACK (0)** is registered.
 
 ### 2.2 The NACK (Not-Acknowledge) Mechanism
 - The transmitter releases SDA during the 9th clock cycle.
 - The receiver **leaves SDA HIGH** (does not pull it LOW).
-- When the transmitter samples SDA and reads **HIGH ($V_{DD}$)**, a **NACK (1)** is registered.
+- When the transmitter samples SDA and reads **HIGH (V_DD)**, a **NACK (1)** is registered.
 
 ### 2.3 Summary of NACK Scenarios
 
 | Scenario | Transmitter | Receiver | Reason for NACK | Controller Recovery Action |
 | :--- | :--- | :--- | :--- | :--- |
-| **No Device at Address** | Controller | Target | No peripheral matches the 7-bit address; bus pull-up keeps SDA HIGH. | Issue STOP ($P$) and report `ENODEV` (Device Not Found). |
-| **Target Device Busy** | Controller | Target | Target is executing internal write cycle (e.g. EEPROM programming) and cannot process incoming commands. | Issue STOP ($P$) or Repeated START ($S_r$) and retry after a short delay (ACK polling). |
-| **Target Buffer Full** | Controller | Target | Target's internal FIFO or memory buffer is full. Cannot accept more data bytes. | Issue STOP ($P$) and re-transmit remaining bytes after target drains buffer. |
-| **Invalid Command/Data**| Controller | Target | Target received an unrecognized opcode or out-of-range register offset. | Issue STOP ($P$) and log firmware error. |
-| **End of Master Read**  | Target | Controller | **Normal Protocol Flow**: Controller has received the last requested byte and deliberately sends NACK to target. | Controller follows the NACK with a STOP ($P$) to terminate the read stream cleanly. |
+| **No Device at Address** | Controller | Target | No peripheral matches the 7-bit address; bus pull-up keeps SDA HIGH. | Issue STOP (P) and report `ENODEV` (Device Not Found). |
+| **Target Device Busy** | Controller | Target | Target is executing internal write cycle (e.g. EEPROM programming) and cannot process incoming commands. | Issue STOP (P) or Repeated START (S_r) and retry after a short delay (ACK polling). |
+| **Target Buffer Full** | Controller | Target | Target's internal FIFO or memory buffer is full. Cannot accept more data bytes. | Issue STOP (P) and re-transmit remaining bytes after target drains buffer. |
+| **Invalid Command/Data**| Controller | Target | Target received an unrecognized opcode or out-of-range register offset. | Issue STOP (P) and log firmware error. |
+| **End of Master Read**  | Target | Controller | **Normal Protocol Flow**: Controller has received the last requested byte and deliberately sends NACK to target. | Controller follows the NACK with a STOP (P) to terminate the read stream cleanly. |
 
 ---
 
@@ -151,7 +151,7 @@ Bit:    7       6       5       4       3       2       1       0
                                             1 = Read  (Master Receives)
 ```
 
-- **Bits [7:1]**: The unique 7-bit physical hardware address of the target device ($0\text{x}00\text{ to }0\text{x}7\text{F}$).
+- **Bits [7:1]**: The unique 7-bit physical hardware address of the target device (0x00 to 0x7F).
 - **Bit [0]**: The **R/W# Direction Bit**:
   - `0` (**Write**): The controller will transmit subsequent data bytes to the target.
   - `1` (**Read**): The controller will receive subsequent data bytes from the target.
@@ -197,13 +197,13 @@ Bit:    7    6    5    4    3    2    1    0
 ```
 
 ### 4.1 10-Bit Write Transaction Flow
-1. Controller sends START ($S$).
+1. Controller sends START (S).
 2. Controller sends First Byte: `1111 0` + `A9:A8` + `R/W# = 0` (Write).
-3. All targets with matching $A9:A8$ acknowledge with ACK.
+3. All targets with matching A9:A8 acknowledge with ACK.
 4. Controller sends Second Byte: `A7:A0`.
 5. Only the specific target matching the full 10-bit address acknowledges with ACK.
 6. Controller transmits payload data bytes as normal.
-7. Controller terminates with STOP ($P$).
+7. Controller terminates with STOP (P).
 
 ```text
 ┌───┬───────────────────┬───┬───────────────────┬───┬──────────────┬───┬───┐
@@ -212,16 +212,16 @@ Bit:    7    6    5    4    3    2    1    0
 ```
 
 ### 4.2 10-Bit Read Transaction Flow
-Because the read direction bit must be combined with the target address, a read requires a **Repeated START ($S_r$)** sequence:
+Because the read direction bit must be combined with the target address, a read requires a **Repeated START (S_r)** sequence:
 
-1. Controller sends START ($S$).
+1. Controller sends START (S).
 2. Controller sends First Byte with `R/W# = 0` (Write) + `A9:A8`. Target ACKs.
 3. Controller sends Second Byte (`A7:A0`). Target ACKs.
-4. Controller sends Repeated START ($S_r$).
+4. Controller sends Repeated START (S_r).
 5. Controller re-sends First Byte with `R/W# = 1` (Read) + `A9:A8`.
 6. Matching target recognizes its address and sends ACK.
 7. Target transmits data bytes to controller.
-8. Controller acknowledges each byte, sends NACK on the last byte, followed by STOP ($P$).
+8. Controller acknowledges each byte, sends NACK on the last byte, followed by STOP (P).
 
 ```text
 ┌───┬─────────────────┬───┬───────────┬───┬────┬─────────────────┬───┬──────────────┬────┬───┐
@@ -241,13 +241,13 @@ Certain 7-bit address patterns are reserved by the NXP specification and must ne
 | `0000 001` | `0x01` | `0x02` (W) / `0x03` (R) | **CBUS Address** | Legacy bus compatibility (not used in modern designs). |
 | `0000 010` | `0x02` | `0x04` (W) / `0x05` (R) | **Reserved for Different Bus** | Reserved for alternative bus formats. |
 | `0000 011` | `0x03` | `0x06` (W) / `0x07` (R) | **Reserved for Future Use** | Unassigned. |
-| `0000 1XX` | `0x04` – `0x07` | `0x08` – `0x0F` | **High-Speed Master Code** | Broadcast at $\le 400\,\text{kHz}$ to switch bus to $3.4\,\text{Mbps}$ mode. |
+| `0000 1XX` | `0x04` – `0x07` | `0x08` – `0x0F` | **High-Speed Master Code** | Broadcast at <= 400 kHz to switch bus to 3.4 Mbps mode. |
 | `1111 0XX` | `0x78` – `0x7B` | `0xF0` – `0xF7` | **10-bit Target Addressing** | Two-byte 10-bit address prefix. |
 | `1111 1XX` | `0x7C` – `0x7F` | `0xF8` – `0xFF` | **Device ID / Reserved** | Query manufacturer, part number, and silicon revision code. |
 
 ### 5.1 General Call Address (`0x00`)
 
-When a controller broadcasts address `0x00` with $R/W\# = 0$, every target capable of handling general calls asserts an ACK.
+When a controller broadcasts address `0x00` with R/W\# = 0, every target capable of handling general calls asserts an ACK.
 
 ```text
 ┌───┬───────────────────┬───┬───────────────────┬───┬───┐
@@ -314,14 +314,14 @@ Phase 1: Set Register Pointer (Write)          Phase 2: Read Register Data (Read
 └───┴───────────────────┴───┴──────────────────┴───┴────┴───────────────────┴───┴──────────────┴────┴───┘
 ```
 
-1. Controller sends START ($S$).
+1. Controller sends START (S).
 2. Controller sends Target Address + Write bit (`0`). Target sends ACK.
 3. Controller sends target register address (e.g. `0x75` for `WHO_AM_I`). Target sends ACK.
-4. Controller issues **Repeated START ($S_r$)** (does NOT release the bus).
+4. Controller issues **Repeated START (S_r)** (does NOT release the bus).
 5. Controller re-addresses target with Read bit (`1`). Target sends ACK.
 6. Target outputs content of register `0x75`.
 7. Controller sends **NACK** on the byte.
-8. Controller issues STOP ($P$).
+8. Controller issues STOP (P).
 
 ---
 
@@ -345,21 +345,25 @@ SDA:  ──┐   │ 1 1 0 1 0 0 0 │ 0   │ 0 0 1 1 1 │ 0   ┐   │ 1 1 
 
 | Time Index | Event / Packet | Direction | Data Value | Hex Equivalent | Description |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| $t_0$ | **START** | Controller $\to$ Bus | SDA $\downarrow$ while SCL $\text{HIGH}$ | $S$ | Bus ownership claimed. |
-| $t_1$ | Address + W | Controller $\to$ Bus | `0b11010000` | `0xD0` (`0x68` W) | Addressing 6-DOF IMU (e.g. MPU-6050). |
-| $t_2$ | **ACK** | Target $\to$ Controller | SDA pulled $\text{LOW}$ on 9th clock | `0` | IMU recognizes address. |
-| $t_3$ | Register Address | Controller $\to$ Bus | `0b00111011` | `0x3B` (`ACCEL_XOUT_H`) | Pointing internal address pointer to high byte. |
-| $t_4$ | **ACK** | Target $\to$ Controller | SDA pulled $\text{LOW}$ on 9th clock | `0` | Target latches register pointer. |
-| $t_5$ | **Repeated START** | Controller $\to$ Bus | SDA $\downarrow$ while SCL $\text{HIGH}$ | $S_r$ | Retains bus; reverses data direction. |
-| $t_6$ | Address + R | Controller $\to$ Bus | `0b11010001` | `0xD1` (`0x68` R) | Addressing IMU in read mode. |
-| $t_7$ | **ACK** | Target $\to$ Controller | SDA pulled $\text{LOW}$ on 9th clock | `0` | Target switches to transmit mode. |
-| $t_8$ | Payload Byte 1 | Target $\to$ Controller | `0b00010100` | `0x14` | High byte of X-axis accelerometer reading. |
-| $t_9$ | **Master ACK** | Controller $\to$ Target | SDA pulled $\text{LOW}$ on 9th clock | `0` | Controller requests next sequential byte. |
-| $t_{10}$ | Payload Byte 2 | Target $\to$ Controller | `0b10100010` | `0xA2` | Low byte of X-axis accelerometer reading. |
-| $t_{11}$ | **Master NACK** | Controller $\to$ Target | SDA left $\text{HIGH}$ on 9th clock | `1` | Controller signals end of reception stream. |
-| $t_{12}$ | **STOP** | Controller $\to$ Bus | SDA $\uparrow$ while SCL $\text{HIGH}$ | $P$ | Bus released to IDLE state. |
+| t_0 | **START** | Controller -> Bus | SDA downarrow while SCL HIGH | S | Bus ownership claimed. |
+| t_1 | Address + W | Controller -> Bus | `0b11010000` | `0xD0` (`0x68` W) | Addressing 6-DOF IMU (e.g. MPU-6050). |
+| t_2 | **ACK** | Target -> Controller | SDA pulled LOW on 9th clock | `0` | IMU recognizes address. |
+| t_3 | Register Address | Controller -> Bus | `0b00111011` | `0x3B` (`ACCEL_XOUT_H`) | Pointing internal address pointer to high byte. |
+| t_4 | **ACK** | Target -> Controller | SDA pulled LOW on 9th clock | `0` | Target latches register pointer. |
+| t_5 | **Repeated START** | Controller -> Bus | SDA downarrow while SCL HIGH | S_r | Retains bus; reverses data direction. |
+| t_6 | Address + R | Controller -> Bus | `0b11010001` | `0xD1` (`0x68` R) | Addressing IMU in read mode. |
+| t_7 | **ACK** | Target -> Controller | SDA pulled LOW on 9th clock | `0` | Target switches to transmit mode. |
+| t_8 | Payload Byte 1 | Target -> Controller | `0b00010100` | `0x14` | High byte of X-axis accelerometer reading. |
+| t_9 | **Master ACK** | Controller -> Target | SDA pulled LOW on 9th clock | `0` | Controller requests next sequential byte. |
+| t_10 | Payload Byte 2 | Target -> Controller | `0b10100010` | `0xA2` | Low byte of X-axis accelerometer reading. |
+| t_11 | **Master NACK** | Controller -> Target | SDA left HIGH on 9th clock | `1` | Controller signals end of reception stream. |
+| t_12 | **STOP** | Controller -> Bus | SDA uparrow while SCL HIGH | P | Bus released to IDLE state. |
 
 **Final Reconstructed Measurement**:
-$$\text{Raw Accel X} = (\texttt{0x14} \ll 8) \mid \texttt{0xA2} = \texttt{0x14A2} = +5282 \text{ counts}$$
-At standard $\pm 2g$ scale ($16,384\,\text{LSB}/g$):
-$$\text{Acceleration}_X = \frac{5282}{16384} \approx +0.322\,g$$
+```
+Raw Accel X = (0x14 << 8) | 0xA2 = 0x14A2 = +5282 counts
+```
+At standard ± 2g scale (16,384 LSB/g):
+```
+Acceleration_X = 5282 / 16384 ≈ +0.322 g
+```

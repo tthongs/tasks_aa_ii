@@ -10,7 +10,7 @@ Unlike standard digital interfaces (such as SPI or UART) that utilize **push-pul
 
 ### 1.1 Internal Driver Topology
 
-In an open-drain stage, the output pin is connected exclusively to the drain of an internal N-channel MOSFET (NMOS). The source of the MOSFET is tied to Ground ($V_{SS}$).
+In an open-drain stage, the output pin is connected exclusively to the drain of an internal N-channel MOSFET (NMOS). The source of the MOSFET is tied to Ground (V_SS).
 
 ```text
        Controller / Target Internal Silicon                  Physical Bus Line (SDA or SCL)
@@ -36,8 +36,8 @@ In an open-drain stage, the output pin is connected exclusively to the drain of 
                                                                          │
 ```
 
-- **Driving Logic LOW ('0')**: The device turns ON the internal NMOS transistor. The transistor saturates, sinking current from the bus directly to Ground. The bus voltage drops to $V_{OL}$ (typically $< 0.4\,\text{V}$).
-- **Driving Logic HIGH ('1')**: The device turns OFF the internal NMOS transistor. The transistor enters a high-impedance (High-Z) cut-off state. The device does not actively drive high voltage. Instead, it **releases the line**, allowing an external passive pull-up resistor ($R_p$) to pull the voltage up to $V_{DD}$.
+- **Driving Logic LOW ('0')**: The device turns ON the internal NMOS transistor. The transistor saturates, sinking current from the bus directly to Ground. The bus voltage drops to V_OL (typically < 0.4 V).
+- **Driving Logic HIGH ('1')**: The device turns OFF the internal NMOS transistor. The transistor enters a high-impedance (High-Z) cut-off state. The device does not actively drive high voltage. Instead, it **releases the line**, allowing an external passive pull-up resistor (R_p) to pull the voltage up to V_DD.
 
 ### 1.2 The Wired-AND Principle
 
@@ -58,13 +58,15 @@ Because no device actively drives the bus HIGH, multiple device pins can be tied
 ```
 
 This arrangement creates a physical **Wired-AND** logic function:
-$$\text{Bus State} = \text{Device A} \ \text{AND} \ \text{Device B} \ \text{AND} \ \text{Device C}$$
+```
+Bus State = Device A \ AND \ Device B \ AND \ Device C
+```
 
-1. If **all devices** release the line (all NMOS OFF), no current flows to ground. The pull-up resistor pulls the bus to $V_{DD}$ ($\text{Bus} = \text{HIGH} = 1$).
-2. If **any single device** turns its NMOS ON, current flows from $V_{DD}$ through $R_p$ and the NMOS to Ground, pulling the entire bus LOW ($\text{Bus} = \text{LOW} = 0$).
+1. If **all devices** release the line (all NMOS OFF), no current flows to ground. The pull-up resistor pulls the bus to V_DD (Bus = HIGH = 1).
+2. If **any single device** turns its NMOS ON, current flows from V_DD through R_p and the NMOS to Ground, pulling the entire bus LOW (Bus = LOW = 0).
 
 > [!WARNING]
-> **Push-Pull Danger**: If standard push-pull drivers were used in I2C, a condition where Device A drives HIGH ($3.3\,\text{V}$) while Device B drives LOW ($0\,\text{V}$) would form a low-impedance short-circuit across the supply rails. The resulting shoot-through current ($> 50\text{--}100\,\text{mA}$) would destroy the output transistors. The open-drain Wired-AND architecture fundamentally prevents bus contention damage.
+> **Push-Pull Danger**: If standard push-pull drivers were used in I2C, a condition where Device A drives HIGH (3.3 V) while Device B drives LOW (0 V) would form a low-impedance short-circuit across the supply rails. The resulting shoot-through current (> 50--100 mA) would destroy the output transistors. The open-drain Wired-AND architecture fundamentally prevents bus contention damage.
 
 ---
 
@@ -84,29 +86,31 @@ Vdd ───┐     │                                  . - - -
 0V ────┴───┘   └──────────────────────'─────────────────► Time
 ```
 
-1. **Falling Edge ($t_f$)**: The internal NMOS turns on with an on-resistance $R_{DS(on)}$ of typically $10\text{--}50\,\Omega$. Bus capacitance ($C_b$) discharges rapidly to ground. Fall times are typically very fast ($< 20\text{--}50\,\text{ns}$).
-2. **Rising Edge ($t_r$)**: The NMOS turns off. The bus voltage rises according to the classic first-order RC charging curve:
-   $$V(t) = V_{DD} \left(1 - e^{-\frac{t}{R_p C_b}}\right)$$
-   Where $R_p$ is typically $1\,\text{k}\Omega\text{ to }10\,\text{k}\Omega$ and $C_b$ is $50\text{--}400\,\text{pF}$. The rise time is orders of magnitude slower than the fall time.
+1. **Falling Edge (t_f)**: The internal NMOS turns on with an on-resistance R_DS(on) of typically 10--50 Ω. Bus capacitance (C_b) discharges rapidly to ground. Fall times are typically very fast (< 20--50 ns).
+2. **Rising Edge (t_r)**: The NMOS turns off. The bus voltage rises according to the classic first-order RC charging curve:
+   ```
+V(t) = V_DD (1 - e^-t / (R_p C_b))
+```
+   Where R_p is typically 1 kΩ to 10 kΩ and C_b is 50--400 pF. The rise time is orders of magnitude slower than the fall time.
 
 > [!IMPORTANT]
-> Because the rise time is determined strictly by the $R_p \times C_b$ time constant, adding more devices or longer PCB traces increases $C_b$, slowing the rise time. If the rise time is too slow, the clock or data signal fails to reach the logic threshold $V_{IH}$ before the bit sampling window closes, leading to bus corruption.
+> Because the rise time is determined strictly by the R_p * C_b time constant, adding more devices or longer PCB traces increases C_b, slowing the rise time. If the rise time is too slow, the clock or data signal fails to reach the logic threshold V_IH before the bit sampling window closes, leading to bus corruption.
 
 ---
 
 ## 3. Bus Voltages & Bidirectional Level Shifting
 
-Modern embedded systems frequently connect microcontrollers operating at $3.3\,\text{V}$ or $1.8\,\text{V}$ with legacy sensors or peripheral chips operating at $5.0\,\text{V}$.
+Modern embedded systems frequently connect microcontrollers operating at 3.3 V or 1.8 V with legacy sensors or peripheral chips operating at 5.0 V.
 
 ### 3.1 Logic Threshold Rules
 According to the I2C specification:
-- **Maximum LOW-level input voltage ($V_{IL}$)**: $0.3 \times V_{DD}$ (e.g., $0.99\,\text{V}$ for $3.3\,\text{V}$; $1.5\,\text{V}$ for $5.0\,\text{V}$).
-- **Minimum HIGH-level input voltage ($V_{IH}$)**: $0.7 \times V_{DD}$ (e.g., $2.31\,\text{V}$ for $3.3\,\text{V}$; $3.5\,\text{V}$ for $5.0\,\text{V}$).
-- **Maximum Output LOW level ($V_{OL}$)**: Typically $0.4\,\text{V}$ at nominal sink current ($3\,\text{mA}$).
+- **Maximum LOW-level input voltage (V_IL)**: 0.3 * V_DD (e.g., 0.99 V for 3.3 V; 1.5 V for 5.0 V).
+- **Minimum HIGH-level input voltage (V_IH)**: 0.7 * V_DD (e.g., 2.31 V for 3.3 V; 3.5 V for 5.0 V).
+- **Maximum Output LOW level (V_OL)**: Typically 0.4 V at nominal sink current (3 mA).
 
 ### 3.2 Discrete MOSFET Bidirectional Level Shifter Circuit
 
-To bridge two bus sections at different voltages (e.g., $V_{DD1} = 1.8\,\text{V}$ or $3.3\,\text{V}$, and $V_{DD2} = 5.0\,\text{V}$), the standard industry circuit uses an N-channel MOSFET (such as BSS138) with an integrated body diode:
+To bridge two bus sections at different voltages (e.g., V_DD1 = 1.8 V or 3.3 V, and V_DD2 = 5.0 V), the standard industry circuit uses an N-channel MOSFET (such as BSS138) with an integrated body diode:
 
 ```text
              +VDD1 (3.3V)                   +VDD2 (5.0V)
@@ -128,29 +132,29 @@ To bridge two bus sections at different voltages (e.g., $V_{DD1} = 1.8\,\text{V}
 
 1. **State 1: Both Sides High (Idle State)**
    - Neither side is driving LOW.
-   - SDA1 is pulled to $3.3\,\text{V}$ by $R_{p1}$.
-   - Gate is tied to $V_{DD1}$ ($3.3\,\text{V}$).
-   - $V_{GS} = V_G - V_S = 3.3\,\text{V} - 3.3\,\text{V} = 0\,\text{V}$.
+   - SDA1 is pulled to 3.3 V by R_p1.
+   - Gate is tied to V_DD1 (3.3 V).
+   - V_GS = V_G - V_S = 3.3 V - 3.3 V = 0 V.
    - The MOSFET is **OFF**.
-   - SDA2 is pulled to $5.0\,\text{V}$ by $R_{p2}$.
+   - SDA2 is pulled to 5.0 V by R_p2.
    - Both bus segments remain at their respective HIGH logic voltages.
 
-2. **State 2: Low-Voltage Side Drives LOW ($3.3\,\text{V}$ side pulls to $0\,\text{V}$)**
-   - Controller or sensor on SDA1 activates internal NMOS, pulling SDA1 to $0\,\text{V}$.
-   - Gate is at $3.3\,\text{V}$, Source drops to $0\,\text{V}$.
-   - $V_{GS} = 3.3\,\text{V} - 0\,\text{V} = 3.3\,\text{V} > V_{GS(th)}$ (threshold is typically $\sim 1.2\,\text{V}$).
+2. **State 2: Low-Voltage Side Drives LOW (3.3 V side pulls to 0 V)**
+   - Controller or sensor on SDA1 activates internal NMOS, pulling SDA1 to 0 V.
+   - Gate is at 3.3 V, Source drops to 0 V.
+   - V_GS = 3.3 V - 0 V = 3.3 V > V_GS(th) (threshold is typically sim 1.2 V).
    - The MOSFET turns **ON** hard.
-   - The conducting channel shorts Drain to Source, discharging SDA2 to $0\,\text{V}$.
-   - Result: Both sides become LOW ($0\,\text{V}$).
+   - The conducting channel shorts Drain to Source, discharging SDA2 to 0 V.
+   - Result: Both sides become LOW (0 V).
 
-3. **State 3: High-Voltage Side Drives LOW ($5.0\,\text{V}$ side pulls to $0\,\text{V}$)**
-   - Target on SDA2 activates internal NMOS, pulling SDA2 to $0\,\text{V}$.
+3. **State 3: High-Voltage Side Drives LOW (5.0 V side pulls to 0 V)**
+   - Target on SDA2 activates internal NMOS, pulling SDA2 to 0 V.
    - The MOSFET body diode (anode at Source/SDA1, cathode at Drain/SDA2) becomes forward-biased.
-   - SDA1 is initially pulled down through the body diode to $\sim 0.6\,\text{V}$.
-   - As SDA1 falls to $0.6\,\text{V}$, $V_{GS} = 3.3\,\text{V} - 0.6\,\text{V} = 2.7\,\text{V} > V_{GS(th)}$.
+   - SDA1 is initially pulled down through the body diode to sim 0.6 V.
+   - As SDA1 falls to 0.6 V, V_GS = 3.3 V - 0.6 V = 2.7 V > V_GS(th).
    - The MOSFET turns **ON** fully, shorting Drain and Source.
-   - SDA1 is pulled down completely to Ground ($V_{OL} \approx 0.1\text{--}0.2\,\text{V}$).
-   - Result: Both sides become LOW ($0\,\text{V}$).
+   - SDA1 is pulled down completely to Ground (V_OL ≈ 0.1--0.2 V).
+   - Result: Both sides become LOW (0 V).
 
 > [!TIP]
 > For production PCBA designs, integrated level-shifter ICs (such as **PCA9306**, **TCA9803**, or **TXS0102**) package these matched MOSFETs and gate-bias networks into compact TSSOP/VSSOP packages with integrated ESD protection and rise-time accelerators.
@@ -168,13 +172,13 @@ In modern I2C terminology (formally updated by NXP, IEEE, and OSHWA):
 | Operational Phase | Controller Responsibility | Target Responsibility |
 | :--- | :--- | :--- |
 | **Bus Initialization** | Configures clock speed, drives initial HIGH state | Listens to bus, initializes internal registers |
-| **Transaction Start** | Drives START condition ($S$) | Detects falling SDA edge while SCL is HIGH |
+| **Transaction Start** | Drives START condition (S) | Detects falling SDA edge while SCL is HIGH |
 | **Addressing** | Broadcasts 7-bit / 10-bit address + R/W bit | Matches address against internal hardware register |
 | **Address Acknowledge** | Releases SDA, clocks 9th SCL pulse, samples ACK | If address matches, pulls SDA LOW during 9th clock |
 | **Write Transfer** | Drives 8 data bits onto SDA, clocks SCL | Latches data on SCL rising edge, pulls SDA LOW for ACK |
 | **Read Transfer** | Generates SCL clocks, asserts ACK/NACK | Drives data bits on SDA when SCL is LOW |
 | **Clock Pacing** | Regulates nominal SCL clock frequency | May hold SCL LOW (Clock Stretching) if busy |
-| **Transaction Stop** | Drives STOP condition ($P$) to free the bus | Resets state machine to IDLE, releases all lines |
+| **Transaction Stop** | Drives STOP condition (P) to free the bus | Resets state machine to IDLE, releases all lines |
 
 ---
 
@@ -199,8 +203,8 @@ Physical SCL Bus (Wired-AND): ────┐   ┌─────────�
    - Devices whose internal clocks were still HIGH sense SCL falling LOW and immediately transition their internal state machines to the LOW phase.
    - The physical SCL line stays LOW until the device with the **longest internal LOW period** turns off its NMOS and releases SCL.
 2. **Synchronizing the HIGH Period**:
-   - Once all devices release SCL, the pull-up resistor pulls SCL to $V_{DD}$.
-   - All devices monitor SCL. As soon as SCL crosses $V_{IH}$, each device starts counting its internal HIGH period timer.
+   - Once all devices release SCL, the pull-up resistor pulls SCL to V_DD.
+   - All devices monitor SCL. As soon as SCL crosses V_IH, each device starts counting its internal HIGH period timer.
    - The device with the **shortest internal HIGH period** finishes first and pulls SCL LOW again.
 3. **Conclusion**:
    - The resulting synchronized clock has a **LOW period governed by the slowest device**, and a **HIGH period governed by the fastest device**.
@@ -229,10 +233,10 @@ Physical SCL:   ───┐   ┌───┐   ┌───┐               �
 2. The target device is busy (e.g., storing data into internal non-volatile EEPROM, executing an ADC conversion, or servicing a high-priority CPU interrupt).
 3. The target's internal hardware pulls the SCL line LOW and keeps its NMOS turned ON.
 4. When the controller attempts to release SCL to generate the next HIGH clock pulse, it senses the physical line voltage.
-5. Because the target is holding SCL LOW, the controller detects that $\text{SCL} < V_{IH}$.
+5. Because the target is holding SCL LOW, the controller detects that SCL < V_IH.
 6. The controller pauses its state machine and enters a wait state.
 7. Once the target completes its internal processing, it turns off its NMOS, releasing SCL.
-8. The pull-up resistor pulls SCL to $V_{DD}$. The controller senses the rising edge and resumes normal clocking.
+8. The pull-up resistor pulls SCL to V_DD. The controller senses the rising edge and resumes normal clocking.
 
 ### 6.2 Clock Stretching Hazards & Industry Workarounds
 
@@ -242,7 +246,7 @@ While clock stretching is an official feature of I2C, it is one of the most freq
 > **Silicon Errata & Lockups**:
 > - **Raspberry Pi BCM2835 Clock-Stretch Bug**: Broadcom silicon on older Raspberry Pi models had a hardware bug where clock stretching during an ACK bit caused bit corruption and frozen transfers.
 > - **Infinite Stretch (Bus Freeze)**: If a buggy sensor hangs while holding SCL LOW, no other transactions can occur on the entire bus.
-> - **SMBus Comparison**: The SMBus (System Management Bus) specification resolves this by enforcing a hard **35 ms maximum clock low timeout** ($t_{TIMEOUT} = 25\text{--}35\,\text{ms}$). If SCL is held LOW for longer than 35 ms, SMBus devices reset their bus interface. Pure I2C does not mandate a timeout, meaning microcontroller firmware must implement software watchdog timers to abort stalled transactions.
+> - **SMBus Comparison**: The SMBus (System Management Bus) specification resolves this by enforcing a hard **35 ms maximum clock low timeout** (t_TIMEOUT = 25--35 ms). If SCL is held LOW for longer than 35 ms, SMBus devices reset their bus interface. Pure I2C does not mandate a timeout, meaning microcontroller firmware must implement software watchdog timers to abort stalled transactions.
 
 ---
 
@@ -251,7 +255,9 @@ While clock stretching is an official feature of I2C, it is one of the most freq
 I2C supports true multi-controller operation where two or more controllers can initiate communication on the same bus without requiring arbitration lines or causing packet corruption.
 
 Arbitration occurs **on the SDA line** while the SCL line is HIGH. It relies on the principle that:
-$$\text{A LOW bit ('0') dominates a HIGH bit ('1') on a Wired-AND bus}$$
+```
+A LOW bit ('0') dominates a HIGH bit ('1') on a Wired-AND bus
+```
 
 ### 7.1 Arbitration Step-by-Step Example
 
@@ -294,9 +300,9 @@ Physical SDA:──────┐       ┌───────┐            
 5. **Bit 3**:
    - **Controller 1** wants to send `0`: It activates its NMOS, driving SDA **LOW**.
    - **Controller 2** wants to send `1`: It turns off its NMOS, expecting the line to float **HIGH**.
-   - Because Controller 1 is pulling LOW, the physical wire voltage is **LOW ($0\,\text{V}$)**.
+   - Because Controller 1 is pulling LOW, the physical wire voltage is **LOW (0 V)**.
    - Every controller samples the physical SDA line whenever SCL is HIGH.
-   - Controller 2 samples SDA and sees **LOW ($0\,\text{V}$)** even though its internal register was outputting **HIGH ($1$)**.
+   - Controller 2 samples SDA and sees **LOW (0 V)** even though its internal register was outputting **HIGH (1)**.
    - **Controller 2 detects an immediate arbitration loss!**
 6. **Action Taken by Losing Controller (Controller 2)**:
    - Controller 2 turns off its SDA output driver immediately.
@@ -321,15 +327,17 @@ To guarantee noise immunity, the I2C physical specification mandates two stages 
                   └────────────────────┘    └─────────────────┘
 ```
 
-### 8.1 50 ns Spike Suppression Glitch Filter ($t_{SP}$)
-- In Fast-mode ($400\,\text{kHz}$) and higher, input stages incorporate an analog low-pass RC spike suppression filter.
-- Any pulse on SDA or SCL with a duration **$< 50\,\text{ns}$** is completely suppressed and ignored by the internal silicon.
+### 8.1 50 ns Spike Suppression Glitch Filter (t_SP)
+- In Fast-mode (400 kHz) and higher, input stages incorporate an analog low-pass RC spike suppression filter.
+- Any pulse on SDA or SCL with a duration **< 50 ns** is completely suppressed and ignored by the internal silicon.
 - This prevents high-frequency inductive switching spikes (e.g. from nearby DC-DC converters or motor PWM lines) from being falsely interpreted as clock edges or START conditions.
 
-### 8.2 Schmitt Trigger Hysteresis ($V_{hys}$)
+### 8.2 Schmitt Trigger Hysteresis (V_hys)
 - I2C inputs must exhibit built-in hysteresis:
-  $$V_{hys} \ge 0.05 \times V_{DD} \quad (\text{typically } 0.1 \times V_{DD} \approx 330\,\text{mV at } 3.3\,\text{V})$$
-- Slow RC rising edges pass through the logic transition threshold ($0.5 \times V_{DD}$) slowly. Without hysteresis, high-frequency noise superimposed on a slow rising edge would cause the digital input buffer to toggle rapidly between 0 and 1, creating multiple false clock pulses. The Schmitt trigger eliminates this chatter.
+  ```
+V_hys >= 0.05 * V_DD (typically 0.1 * V_DD ≈ 330 mV at 3.3 V)
+```
+- Slow RC rising edges pass through the logic transition threshold (0.5 * V_DD) slowly. Without hysteresis, high-frequency noise superimposed on a slow rising edge would cause the digital input buffer to toggle rapidly between 0 and 1, creating multiple false clock pulses. The Schmitt trigger eliminates this chatter.
 
 ---
 

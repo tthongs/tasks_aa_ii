@@ -61,7 +61,7 @@ Communication between an NFC reader (PCD) and a proximity card (PICC) is governe
 
 ---
 
-## 2. RF Field Activation & Initial Guard Time ($T_{guard}$)
+## 2. RF Field Activation & Initial Guard Time (T_guard)
 
 When an SPI host microcontroller commands the NFC transceiver to turn on its RF field (e.g. setting the `TxControlReg` in MFRC522 or executing `RFConfiguration` on PN532):
 
@@ -74,10 +74,10 @@ Tag VDD:     ______/-------------------------------------\/\/\/\/\/\/\/\/\/\/\/\
 ```
 
 > [!IMPORTANT]
-> **The 5.0 ms Guard Time Rule ($T_{guard}$)**:
-> ISO/IEC 14443-3 Section 5.1 mandates a minimum delay of **$T_{guard} \ge 5.0\text{ ms}$** between RF field activation and the transmission of the first polling command (REQA/WUPA).
+> **The 5.0 ms Guard Time Rule (T_guard)**:
+> ISO/IEC 14443-3 Section 5.1 mandates a minimum delay of **T_guard >= 5.0 ms** between RF field activation and the transmission of the first polling command (REQA/WUPA).
 >
-> **Why firmware fails if this is omitted**: A passive RFID/NFC tag contains an internal reservoir capacitor that must harvest energy from the unmodulated 13.56 MHz carrier, charge its internal power rails, and release its internal Power-On Reset (POR) circuit. If the host transmits a REQA before $5.0\text{ ms}$ has elapsed, the tag is unpowered and will not respond, leading to false "No Tag Found" errors.
+> **Why firmware fails if this is omitted**: A passive RFID/NFC tag contains an internal reservoir capacitor that must harvest energy from the unmodulated 13.56 MHz carrier, charge its internal power rails, and release its internal Power-On Reset (POR) circuit. If the host transmits a REQA before 5.0 ms has elapsed, the tag is unpowered and will not respond, leading to false "No Tag Found" errors.
 
 ---
 
@@ -109,7 +109,7 @@ Because SPI controllers cannot shift 7 bits natively, the host programs the tran
 
 ### 3.2 ATQA (Answer to Request Type A)
 
-Any tag present in the RF field responds to REQA/WUPA within exactly **$128\text{ etu}$ (Frame Delay Time, $FDT \approx 86.4\ \mu\text{s}$)** with a 2-byte **ATQA** frame (`b16` to `b1`):
+Any tag present in the RF field responds to REQA/WUPA within exactly **128 etu (Frame Delay Time, FDT ≈ 86.4\ µs)** with a 2-byte **ATQA** frame (`b16` to `b1`):
 
 ```text
 Byte 2 (High Byte)                  Byte 1 (Low Byte)
@@ -151,11 +151,13 @@ When multiple cards are present in the reader's RF field, they all receive the R
 ### 4.2 The NVB (Number of Valid Bits) Byte
 
 The `NVB` byte communicates how many bits in the transmission are valid and driven by the reader:
-$$\text{NVB} = (\text{Byte Count} \ll 4) \ | \ (\text{Bit Count})$$
+```
+NVB = (Byte Count << 4) \ | \ (Bit Count)
+```
 - **High Nibble (`Bits 7:4`)**: Number of complete bytes transmitted by the reader (including `SEL` and `NVB` themselves). Minimum value is `2` (`SEL` + `NVB`).
-- **Low Nibble (`Bits 3:0`)**: Number of additional fractional bits ($0\text{ to }7$).
-- **`NVB = 0x20`**: Initiates anti-collision. Reader sends only `SEL` and `NVB` ($2\text{ bytes} = 16\text{ bits}$), requesting all cards to transmit their complete 40-bit UID segment.
-- **`NVB = 0x70`**: Selection finalization. Reader transmits the complete 40 bits ($5\text{ bytes}$ of UID + BCC) plus a 2-byte `CRC_A`. Only the matching card answers with its **SAK**.
+- **Low Nibble (`Bits 3:0`)**: Number of additional fractional bits (0 to 7).
+- **`NVB = 0x20`**: Initiates anti-collision. Reader sends only `SEL` and `NVB` (2 bytes = 16 bits), requesting all cards to transmit their complete 40-bit UID segment.
+- **`NVB = 0x70`**: Selection finalization. Reader transmits the complete 40 bits (5 bytes of UID + BCC) plus a 2-byte `CRC_A`. Only the matching card answers with its **SAK**.
 
 ### 4.3 Hardware Collision Detection Mechanics
 
@@ -177,9 +179,9 @@ Transceiver asserts IRQ: CollErr = 1, CollPos = K
 1. Host sends `SEL = 0x93`, `NVB = 0x20`.
 2. Cards respond with their UID bytes.
 3. If no collision occurs (`CollErr == 0`): Host receives 4 UID bytes + 1 BCC byte. Host proceeds directly to Step 6.
-4. If a collision occurs at bit $K$ (`CollErr == 1`, `CollPos = K`):
-   - The reader chooses a branch (e.g. arbitrarily setting bit $K$ to `0` or `1`).
-   - The reader updates its known prefix bits up to bit $K$.
+4. If a collision occurs at bit K (`CollErr == 1`, `CollPos = K`):
+   - The reader chooses a branch (e.g. arbitrarily setting bit K to `0` or `1`).
+   - The reader updates its known prefix bits up to bit K.
    - The reader recalculates `NVB` (e.g., if collision occurred at bit 12: `NVB = 0x34`, meaning 3 whole bytes plus 4 bits).
    - Reader re-transmits `SEL` + `NVB` + `known bits`. Only cards whose UID matches the known prefix continue responding.
    - Repeat until all 32 bits of the current cascade level are isolated.
@@ -238,12 +240,12 @@ Reader (PCD)                                                    Card (PICC)
 ### 5.1 RATS Command & ATS Response
 
 The host transmits **RATS** (`0xE0 | FSDI`):
-- `FSDI` (Frame Size Device Integer): Declares the reader's maximum receive buffer ($0\text{ to }8$: $0 = 16\text{ B}, 5 = 64\text{ B}, 8 = 256\text{ B}$).
+- `FSDI` (Frame Size Device Integer): Declares the reader's maximum receive buffer (0 to 8: 0 = 16 B, 5 = 64 B, 8 = 256 B).
 
 The card responds with **ATS (Answer to Select)**:
 - **`TL`**: Total length of ATS.
 - **`T0`**: Format byte containing `FSCI` (card's maximum receive buffer) and presence flags for interface bytes `TA(1)`, `TB(1)`, `TC(1)`.
-- **`TA(1)`**: Transmission bitrates supported (106, 212, 424, 848 kbps asymmetric PCD $\leftrightarrow$ PICC).
+- **`TA(1)`**: Transmission bitrates supported (106, 212, 424, 848 kbps asymmetric PCD <=ftrightarrow PICC).
 - **`TB(1)`**: Frame Waiting Time Integer (`FWI`) and Start-up Frame Guard Time (`SFGI`).
 - **`TC(1)`**: Frame options (NAD and CID support).
 - **Historical Bytes**: Card operating system and ROM version info.
@@ -252,10 +254,14 @@ The card responds with **ATS (Answer to Select)**:
 
 The reader's timeout timer must be programmed according to the card's `FWI` in `TB(1)`:
 
-$$FWT = \left( 256 \times 16 \times 2^{FWI} \right) \cdot \frac{1}{f_c} \approx \frac{4096 \times 2^{FWI}}{13.56 \times 10^6\text{ Hz}}$$
+```
+FWT = ( 256 * 16 * 2^FWI ) * 1 / f_c ≈ (4096 * 2^FWI) / (13.56 * 10^6 Hz)
+```
 
-For standard $FWI = 4$:
-$$FWT \approx \frac{4096 \times 16}{13.56 \times 10^6} \approx 4.83\text{ ms}$$
+For standard FWI = 4:
+```
+FWT ≈ (4096 * 16) / (13.56 * 10^6) ≈ 4.83 ms
+```
 
 ### 5.3 Half-Duplex Block Structures
 

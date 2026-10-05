@@ -2,7 +2,7 @@
 
 ## 1. Executive Overview
 
-**Near Field Communication (NFC)** is a specialized subset of High-Frequency (HF) Radio Frequency Identification (RFID) operating at **13.56 MHz**. While generic RFID was engineered for one-way identification across ranges from centimeters to meters, NFC was standardized by ISO/IEC, ECMA, and the NFC Forum for **secure, bidirectional, short-range (typically $\le 4\text{ cm}$) high-integrity interactions**.
+**Near Field Communication (NFC)** is a specialized subset of High-Frequency (HF) Radio Frequency Identification (RFID) operating at **13.56 MHz**. While generic RFID was engineered for one-way identification across ranges from centimeters to meters, NFC was standardized by ISO/IEC, ECMA, and the NFC Forum for **secure, bidirectional, short-range (typically <= 4 cm) high-integrity interactions**.
 
 In embedded systems, an NFC subsystem is commonly realized as a **two-tier architecture**:
 1. **Host Microcontroller / SoC** (e.g., STM32, ESP32, NXP i.MX, Nordic nRF5340): Executes application logic, NFC Forum protocol stacks, NDEF parsing, cryptographic authentication (Crypto1, AES-128, ECC), and host card emulation (HCE).
@@ -40,12 +40,12 @@ This knowledge base is organized into focused, mathematically rigorous engineeri
 | Document | Primary Focus | Key Standards / Topics Covered |
 | :--- | :--- | :--- |
 | **[spi-rfid-nfc-interaction-guide.md](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/nfc/spi-rfid-nfc-interaction-guide.md)** | **Mentor Briefing & Conceptual Explainer** | **How SPI & RFID interact to create NFC, the 3-tier mental model, step-by-step transaction walkthrough, why SPI over I2C, and mentor Q&A cheat sheet** |
-| **[nfc-rf-and-physical-layer.md](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/nfc/nfc-rf-and-physical-layer.md)** | RF Physics, Modulation, Antenna & Matching | 13.56 MHz carrier, inductive coupling, Biot-Savart, 100% vs 10% ASK, Modified Miller, Manchester, 848 kHz subcarrier load modulation, EMC filter design, antenna $Q$-factor, tuning networks |
+| **[nfc-rf-and-physical-layer.md](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/nfc/nfc-rf-and-physical-layer.md)** | RF Physics, Modulation, Antenna & Matching | 13.56 MHz carrier, inductive coupling, Biot-Savart, 100% vs 10% ASK, Modified Miller, Manchester, 848 kHz subcarrier load modulation, EMC filter design, antenna Q-factor, tuning networks |
 | **[spi-rfid-transceiver-interface.md](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/nfc/spi-rfid-transceiver-interface.md)** | SPI Hardware Bridge & Controller Architecture | 4-wire SPI + IRQ/RST, Register-driven (MFRC522/ST25R) vs Packet-driven (PN532), CPOL/CPHA modes, LSB-first vs MSB-first bit order trap, FIFO watermark interrupts, timing budgets |
 | **[iso14443-framing-and-anticollision.md](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/nfc/iso14443-framing-and-anticollision.md)** | Lower Protocol Stack & Anti-Collision | ISO/IEC 14443 Type A/B, REQA/WUPA 7-bit unaligned short frames, ATQA, Cascade Levels 1/2/3, bit-oriented anti-collision walk, SAK parsing, RATS/ATS, ISO 14443-4 T=CL APDU transport |
 | **[ndef-and-card-emulation.md](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/nfc/ndef-and-card-emulation.md)** | High-Level Data & Operating Modes | NFC Forum Tag Types 1–5, Capability Container (CC), NDEF message framing, Record headers (TNF, RTD), URI/Text/MIME, P2P (LLCP/SNEP), Host Card Emulation (HCE) via SPI |
 | **[nfc-firmware-and-driver-guide.md](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/nfc/nfc-firmware-and-driver-guide.md)** | Embedded Firmware, Linux & Diagnostics | Modular C driver (HAL, register abstraction, anti-collision engine), Linux kernel NFC subsystem (`drivers/nfc`, Device Tree), oscilloscope/logic analyzer debug traces, RCA troubleshooting matrix |
-| **[tools/nfc_calc.py](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/tools/nfc_calc.py)** | Engineering CLI Calculator Tool | Loop antenna inductance ($L_{ant}$), resonance frequency, $Q$-factor, matching capacitors ($C_{series}$, $C_{parallel}$), damping resistor ($R_Q$), and NDEF payload encoding |
+| **[tools/nfc_calc.py](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/tools/nfc_calc.py)** | Engineering CLI Calculator Tool | Loop antenna inductance (L_ant), resonance frequency, Q-factor, matching capacitors (C_series, C_parallel), damping resistor (R_Q), and NDEF payload encoding |
 
 ---
 
@@ -58,7 +58,7 @@ RFID encompasses multiple frequency bands and air interface protocols. NFC is sp
 | **Frequency Band** | 125 kHz – 134.2 kHz | 13.56 MHz | **13.56 MHz** | 860 MHz – 960 MHz |
 | **Primary Standard** | ISO 11784 / ISO 11785 | ISO/IEC 15693, ISO 14443 | **ISO/IEC 18092, ISO 14443A/B, JIS X 6319-4** | ISO/IEC 18000-6C (EPC Gen2) |
 | **Operating Range** | Up to 10 cm | Up to 1 meter (Vicinity) | **Up to 4 – 10 cm (Proximity)** | Up to 10 – 15 meters |
-| **Coupling Mechanism**| Inductive (Magnetic $H$-field)| Inductive (Magnetic $H$-field)| **Inductive (Magnetic $H$-field)** | Electromagnetic radiative (Far-field $E$-field) |
+| **Coupling Mechanism**| Inductive (Magnetic H-field)| Inductive (Magnetic H-field)| **Inductive (Magnetic H-field)** | Electromagnetic radiative (Far-field E-field) |
 | **Data Rates** | ~2 kbps | 26.48 kbps (ISO 15693) | **106, 212, 424, 848 kbps** | 40 – 640 kbps |
 | **Operating Modes** | Reader-to-Tag only | Reader-to-Tag only | **1. Reader/Writer<br>2. Card Emulation (PICC)<br>3. Peer-to-Peer (P2P)** | Reader-to-Tag only |
 | **Data Format** | Raw ID number | Custom binary / block memory| **Standardized NDEF (Text, URI, MIME)** | EPC data structures |
@@ -173,9 +173,9 @@ ARCHETYPE 2: Packet-Oriented Intelligent NFC Controller (e.g., NXP PN532, PN7160
 - **PCD (Proximity Coupling Device)**: The NFC reader / writer that generates the 13.56 MHz electromagnetic field and initiates communication.
 - **PICC (Proximity Integrated Circuit Card)**: The contactless card, tag, or mobile phone that responds to the PCD via inductive load modulation.
 - **VICC (Vicinity Integrated Circuit Card)**: An ISO/IEC 15693 tag capable of communication up to 1 meter from a Vicinity Coupling Device (VCD).
-- **H-Field (Magnetic Field Strength)**: Expressed in amperes per meter ($A/m$). ISO 14443 requires the reader to produce between $1.5\text{ A/m}$ and $7.5\text{ A/m}$ across the operating volume.
+- **H-Field (Magnetic Field Strength)**: Expressed in amperes per meter (A/m). ISO 14443 requires the reader to produce between 1.5 A/m and 7.5 A/m across the operating volume.
 - **Load Modulation**: The physical process by which a passive tag transmits data back to the reader by modulating its antenna loading impedance, inducing voltage changes on the reader coil.
-- **Subcarrier ($f_s$)**: An auxiliary frequency ($f_c / 16 \approx 848\text{ kHz}$) used to separate the card's weak load-modulated uplink signal from the strong 13.56 MHz carrier.
+- **Subcarrier (f_s)**: An auxiliary frequency (f_c / 16 ≈ 848 kHz) used to separate the card's weak load-modulated uplink signal from the strong 13.56 MHz carrier.
 - **REQA / WUPA**: Request Command (7 bits, `0x26`) used to poll for tags in IDLE state; Wake-Up Command (7 bits, `0x52`) used to poll for all tags including those in HALT state.
 - **ATQA (Answer to Request Type A)**: 2-byte response from a Type A tag indicating UID size and anti-collision bit framing.
 - **UID (Unique Identifier)**: Hardware identifier burned into the tag silicon (Single size = 4 bytes; Double size = 7 bytes; Triple size = 10 bytes).

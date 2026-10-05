@@ -8,7 +8,7 @@ This guide explores the Zeta topology, derives its voltage and current transfer 
 
 ## 1. Operating Principle & Zeta Topology
 
-The **Zeta Converter** utilizes a high-side active switch ($Q_1$), a parallel inductor ($L_1$), a series flying coupling capacitor ($C_z$), a freewheeling diode ($D_1$), and an output filter inductor ($L_2$) connected directly to the output:
+The **Zeta Converter** utilizes a high-side active switch (Q_1), a parallel inductor (L_1), a series flying coupling capacitor (C_z), a freewheeling diode (D_1), and an output filter inductor (L_2) connected directly to the output:
 
 ```text
 ========================================================================================================================
@@ -99,37 +99,43 @@ The **Zeta Converter** utilizes a high-side active switch ($Q_1$), a parallel in
 
 | Net Name | Source (Pin / Terminal) | Destination (Pin / Terminal) | Electrical Function | Hardware Engineering Notes |
 | :--- | :--- | :--- | :--- | :--- |
-| **+VIN_FILT** | Fuse $F_1$ Output | $C_{in}$ bank (+), $Q_1$ Drain (Pins 5-8) | Filtered positive DC input bus | High-side N-channel MOSFET drain connected directly to input rail. |
-| **SW1 (Switch Node 1)** | $Q_1$ Source (Pins 1-3) | Inductor $L_1$ Pin 1, Flying Cap $C_z$ Pin 1, Driver PHASE | High-side pulsating switching node | Requires bootstrap gate driver referenced to SW1; swings between $0\,\text{V}$ and $+V_{IN}$. |
-| **SW2 (Switch Node 2)** | Flying Cap $C_z$ Pin 2 | Diode $D_1$ Cathode, Output Inductor $L_2$ Pin 1 | Secondary pulsating node | Swings between $0\,\text{V}$ (when $D_1$ conducts) and $V_{IN} + V_o$ (when $Q_1$ conducts). |
-| **+VOUT** | Inductor $L_2$ Pin 2 | $C_{out}$ bank (+), Feedback $R_{fb1}$, Load (+) | Non-inverting continuous-current output | Output inductor $L_2$ provides continuous DC current, resulting in very low output voltage ripple. |
-| **PGND** | $C_{in}$ (-), Inductor $L_1$ Pin 2, Diode $D_1$ Anode, $C_{out}$ (-) | System power ground return | Common zero-volt power ground | Continuous ground plane; carries circulating inductor and diode currents. |
+| **+VIN_FILT** | Fuse F_1 Output | C_in bank (+), Q_1 Drain (Pins 5-8) | Filtered positive DC input bus | High-side N-channel MOSFET drain connected directly to input rail. |
+| **SW1 (Switch Node 1)** | Q_1 Source (Pins 1-3) | Inductor L_1 Pin 1, Flying Cap C_z Pin 1, Driver PHASE | High-side pulsating switching node | Requires bootstrap gate driver referenced to SW1; swings between 0 V and +V_IN. |
+| **SW2 (Switch Node 2)** | Flying Cap C_z Pin 2 | Diode D_1 Cathode, Output Inductor L_2 Pin 1 | Secondary pulsating node | Swings between 0 V (when D_1 conducts) and V_IN + V_o (when Q_1 conducts). |
+| **+VOUT** | Inductor L_2 Pin 2 | C_out bank (+), Feedback R_fb1, Load (+) | Non-inverting continuous-current output | Output inductor L_2 provides continuous DC current, resulting in very low output voltage ripple. |
+| **PGND** | C_in (-), Inductor L_1 Pin 2, Diode D_1 Anode, C_out (-) | System power ground return | Common zero-volt power ground | Continuous ground plane; carries circulating inductor and diode currents. |
 
 ### 1.2 Component Bill of Materials & Parametric Specifications:
 
 | RefDes | Component Description | Manufacturer & Part Number | Key Electrical Specifications | Critical Design Constraint |
 | :--- | :--- | :--- | :--- | :--- |
-| **$Q_1$** | High-Side N-MOSFET | Infineon BSC035N10NS5 | $V_{DS} = 100\,\text{V}, I_D = 100\,\text{A}, R_{DS(on)} = 3.5\,\text{m}\Omega, Q_g = 28\,\text{nC}$ | Requires floating bootstrap driver circuit ($D_{boot}, C_{boot}$) to bias gate above $V_{IN}$. |
-| **$D_1$** | Freewheeling Diode | Vishay V30100P | $V_{RRM} = 100\,\text{V}, I_F = 30\,\text{A}, V_F = 0.52\,\text{V}, t_{rr} < 20\,\text{ns}$ | Anode to ground, cathode to SW2. Sees peak reverse voltage $V_{R} = V_{IN} + V_o$. |
-| **$C_z$** | Flying Energy Capacitor | TDK C3225X7R1H106M | $10\,\mu\text{F}, 50\,\text{V}, \text{X7R Ceramic}, 1210$ package | Steady-state DC voltage across $C_z$ equals $V_o$; handles high AC ripple current. |
-| **$L_1, L_2$** | Coupled / Dual Inductors | Coilcraft MSD1278-223MLD | $2 \times 22\,\mu\text{H}, I_{sat} = 6.8\,\text{A}, DCR = 32\,\text{m}\Omega$ | $L_2$ placed at output creates low-noise output spectrum identical to a standard Buck converter. |
-| **$C_{out,bulk}$** | Output Bulk Capacitor | Panasonic 25SVPF270M | $2 \times 270\,\mu\text{F}, 25\,\text{V}, \text{OS-CON Polymer}, ESR = 10\,\text{m}\Omega$ | Smooths residual inductor ripple current; low ESR ensures $< 20\,\text{mV}$ ripple. |
+| **Q_1** | High-Side N-MOSFET | Infineon BSC035N10NS5 | V_DS = 100 V, I_D = 100 A, R_DS(on) = 3.5 mΩ, Q_g = 28 nC | Requires floating bootstrap driver circuit (D_boot, C_boot) to bias gate above V_IN. |
+| **D_1** | Freewheeling Diode | Vishay V30100P | V_RRM = 100 V, I_F = 30 A, V_F = 0.52 V, t_rr < 20 ns | Anode to ground, cathode to SW2. Sees peak reverse voltage V_R = V_IN + V_o. |
+| **C_z** | Flying Energy Capacitor | TDK C3225X7R1H106M | 10 µF, 50 V, X7R Ceramic, 1210 package | Steady-state DC voltage across C_z equals V_o; handles high AC ripple current. |
+| **L_1, L_2** | Coupled / Dual Inductors | Coilcraft MSD1278-223MLD | 2 * 22 µH, I_sat = 6.8 A, DCR = 32 mΩ | L_2 placed at output creates low-noise output spectrum identical to a standard Buck converter. |
+| **C_out,bulk** | Output Bulk Capacitor | Panasonic 25SVPF270M | 2 * 270 µF, 25 V, OS-CON Polymer, ESR = 10 mΩ | Smooths residual inductor ripple current; low ESR ensures < 20 mV ripple. |
 
 
 ### 1.1 Conduction Intervals:
-1. **Interval 1: Switch ON ($0 < t \le D \cdot T_s$)**:
-   - High-side switch $Q_1$ conducts. Node $SW_1$ is pulled to $V_{IN}$.
-   - Inductor $L_1$ is energized directly across $V_{IN}$ to GND:
-     $$\frac{di_{L1}}{dt} = \frac{V_{IN}}{L_1}$$
-   - The flying capacitor $C_z$ (precharged to $V_{out}$) pulls node $SW_2$ positive ($V_{SW2} = V_{IN} + V_{out}$), reverse-biasing diode $D_1$.
-   - Inductor $L_2$ current ramps up, energized by $V_{IN} + V_{out} - V_{out} = V_{IN}$:
-     $$\frac{di_{L2}}{dt} = \frac{V_{IN}}{L_2}$$
-2. **Interval 2: Switch OFF ($D \cdot T_s < t \le T_s$)**:
-   - $Q_1$ turns OFF. The collapsing fields of $L_1$ and $L_2$ pull nodes $SW_1$ and $SW_2$ negative.
-   - Diode $D_1$ turns ON, clamping node $SW_2$ to GND ($0\,\text{V}$).
-   - Inductor $L_1$ discharges its energy into flying capacitor $C_z$ through diode $D_1$.
-   - Inductor $L_2$ freewheels through diode $D_1$ into the output capacitor $C_{out}$ and the load:
-     $$\frac{di_{L2}}{dt} = \frac{-V_{out}}{L_2}$$
+1. **Interval 1: Switch ON (0 < t <= D * T_s)**:
+   - High-side switch Q_1 conducts. Node SW_1 is pulled to V_IN.
+   - Inductor L_1 is energized directly across V_IN to GND:
+     ```
+di_L1 / dt = V_IN / L_1
+```
+   - The flying capacitor C_z (precharged to V_out) pulls node SW_2 positive (V_SW2 = V_IN + V_out), reverse-biasing diode D_1.
+   - Inductor L_2 current ramps up, energized by V_IN + V_out - V_out = V_IN:
+     ```
+di_L2 / dt = V_IN / L_2
+```
+2. **Interval 2: Switch OFF (D * T_s < t <= T_s)**:
+   - Q_1 turns OFF. The collapsing fields of L_1 and L_2 pull nodes SW_1 and SW_2 negative.
+   - Diode D_1 turns ON, clamping node SW_2 to GND (0 V).
+   - Inductor L_1 discharges its energy into flying capacitor C_z through diode D_1.
+   - Inductor L_2 freewheels through diode D_1 into the output capacitor C_out and the load:
+     ```
+di_L2 / dt = (-V_out) / L_2
+```
 
 ---
 
@@ -154,24 +160,36 @@ The **Zeta Converter** utilizes a high-side active switch ($Q_1$), a parallel in
 ## 3. Mathematical Formulations & Component Sizing
 
 ### 3.1 Voltage Conversion Ratio:
-Applying volt-second balance to output inductor $L_2$:
-$$(V_{IN}) \cdot D \cdot T_s + (-V_{out}) \cdot (1 - D) \cdot T_s = 0$$
-$$V_{out} = V_{IN} \cdot \frac{D}{1 - D}$$
+Applying volt-second balance to output inductor L_2:
+```
+(V_IN) * D * T_s + (-V_out) * (1 - D) * T_s = 0
+```
+```
+V_out = V_IN * D / (1 - D)
+```
 The conversion ratio is identical to the SEPIC and classic buck-boost, delivering non-inverting positive output voltage.
 
 ### 3.2 Switch & Diode Voltage Stresses:
-$$V_{DS,max} = V_{diode,rev} = V_{IN,max} + V_{out}$$
+```
+V_DS,max = V_diode,rev = V_IN,max + V_out
+```
 
 ### 3.3 Continuous Output Filter Sizing:
-Because output inductor $L_2$ feeds $C_{out}$ directly, the output ripple voltage formula is identical to a **Buck converter**:
-$$\Delta V_{out} = \frac{\Delta I_{L2}}{8 \cdot f_s \cdot C_{out}}$$
+Because output inductor L_2 feeds C_out directly, the output ripple voltage formula is identical to a **Buck converter**:
+```
+Δ V_out = (Δ I_L2) / (8 * f_s * C_out)
+```
 *Huge Engineering Advantage*: Output voltage ripple in a Zeta converter is orders of magnitude lower than in a SEPIC or Boost converter for the same capacitor value!
 
-### 3.4 Flying Capacitor Sizing ($C_z$):
-The steady-state DC voltage across $C_z$ is equal to $V_{out}$:
-$$V_{Cz} = V_{out}$$
-To maintain capacitor voltage ripple $\Delta V_{Cz} \le 5\% \cdot V_{out}$:
-$$C_z \ge \frac{I_{out} \cdot (1 - D)}{f_s \cdot \Delta V_{Cz}}$$
+### 3.4 Flying Capacitor Sizing (C_z):
+The steady-state DC voltage across C_z is equal to V_out:
+```
+V_Cz = V_out
+```
+To maintain capacitor voltage ripple Δ V_Cz <= 5\% * V_out:
+```
+C_z >= (I_out * (1 - D)) / (f_s * Δ V_Cz)
+```
 
 ---
 
@@ -181,7 +199,7 @@ $$C_z \ge \frac{I_{out} \cdot (1 - D)}{f_s \cdot \Delta V_{Cz}}$$
 | :--- | :--- | :--- |
 | **Output Polarity** | Positive (Non-inverting) | Positive (Non-inverting) |
 | **Switch Gate Drive** | **Low-Side**: Referenced to GND (Simple standard driver) | **High-Side**: Floating switch (Requires bootstrap or P-FET) |
-| **Input Current Waveform** | **Continuous**: Low input ripple, small input filter | **Pulsating**: High input ripple, requires larger $C_{in}$ |
-| **Output Current Waveform** | **Pulsating**: High output ripple, requires large $C_{out}$ | **Continuous**: Ultra-low output ripple, small $C_{out}$ |
-| **Shutdown Disconnect** | Yes (Series $C_{sep}$ blocks DC) | No (Diode and $L_2$ path) |
+| **Input Current Waveform** | **Continuous**: Low input ripple, small input filter | **Pulsating**: High input ripple, requires larger C_in |
+| **Output Current Waveform** | **Pulsating**: High output ripple, requires large C_out | **Continuous**: Ultra-low output ripple, small C_out |
+| **Shutdown Disconnect** | Yes (Series C_sep blocks DC) | No (Diode and L_2 path) |
 | **Optimal Application** | Battery-powered devices, automotive inputs | Low-noise analog sensor rails, instrumentation |

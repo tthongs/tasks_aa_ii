@@ -6,7 +6,7 @@ Welcome to the **VVDN Engineering Hub I2C Protocol Knowledge Base**. This docume
 
 ## 1. Executive Summary & Bus Overview
 
-**I2C** (**Inter-Integrated Circuit**, alternately written as **$I^2C$** or **IIC**) is a synchronous, multi-controller (multi-master), multi-target (multi-slave), packet-switched, single-ended serial communication bus developed by Philips Semiconductors (now NXP Semiconductors) in 1982. 
+**I2C** (**Inter-Integrated Circuit**, alternately written as **I^2C** or **IIC**) is a synchronous, multi-controller (multi-master), multi-target (multi-slave), packet-switched, single-ended serial communication bus developed by Philips Semiconductors (now NXP Semiconductors) in 1982. 
 
 Unlike point-to-point buses (UART) or multi-wire chip-select buses (SPI), I2C uses **only two bidirectional open-drain signal lines** pulled up to a common positive supply voltage by pull-up resistors:
 - **SDA (Serial Data Line)**: Transmits data bits, addresses, and control flags synchronously with SCL.
@@ -30,8 +30,8 @@ Unlike point-to-point buses (UART) or multi-wire chip-select buses (SPI), I2C us
 
 ### Core Architectural Attributes
 - **Two-Wire Simplicity**: Requires only two active GPIO pins on a microcontroller to communicate with dozens of peripheral ICs across a printed circuit board.
-- **Open-Drain / Open-Collector Physical Layer**: Drivers can only pull lines LOW to Ground or release them to High-Z (tri-state). Passive external pull-up resistors pull lines up to $V_{DD}$, creating a physical **Wired-AND** connection.
-- **Software Addressing**: Eliminates physical Chip Select ($\overline{\text{CS}}$) pins. Every peripheral has a unique 7-bit (or optional 10-bit) address transmitted over the SDA line.
+- **Open-Drain / Open-Collector Physical Layer**: Drivers can only pull lines LOW to Ground or release them to High-Z (tri-state). Passive external pull-up resistors pull lines up to V_DD, creating a physical **Wired-AND** connection.
+- **Software Addressing**: Eliminates physical Chip Select (NOT(CS)) pins. Every peripheral has a unique 7-bit (or optional 10-bit) address transmitted over the SDA line.
 - **True Multi-Master Arbitration**: Multiple controllers can share the bus without contention or damage. Non-destructive bit-by-bit arbitration detects collisions immediately and yields the bus to the higher-priority transmission.
 - **Hardware Flow Control (Clock Stretching)**: A slow target can hold the SCL line LOW to pause the controller while processing data or waiting for internal ADC/memory cycles.
 - **Bidirectional In-Band Acknowledgement**: Every transmitted byte is confirmed by an explicit 9th clock pulse ACK (Acknowledge) or NACK (Not-Acknowledge) bit.
@@ -42,11 +42,11 @@ Unlike point-to-point buses (UART) or multi-wire chip-select buses (SPI), I2C us
 
 The official NXP I2C-bus specification (UM10204) defines five distinct speed operating modes:
 
-| Mode Name | Acronym | Max Bit Rate | Directionality | Max Bus Capacitance ($C_b$) | Typical Application |
+| Mode Name | Acronym | Max Bit Rate | Directionality | Max Bus Capacitance (C_b) | Typical Application |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Standard-mode** | **Sm** | **100 kbps** | Bidirectional | 400 pF | Legacy sensors, RTCs, basic EEPROMs |
 | **Fast-mode** | **Fm** | **400 kbps** | Bidirectional | 400 pF | Modern microcontrollers, IMUs, environmental sensors |
-| **Fast-mode Plus** | **Fm+** | **1.0 Mbps** | Bidirectional | 550 pF (high drive $I_{OL}=20\,\text{mA}$) | LED drivers, high-speed DACs/ADCs, display controllers |
+| **Fast-mode Plus** | **Fm+** | **1.0 Mbps** | Bidirectional | 550 pF (high drive I_OL=20 mA) | LED drivers, high-speed DACs/ADCs, display controllers |
 | **High-speed mode** | **Hs-mode** | **3.4 Mbps** | Bidirectional | 100 pF – 400 pF (active pull-up) | High-speed data loggers, secure elements, camera control |
 | **Ultra Fast-mode** | **UFm** | **5.0 Mbps** | Unidirectional | 400 pF (push-pull) | High-speed LED array displays, digital signal routing |
 
@@ -64,7 +64,7 @@ To select the ideal serial protocol during hardware architecture reviews, consul
 | **Typical Speeds** | 100 kHz, 400 kHz, 1 MHz | 1 MHz to 50+ MHz | 9.6 kbps to 1.5 Mbps | 1 Mbps (FD: 5 Mbps) | 16.3 kbps (Overdrive: 142k) |
 | **Device Addressing** | In-band 7-bit / 10-bit | Dedicated CS pin per chip | Point-to-point (None) | In-band 11/29-bit Message ID | In-band 64-bit ROM ID |
 | **Multi-Master** | **Yes (Wired-AND)** | Multi-master complex / rare | No (Cross-wired point-to-point) | **Yes (Dominant / Recessive)**| Multi-drop single-master |
-| **Hardware Overhead** | Pull-up resistors required | None (Push-pull) | None | Termination resistors ($120\,\Omega$) | Pull-up resistor required |
+| **Hardware Overhead** | Pull-up resistors required | None (Push-pull) | None | Termination resistors (120 Ω) | Pull-up resistor required |
 | **Protocol Overhead** | High (Addr, ACK, Start/Stop) | Very Low (Direct shift) | Medium (Start, Stop, Parity)| High (ID, CRC, ACK, Framing) | High (Time slots, ROM search) |
 | **Distance Range** | Short (< 2 to 3 meters) | Very Short (< 30 cm) | Medium (< 15 meters) | Long (up to 1,000 meters) | Medium (up to 100 meters) |
 | **Primary Use Cases** | Sensors, RTC, EEPROM, PMIC | Flash, Displays, High-speed ADC| Debug consoles, GPS, Modems | Automotive, industrial automation | Temperature sensors, iButtons |
@@ -96,7 +96,7 @@ protocols/i2c/
 
 ### [2. Frame Data & Protocol Analysis](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/i2c/i2c-frame-and-protocol-analysis.md)
 - Bit-level frame anatomy: START Condition, Data Validity rule, STOP Condition.
-- Repeated START ($S_r$) condition and atomic bus transfers.
+- Repeated START (S_r) condition and atomic bus transfers.
 - The 9-bit byte unit: 8-bit MSB-first payload + 1-bit ACK/NACK.
 - 7-bit addressing layout and the common "7-bit vs 8-bit shifted address" firmware trap.
 - 10-bit addressing two-byte header protocol.
@@ -112,8 +112,8 @@ protocols/i2c/
 
 ### [4. Timing Calculations & Hardware Engineering](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/protocols/i2c/i2c-timing-calculations-and-hardware.md)
 - Official AC timing specifications across Standard, Fast, and Fast-mode Plus speeds.
-- Mathematical derivation and calculation of $R_{p(min)}$ and $R_{p(max)}$ based on bus capacitance ($C_b$), supply voltage ($V_{DD}$), rise time ($t_r$), and sink current ($I_{OL}$).
-- PCB routing guidelines, track-to-track crosstalk isolation, series damping resistors ($R_s$), and bus capacitance budgeting.
+- Mathematical derivation and calculation of R_p(min) and R_p(max) based on bus capacitance (C_b), supply voltage (V_DD), rise time (t_r), and sink current (I_OL).
+- PCB routing guidelines, track-to-track crosstalk isolation, series damping resistors (R_s), and bus capacitance budgeting.
 - Active bus accelerators and differential I2C (PCA9615) for extended cable lengths.
 - Root Cause Analysis (RCA) troubleshooting matrix for common bench bugs.
 
