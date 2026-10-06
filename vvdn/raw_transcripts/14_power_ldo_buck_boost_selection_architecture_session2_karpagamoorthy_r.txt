@@ -1,0 +1,11 @@
+================================================================================
+SESSION METADATA: 14_power_ldo_buck_boost_selection_architecture_session2_karpagamoorthy_r
+================================================================================
+Topic:          Power (LDO, Buck, Boost Types & Selection, Battery Charger, Power Architecture, Power Estimation Sheet) - Session 2
+Program:        Freshers' Training 2026 - Hardware
+Trainer:        Karpagamoorthy R
+Date & Time:    06 Oct 2026 - 13:10 IST
+Original Title: Power( LDO, Buck, Boost types & Selection, Battery charger, Power Architecture, Power Estimation Sheet) || Freshers' Training 2026 - Hardware || Karpagamoorthy R || 06 Oct 2026 13:10 IST
+================================================================================
+
+[TRANSCRIPT / SESSION NOTES PLACEHOLDER]
