@@ -220,3 +220,16 @@ python3 tools/psu_calc.py --buckboost --vin 24 --vout-min 5.0 --vout-max 20.0 --
 # 4. Calculate DAC feedback summing resistor network for 5V-20V programming:
 python3 tools/psu_calc.py --feedback --vout-min 5.0 --vout-max 20.0 --vdac-max 3.3 --vref 1.2
 ```
+
+---
+
+## 7. Alternative Converter Topologies & Sizing Dossier
+
+For alternative system designs exploring different converter architectures (including **Active PFC + Half-Bridge LLC Resonant**, **Two-Switch Forward**, **High-Bus Pure Synchronous Buck @ 36V**, **Coupled-Inductor SEPIC**, **Synchronous Zeta**, **Tracking Buck + LDO**, and **Direct Single-Stage Variable Flyback**), refer to the dedicated alternative topology knowledge base:
+
+* [**`smart_programmable_power_supply_alternatives/README.md`**](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/smart_programmable_power_supply_alternatives/README.md)
+* [**`smart_programmable_power_supply_alternatives/isolated-ac-dc-topologies.md`**](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/smart_programmable_power_supply_alternatives/isolated-ac-dc-topologies.md)
+* [**`smart_programmable_power_supply_alternatives/non-isolated-dc-dc-topologies.md`**](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/smart_programmable_power_supply_alternatives/non-isolated-dc-dc-topologies.md)
+* [**`smart_programmable_power_supply_alternatives/comparative-analysis-and-benchmarking.md`**](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/smart_programmable_power_supply_alternatives/comparative-analysis-and-benchmarking.md)
+* [**`smart_programmable_power_supply_alternatives/tools/alternative_converter_calc.py`**](file:///home/tthhongs/build_tthongs/tasks_aa_ii/vvdn/smart_programmable_power_supply_alternatives/tools/alternative_converter_calc.py)
+
