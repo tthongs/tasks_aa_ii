@@ -1,0 +1,82 @@
+
+digraph AuxPower {
+    graph [
+        rankdir=LR,
+        bgcolor="#FFFFFF",
+        fontname="DejaVu Sans, Arial, Helvetica, sans-serif",
+        fontsize=13,
+        nodesep=0.35,
+        ranksep=0.55,
+        pad="0.2,0.2",
+        splines=true
+    ];
+    node [
+        fontname="DejaVu Sans, Arial, Helvetica, sans-serif",
+        fontsize=9,
+        shape=box,
+        style="filled,rounded",
+        margin="0.12,0.08",
+        penwidth=1.4
+    ];
+    edge [
+        fontname="DejaVu Sans, Arial, Helvetica, sans-serif",
+        fontsize=8,
+        penwidth=1.6,
+        arrowsize=0.75
+    ];
+
+    subgraph cluster_pri_aux {
+        label = "PRIMARY AUXILIARY BIAS (GND_PRI)";
+        style = "filled,rounded";
+        fillcolor = "#FFF3E0";
+        color = "#E65100";
+        naux [label="Transformer Aux Winding Naux (8T)\nFlyback Coupling during Off-time", fillcolor="#FFE0B2", color="#E65100"];
+        pri_rect [label="Fast Diode (ES1J) + 22µF/35V Cap\nGenerates +14.0V Primary VCC", fillcolor="#FFFFFF", color="#E65100"];
+        ucc_vcc [label="TI UCC28740 VDD Pin\nPrimary Flyback Controller Bias", fillcolor="#FFFFFF", color="#E65100"];
+
+        naux -> pri_rect -> ucc_vcc [label=" +14V VCC", color="#E65100"];
+    }
+
+    subgraph cluster_sec_aux {
+        label = "SECONDARY MULTI-RAIL POWER TREE (GND_SEC)";
+        style = "filled,rounded";
+        fillcolor = "#FFFDE7";
+        color = "#F57F17";
+        bus_24v [label="+24.0V Intermediate DC Bus\nMain Secondary Power Distribution", fillcolor="#A5D6A7", color="#1B5E20", penwidth=1.8];
+        buck_5v [label="TI TPS54202 Synchronous Buck\n24V -> 5.0V / 2.0A (92% Eff.)\nSecondary Auxiliary Rail", fillcolor="#FFFFFF", color="#F57F17"];
+        ldo_3v3 [label="TI TPS7A25 Ultra-Low-Noise LDO\n5.0V -> 3.3V / 500mA (High PSRR)\nClean Digital / Sensor VDD", fillcolor="#FFFFFF", color="#F57F17"];
+        vref_3v [label="TI REF3030 Precision Reference\n3.000V Reference (0.2% Tol, 15ppm/°C)\nUltra-Clean ADC & DAC Reference", fillcolor="#FFFFFF", color="#F57F17"];
+
+        bus_24v -> buck_5v [label=" +24V Bus", color="#F57F17", penwidth=2.0];
+        buck_5v -> ldo_3v3 [label=" +5.0V Rail", color="#F57F17", penwidth=1.8];
+        ldo_3v3 -> vref_3v [label=" +3.3V Rail", color="#F57F17", penwidth=1.8];
+    }
+
+    subgraph cluster_loads {
+        label = "SYSTEM IC POWER CONSUMERS";
+        style = "filled,rounded";
+        fillcolor = "#F3E5F5";
+        color = "#6A1B9A";
+        load_drivers [label="Gate Drivers & Displays\n• LM5176 Internal Drivers (+5V)\n• 1.3\" OLED Display VCC (+5V)", fillcolor="#FFFFFF", color="#6A1B9A"];
+        load_digital [label="Digital Logic & Memory\n• STM32G474RET6 MCU Core (+3.3V)\n• TI INA226 Power Monitor (+3.3V)\n• MicroSD Flash Card (+3.3V)", fillcolor="#FFFFFF", color="#6A1B9A"];
+        load_analog [label="Precision Analog Subsystems\n• MCU VDDA & VREF+ (+3.000V)\n• 12-Bit DAC Steering Network (+3.000V)\n• High-Speed Comparators (+3.000V)", fillcolor="#FFFFFF", color="#6A1B9A"];
+
+        buck_5v -> load_drivers [label=" +5.0V Aux", color="#6A1B9A"];
+        ldo_3v3 -> load_digital [label=" +3.3V VDD", color="#6A1B9A"];
+        vref_3v -> load_analog [label=" +3.000V VREF", color="#6A1B9A"];
+    }
+
+    subgraph cluster_grounds {
+        label = "GROUND DOMAIN PARTITIONING & STAR TOPOLOGY";
+        style = "filled,rounded,dashed";
+        fillcolor = "#EFEBE9";
+        color = "#4E342E";
+        gnd_pri [label="GND_PRI\nPrimary Rectified Hot Ground\nIsolated from Secondary", fillcolor="#D7CCC8", color="#4E342E"];
+        gnd_pwr [label="GND_SEC_PWR\nSecondary Switched Power Ground\nCarries Buck-Boost Pulses", fillcolor="#D7CCC8", color="#4E342E"];
+        gnd_ana [label="GND_SEC_ANA\nQuiet Secondary Analog Ground\nSensors, ADC/DAC & TL431", fillcolor="#D7CCC8", color="#4E342E"];
+        star_point [label="Single-Point Star Ground\nLocated directly beneath\nOutput Capacitor return pad", fillcolor="#FFFFFF", color="#4E342E", penwidth=1.8];
+
+        gnd_pwr -> star_point [label=" Star Tie", color="#4E342E"];
+        gnd_ana -> star_point [label=" Star Tie", color="#4E342E"];
+    }
+}

@@ -1,0 +1,92 @@
+
+digraph TelemetryEfficiency {
+    graph [
+        rankdir=LR,
+        bgcolor="#FFFFFF",
+        fontname="DejaVu Sans, Arial, Helvetica, sans-serif",
+        fontsize=13,
+        nodesep=0.35,
+        ranksep=0.55,
+        pad="0.2,0.2",
+        splines=true
+    ];
+    node [
+        fontname="DejaVu Sans, Arial, Helvetica, sans-serif",
+        fontsize=9,
+        shape=box,
+        style="filled,rounded",
+        margin="0.12,0.08",
+        penwidth=1.4
+    ];
+    edge [
+        fontname="DejaVu Sans, Arial, Helvetica, sans-serif",
+        fontsize=8,
+        penwidth=1.6,
+        arrowsize=0.75
+    ];
+
+    subgraph cluster_ac_metering {
+        label = "PRIMARY HIGH-VOLTAGE AC DOMAIN SENSING";
+        style = "filled,rounded";
+        fillcolor = "#ECEFF1";
+        color = "#37474F";
+        ac_grid [label="Mains AC Line\n85V - 265V AC RMS", fillcolor="#CFD8DC", color="#263238"];
+        v_divider [label="HV Resistor Divider\n4x 1MΩ (1206) + 2kΩ 0.1%\nScales 375Vpk -> 187.5mV", fillcolor="#FFFFFF", color="#37474F"];
+        ct_sensor [label="Toroidal Current Transformer\nTalema AC1005 (1000:1 CT)\n2A RMS Line -> 2mA Sec", fillcolor="#FFFFFF", color="#37474F"];
+        ct_burden [label="100Ω Precision Burden\n2mA -> 200mV RMS", fillcolor="#FFFFFF", color="#37474F"];
+
+        ac_grid -> v_divider;
+        ac_grid -> ct_sensor -> ct_burden;
+    }
+
+    subgraph cluster_iso_mod {
+        label = "REINFORCED ISOLATION BARRIER (5kV RMS)";
+        style = "filled,rounded,dashed";
+        fillcolor = "#FFEBEE";
+        color = "#C62828";
+        amc1311 [label="TI AMC1311 Modulator\nIsolated ΔΣ Modulator\nReinforced 5kV Isolation\nDigital Bitstream Out", fillcolor="#FFFFFF", color="#C62828", penwidth=1.8];
+        v_divider -> amc1311 [label=" VINP, VINN", color="#C62828"];
+    }
+
+    subgraph cluster_dc_metering {
+        label = "SECONDARY DC LOAD DOMAIN SENSING";
+        style = "filled,rounded";
+        fillcolor = "#E8F5E9";
+        color = "#2E7D32";
+        dc_shunt [label="10mΩ 0.1% Shunt\nKelvin Connections", fillcolor="#FFFFFF", color="#2E7D32"];
+        ina226 [label="TI INA226 Power Monitor\n16-Bit I2C Digital ADC\n• 1.25 mV/LSB (VBUS)\n• 100 µA/LSB (Current)\n• Hardware Multiplier (Pdc)", fillcolor="#C8E6C9", color="#2E7D32", penwidth=1.8];
+        dc_shunt -> ina226 [label=" Kelvin Sense", color="#2E7D32"];
+    }
+
+    subgraph cluster_mcu_eff {
+        label = "CENTRAL MCU EFFICIENCY ENGINE (STM32G474)";
+        style = "filled,rounded";
+        fillcolor = "#E1F5FE";
+        color = "#0277BD";
+        sinc3_filter [label="Hardware Sinc3 Decimation Filter\nDirect on-chip peripheral\nReconstructs True AC Waveform", fillcolor="#FFFFFF", color="#0277BD"];
+        ac_calc [label="Instantaneous Integration (10 kHz)\n• Pac = (1/N) Σ v(t)·i(t) [True Watts]\n• True RMS Vac & Iac\n• Power Factor PF = Pac / (Vac·Iac)", fillcolor="#FFFFFF", color="#0277BD"];
+        dc_read [label="I2C Telemetry Task (10 Hz)\nReads INA226 Registers:\nVdc, Idc, Pdc [Watts]", fillcolor="#FFFFFF", color="#0277BD"];
+        eff_core [label="Real-Time Efficiency Engine\nη(t) = [ P_DC(t) / P_AC(t) ] × 100%\n8-tap Exponential Moving Average Filter\nUpdates at 10 Hz (100ms interval)", fillcolor="#B3E5FC", color="#01579B", penwidth=2.0];
+
+        amc1311 -> sinc3_filter [label=" Differential Bitstream", color="#1565C0", penwidth=1.8];
+        ct_burden -> ac_calc [label=" AC Current Analog", color="#1565C0"];
+        sinc3_filter -> ac_calc;
+        ina226 -> dc_read [label=" I2C Bus (400kHz)", color="#2E7D32", penwidth=1.8];
+        ac_calc -> eff_core [label=" Pac (Active Watts)", color="#0277BD"];
+        dc_read -> eff_core [label=" Pdc (True Watts)", color="#0277BD"];
+    }
+
+    subgraph cluster_telemetry_out {
+        label = "TELEMETRY & USER DISPATCH";
+        style = "filled,rounded";
+        fillcolor = "#FBE9E7";
+        color = "#D84315";
+        oled_disp [label="1.3\" OLED GUI Display\nReal-time V, I, P, η Gauges", fillcolor="#FFFFFF", color="#D84315"];
+        sd_log [label="MicroSD FAT32 CSV Logger\n10Hz Continuous File Records", fillcolor="#FFFFFF", color="#D84315"];
+        scpi_comm [label="USB Type-C SCPI Parser\nAutomated Test ATE Queries", fillcolor="#FFFFFF", color="#D84315"];
+
+        eff_core -> oled_disp [color="#D84315"];
+        eff_core -> sd_log [color="#D84315"];
+        eff_core -> scpi_comm [color="#D84315"];
+    }
+}

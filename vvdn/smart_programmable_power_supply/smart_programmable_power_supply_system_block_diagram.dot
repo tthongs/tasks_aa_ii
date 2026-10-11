@@ -1,0 +1,210 @@
+
+digraph MasterArchitecture {
+    graph [
+        rankdir=LR,
+        bgcolor="#FFFFFF",
+        compound=true,
+        fontname="DejaVu Sans, Arial, Helvetica, sans-serif",
+        fontsize=14,
+        nodesep=0.38,
+        ranksep=0.65,
+        pad="0.25,0.25",
+        splines=true
+    ];
+    node [
+        fontname="DejaVu Sans, Arial, Helvetica, sans-serif",
+        fontsize=9,
+        shape=box,
+        style="filled,rounded",
+        margin="0.12,0.09",
+        penwidth=1.4
+    ];
+    edge [
+        fontname="DejaVu Sans, Arial, Helvetica, sans-serif",
+        fontsize=8,
+        penwidth=1.6,
+        arrowsize=0.75
+    ];
+
+    subgraph cluster_ac_frontend {
+        label = "MAINS AC FRONTEND & EMI SUPPRESSION (HOT DOMAIN)";
+        style = "filled,rounded,dashed";
+        fillcolor = "#F0F4F8";
+        color = "#37474F";
+        penwidth = 1.6;
+
+        ac_in [label="AC Mains Grid Input\n85V - 265V AC RMS\n47 - 63 Hz (IEC C14)", fillcolor="#CFD8DC", color="#263238"];
+        ac_prot [label="Input Protection\n• F1: 2A Time-Lag Fuse\n• NTC1: 10Ω Inrush Limiter\n• MOV1: 14D471K Varistor", fillcolor="#FFFFFF", color="#455A64"];
+        ac_emi [label="2-Stage EMI Filter\n• L_CM1: 15mH, L_CM2: 4.7mH\n• C_X: 3x Film (220nF, 100nF)\n• C_Y: 2x 2.2nF Safety Caps\n(CISPR 32 Class B)", fillcolor="#FFFFFF", color="#455A64"];
+        ac_rect [label="Bridge Rectifier & Bulk Storage\n• BR1: GBU606 (600V, 6A)\n• C_BULK: 100µF/450V + 470nF Film\nBus: +120V to +375V DC", fillcolor="#FFFFFF", color="#455A64"];
+
+        ac_in -> ac_prot [label=" L, N, PE", color="#263238"];
+        ac_prot -> ac_emi [label=" Protected AC", color="#263238"];
+        ac_emi -> ac_rect [label=" Filtered AC", color="#263238"];
+    }
+
+    subgraph cluster_primary_flyback {
+        label = "STAGE 1: ISOLATED PRIMARY FLYBACK CONVERTER (HOT DOMAIN)";
+        style = "filled,rounded";
+        fillcolor = "#FFF3E0";
+        color = "#E65100";
+        penwidth = 1.6;
+
+        tx_pri [label="Transformer Primary\nPQ26/20 Core (3C95)\nNp = 48T | Lp = 220µH", fillcolor="#FFE0B2", color="#E65100"];
+        snubber [label="RCD Clamp Snubber\n50kΩ / 2.2nF / UF4007\nClamps Vds Ringing", fillcolor="#FFFFFF", color="#F57C00"];
+        pri_mosfet [label="Primary Switch Q1\nIPB80R290P7 (800V, 0.29Ω)\nSuperjunction D2PAK", fillcolor="#FFFFFF", color="#E65100"];
+        pri_ctrl [label="QR Flyback Controller\nTI UCC28740\n• Valley Switching (ZCD)\n• Cycle-by-Cycle Peak CS", fillcolor="#FFFFFF", color="#E65100"];
+        pri_rsense [label="Current Sense Shunt\nRsense = 0.2Ω / 2W", fillcolor="#FFFFFF", color="#F57C00"];
+        aux_pri [label="Aux Bias Winding\nNaux = 8T (+14V VCC)", fillcolor="#FFE0B2", color="#E65100"];
+
+        ac_rect -> tx_pri [label=" +V_BULK", color="#D84315", penwidth=2.2];
+        tx_pri -> pri_mosfet [label=" Drain", color="#D84315", penwidth=2.2];
+        pri_mosfet -> snubber [dir=both, style=dashed, color="#E65100"];
+        pri_ctrl -> pri_mosfet [label=" Gate", color="#BF360C"];
+        pri_mosfet -> pri_rsense [label=" Source", color="#BF360C"];
+        pri_rsense -> pri_ctrl [label=" CS", style=dashed, color="#BF360C"];
+        aux_pri -> pri_ctrl [label=" Aux Bias / ZCD", color="#E65100"];
+    }
+
+    subgraph cluster_barrier {
+        label = "REINFORCED SAFETY ISOLATION BARRIER (IEC 62368-1)\nCreepage ≥ 6.4mm | Clearance ≥ 5.2mm | Hipot 3000V RMS | 2.0mm PCB Milled Air Slot";
+        style = "filled,rounded,dashed";
+        fillcolor = "#FFEBEE";
+        color = "#C62828";
+        penwidth = 2.0;
+
+        tx_sec [label="Transformer Secondary\nNs = 12T (Triple Insulated Wire)\nReinforced 3kV Isolation", fillcolor="#FFFFFF", color="#C62828"];
+        iso_opto [label="Isolated Voltage Feedback\nPC817 / EL817 Optocoupler\n(5kV RMS Isolation)", fillcolor="#FFFFFF", color="#C62828"];
+        iso_amc [label="Isolated AC Voltage Sensor\nTI AMC1311 ΔΣ Modulator\n(5kV RMS Isolation)", fillcolor="#FFFFFF", color="#C62828"];
+        iso_ct [label="Isolated AC Current Sensor\nTalema AC1005 (1000:1 CT)\nToroidal Magnetic Isolation", fillcolor="#FFFFFF", color="#C62828"];
+    }
+
+    subgraph cluster_secondary_flyback {
+        label = "STAGE 1: SECONDARY SYNCHRONOUS RECTIFICATION (SELV SAFE)";
+        style = "filled,rounded";
+        fillcolor = "#E8F5E9";
+        color = "#2E7D32";
+        penwidth = 1.6;
+
+        sr_stage [label="Synchronous Rectifier\n• MP6908 Smart Driver\n• BSC052N06NS (60V, 5.2mΩ)\nReplaces Lossy Schottky", fillcolor="#FFFFFF", color="#2E7D32"];
+        bus_24v [label="+24.0V Intermediate Bus\n• Regulated 24V DC / 72W\n• Ripple: < 40mV pk-pk\n• 2x 470µF Poly + 4x 10µF MLCC", fillcolor="#A5D6A7", color="#1B5E20", penwidth=2.0];
+        tl431_fb [label="Precision Shunt Reference\nTL431 + Compensation\nCloses 24V Reg Loop", fillcolor="#FFFFFF", color="#2E7D32"];
+
+        tx_sec -> sr_stage [label=" Switched AC", color="#2E7D32", penwidth=2.2];
+        sr_stage -> bus_24v [label=" +24V DC", color="#2E7D32", penwidth=2.2];
+        bus_24v -> tl431_fb [label=" Sense", color="#2E7D32"];
+        tl431_fb -> iso_opto [label=" Drive", color="#C62828"];
+        iso_opto -> pri_ctrl [label=" FB Feedback", color="#C62828"];
+    }
+
+    subgraph cluster_buck_boost {
+        label = "STAGE 2: 4-SWITCH SYNCHRONOUS BUCK-BOOST POST-REGULATOR";
+        style = "filled,rounded";
+        fillcolor = "#E0F7FA";
+        color = "#00838F";
+        penwidth = 1.6;
+
+        bb_ctrl [label="Synchronous BB Controller\nTI LM5176 (250 kHz PWM)\n• Pure Buck (5-18V)\n• Buck-Boost (18-20V)\n• 4x Gate Drivers Inside", fillcolor="#FFFFFF", color="#00838F"];
+        h_bridge [label="4-Switch Synchronous H-Bridge\n• Q_A (Buck HS), Q_B (Buck LS)\n• Q_C (Boost LS), Q_D (Boost HS)\n4x Infineon BSC034N04LS (40V, 3.4mΩ)", fillcolor="#B2EBF2", color="#00838F", penwidth=1.8];
+        bb_ind [label="Power Inductor L\nWurth 7443321000\n10.0µH, 8.5A RMS, 11.5A Sat\nDCR = 11.8mΩ (WE-HCC)", fillcolor="#FFFFFF", color="#00838F"];
+        out_filt [label="Output Filter Bank\n• 4x 22µF 25V X7R MLCC\n• 1x 100µF 25V OS-CON Poly\nESR < 2.5mΩ", fillcolor="#FFFFFF", color="#00838F"];
+        dc_shunt [label="Kelvin Shunt Resistor\nBourns CSS2H-2512R-L010F\n10.0mΩ, 0.1% Tol, 3W", fillcolor="#FFFFFF", color="#00838F"];
+        dc_terminals [label="Programmable DC Output Rail\n5.0V - 20.0V DC @ 0.1A - 3.0A (60W)\nRipple < 25mV pk-pk | Step < 120µs\nGold-Plated 4mm Binding Posts", fillcolor="#80CBC4", color="#004D40", penwidth=2.2];
+
+        bus_24v -> h_bridge [label=" +24V Bus In", color="#00695C", penwidth=2.2];
+        bb_ctrl -> h_bridge [label=" 4x Gate Drives\n(PWM_A..D)", color="#00838F"];
+        h_bridge -> bb_ind [label=" SW1 & SW2", color="#00695C", penwidth=2.2];
+        bb_ind -> out_filt [label=" Filtered DC", color="#00695C", penwidth=2.2];
+        out_filt -> dc_shunt [color="#00695C", penwidth=2.2];
+        dc_shunt -> dc_terminals [label=" Regulated DC", color="#004D40", penwidth=2.2];
+    }
+
+    subgraph cluster_control_protection {
+        label = "MIXED-SIGNAL CLOSED-LOOP CONTROL & HARDWARE PROTECTION";
+        style = "filled,rounded";
+        fillcolor = "#F3E5F5";
+        color = "#6A1B9A";
+        penwidth = 1.6;
+
+        dac_summing [label="DAC Voltage Steering Network\nR_top = 49.9kΩ, R_bot = 3.65kΩ\nR_DAC = 11.0kΩ (0.1% Precision)\nInjects offset current into FB node\nLinear Resolution: 3.65mV / LSB", fillcolor="#FFFFFF", color="#6A1B9A"];
+        ina240 [label="Fast Current Sense Amp\nTI INA240A2 (Gain = 50 V/V)\n400 kHz BW, 2µs Response", fillcolor="#FFFFFF", color="#6A1B9A"];
+        cc_clamp [label="Hardware Fast CC Clamp\nTI TLV3501 (4.5ns Comparator)\nPulls COMP pin down via BAT54\nTrip Latency < 5µs (Zero CPU lag)", fillcolor="#E1BEE7", color="#4A148C", penwidth=1.8];
+
+        dc_terminals -> dac_summing [label=" VOUT Sense", color="#6A1B9A"];
+        dac_summing -> bb_ctrl [label=" V_FB (1.20V Ref)", color="#6A1B9A"];
+        dc_shunt -> ina240 [label=" Kelvin Sense", color="#6A1B9A"];
+        ina240 -> cc_clamp [label=" V_ISENSE", color="#6A1B9A"];
+        cc_clamp -> bb_ctrl [label=" Throttles COMP Pin\n(< 5µs CC Clamp)", color="#B71C1C", penwidth=1.8];
+    }
+
+    subgraph cluster_telemetry {
+        label = "DUAL-DOMAIN POWER SENSING & EFFICIENCY ENGINE";
+        style = "filled,rounded";
+        fillcolor = "#E8EAF6";
+        color = "#283593";
+        penwidth = 1.6;
+
+        ac_v_div [label="High-Voltage Divider\n4x 1MΩ + 2kΩ Shunt\n375Vpk -> 187.5mV", fillcolor="#FFFFFF", color="#283593"];
+        ct_burden [label="CT Burden Resistor\n100Ω Precision Shunt\n2mA -> 200mV RMS", fillcolor="#FFFFFF", color="#283593"];
+        ina226 [label="DC Power Monitor IC\nTI INA226 (16-Bit I2C ADC)\n1.25mV/LSB, 100µA/LSB", fillcolor="#FFFFFF", color="#283593"];
+
+        ac_emi -> ac_v_div [label=" AC Line", color="#1A237E"];
+        ac_prot -> iso_ct [label=" Line Loop", color="#1A237E"];
+        ac_v_div -> iso_amc [label=" VINP, VINN", color="#1A237E"];
+        iso_ct -> ct_burden [label=" 1000:1 Sec", color="#1A237E"];
+        dc_shunt -> ina226 [label=" Kelvin Sense", color="#1A237E"];
+        dc_terminals -> ina226 [label=" VBUS Sense", color="#1A237E"];
+    }
+
+    subgraph cluster_mcu {
+        label = "CENTRAL EMBEDDED MICROCONTROLLER SUBSYSTEM";
+        style = "filled,rounded";
+        fillcolor = "#E1F5FE";
+        color = "#0277BD";
+        penwidth = 1.8;
+
+        mcu [label="STM32G474RET6 Microcontroller\n• 32-bit ARM Cortex-M4F @ 170 MHz\n• Hardware Sinc3 Decimation Filter\n• Hardware CORDIC / Math Accel\n• Dual 12-Bit Fast DACs & ADCs\n• FreeRTOS Real-Time Kernel", fillcolor="#B3E5FC", color="#01579B", penwidth=2.0];
+        eff_calc [label="Real-Time Efficiency Engine (10Hz)\nComputes: η = (P_DC / P_AC) × 100%\n• Instantaneous v(t)·i(t) Integration\n• Active Power Pac, True RMS Vac, Iac, PF\n• True Vdc, Idc, Pdc\n• 8-tap EMA Smoothing Filter", fillcolor="#FFFFFF", color="#0277BD"];
+
+        iso_amc -> mcu [label=" Bitstream (Sinc3)", color="#1565C0", penwidth=1.6];
+        ct_burden -> mcu [label=" I_AC Signal", color="#1565C0"];
+        ina226 -> mcu [label=" I2C (400kHz)", color="#0277BD", penwidth=1.6];
+        mcu -> eff_calc [dir=both, label=" Math Engine", color="#0277BD"];
+        mcu -> dac_summing [label=" 12-Bit DAC1 (V_SET)\n0.0V - 3.3V Control", color="#6A1B9A", penwidth=1.8];
+        mcu -> cc_clamp [label=" 12-Bit DAC2 (I_SET)\nCurrent Limit Ref", color="#6A1B9A", penwidth=1.8];
+    }
+
+    subgraph cluster_hmi_storage {
+        label = "USER INTERFACE, STORAGE & TELEMETRY";
+        style = "filled,rounded";
+        fillcolor = "#FBE9E7";
+        color = "#D84315";
+        penwidth = 1.6;
+
+        oled [label="1.3\" Monochrome OLED GUI\n128x64 I2C Graphic Display\nReal-time V, I, P, η Gauges", fillcolor="#FFFFFF", color="#D84315"];
+        sd_card [label="MicroSD Data Logger\nFAT32 CSV File System (SPI/SDIO)\n10Hz Timestamped Logging", fillcolor="#FFFFFF", color="#D84315"];
+        usb_comm [label="USB Type-C Interface\nUSB-CDC Virtual COM Port\nSCPI Commands & Remote ATE", fillcolor="#FFFFFF", color="#D84315"];
+        controls [label="Rotary Encoders & Switches\n• Voltage & Current Knobs\n• Output Enable / Status LED", fillcolor="#FFFFFF", color="#D84315"];
+
+        mcu -> oled [label=" I2C Bus", color="#D84315"];
+        mcu -> sd_card [label=" SPI / SDIO", color="#D84315"];
+        mcu -> usb_comm [label=" USB-CDC (SCPI)", color="#D84315"];
+        controls -> mcu [label=" GPIO & Interrupts", color="#D84315"];
+    }
+
+    subgraph cluster_aux_power {
+        label = "AUXILIARY BIAS POWER DISTRIBUTION";
+        style = "filled,rounded";
+        fillcolor = "#FFFDE7";
+        color = "#F57F17";
+        penwidth = 1.6;
+
+        aux_buck [label="Secondary Aux Buck\nTI TPS54202 (24V -> 5.0V / 2A)\nPowers Gate Drivers & Displays", fillcolor="#FFFFFF", color="#F57F17"];
+        aux_ldo [label="Clean Logic LDO\nTI TPS7A25 (5.0V -> 3.3V / 500mA)\nPowers MCU & Sensors", fillcolor="#FFFFFF", color="#F57F17"];
+        aux_ref [label="Precision VREF\nTI REF3030 (3.000V, 0.2%)\nADC / DAC Reference", fillcolor="#FFFFFF", color="#F57F17"];
+
+        bus_24v -> aux_buck [label=" +24V Bus", color="#F57F17", penwidth=1.6];
+        aux_buck -> aux_ldo [label=" +5.0V Rail", color="#F57F17", penwidth=1.6];
+        aux_ldo -> aux_ref [label=" +3.3V Rail", color="#F57F17", penwidth=1.6];
+    }
+}
