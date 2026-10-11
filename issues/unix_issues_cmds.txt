@@ -1060,8 +1060,94 @@ Context & Purpose:
   re-patches Windows 11 naming if needed, rebuilds grub.cfg, and verifies removal.
 
 ===============================================================================
+21. APPLICATION MANAGEMENT: LIBREOFFICE SUITE INSTALLATION & KDE INTEGRATION
+===============================================================================
+
+-------------------------------------------------------------------------------
+21.1 Package Probing, Dependency Resolution & Repository Inspection
+-------------------------------------------------------------------------------
+Commands:
+  pacman -Ss libreoffice
+  pacman -Si libreoffice-fresh
+  pacman -Si hunspell-en_us hunspell-en_gb hyphen-en mythes-en libmythes
+
+Context & Purpose:
+  Queries CachyOS and Arch Linux repositories to select between LibreOffice
+  release branches (fresh vs. still) and inspects required linguistic packages
+  including Hunspell spell checking, Hyphen rules, and MyThes thesaurus libraries.
+
+Command Breakdown:
+  pacman -Ss <query>       : Searches remote repository database for matched package names.
+  pacman -Si <package>     : Displays detailed metadata, dependencies, and size information.
+
+-------------------------------------------------------------------------------
+21.2 Suite Installation & Linguistic Package Deployment
+-------------------------------------------------------------------------------
+Commands:
+  sudo pacman -S --needed --noconfirm libreoffice-fresh hunspell-en_us hunspell-en_gb hyphen-en mythes-en libmythes
+
+Context & Purpose:
+  Installs the complete LibreOffice productivity suite along with English language
+  dictionaries and thesaurus libraries. The --needed flag prevents reinstalling
+  already up-to-date dependencies.
+
+Command Breakdown:
+  -S                       : Sync and install target packages from configured repositories.
+  --needed                 : Skips targets that are already up to date.
+  --noconfirm              : Bypasses interactive confirmation prompts.
+
+-------------------------------------------------------------------------------
+21.3 KDE Plasma 6 Desktop Integration & Sycoca Database Refresh
+-------------------------------------------------------------------------------
+Commands:
+  update-desktop-database -q /usr/share/applications
+  kbuildsycoca6 --noincremental
+
+Context & Purpose:
+  Refreshes the FreeDesktop MIME type association database and forces a full
+  rebuild of the KDE System Configuration Cache (Sycoca6). This ensures that
+  LibreOffice Writer, Calc, Impress, Draw, Math, and Base entries immediately
+  appear in the KDE Application Launcher (Kickoff) and KRunner without a session restart.
+
+Command Breakdown:
+  update-desktop-database  : Re-indexes .desktop files to update application cache.
+  kbuildsycoca6            : Reconstructs KDE Plasma's binary system configuration cache.
+  --noincremental          : Forces full cache invalidation and clean rebuild.
+
+-------------------------------------------------------------------------------
+21.4 Verification & Headless Document Conversion Smoke Test
+-------------------------------------------------------------------------------
+Commands:
+  libreoffice --version
+  libreoffice --headless --convert-to pdf /tmp/test_libreoffice.txt --outdir /tmp
+  ls -la /usr/share/applications/libreoffice*.desktop
+
+Context & Purpose:
+  Verifies that LibreOffice core binary executes correctly, validates that all 7
+  desktop entry launchers are installed in /usr/share/applications, and tests the
+  headless rendering filter pipeline by converting a text document to PDF.
+
+Command Breakdown:
+  --version                : Prints installed LibreOffice release version and build commit hash.
+  --headless               : Executes LibreOffice in non-GUI batch processing mode.
+  --convert-to pdf ...     : Invokes internal document conversion filter (writer_pdf_Export).
+
+-------------------------------------------------------------------------------
+21.5 Automation Script Deployment
+-------------------------------------------------------------------------------
+Commands:
+  chmod +x issues/install_libreoffice.sh
+  sudo issues/install_libreoffice.sh
+
+Context & Purpose:
+  Executes the automated installation script which validates root privileges,
+  installs missing suite components, checks all .desktop launchers, and updates
+  the KDE Plasma application menu caches.
+
+===============================================================================
 END OF FILE: unix_issues_cmds.txt
 ===============================================================================
+
 
 
 

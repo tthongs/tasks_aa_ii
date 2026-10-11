@@ -41,6 +41,7 @@ The broader repository contains several specialized sub-projects:
 *   **ISSUE_022**: Configure OpenSSH Server, UFW Firewall, and Remote Access. [RESOLVED]
 *   **REPORT_006**: OpenSSH Server Deployment, UFW Firewall Integration, Tailscale Mesh Tunnel, and Cross-Platform Client Access. [COMPLETED]
 *   **ISSUE_023**: Disable Automatic EFI BootNext Entries in GRUB Menu. [RESOLVED]
+*   **ISSUE_024**: Install and Configure LibreOffice Suite on CachyOS / KDE Plasma. [RESOLVED]
 
 
 
