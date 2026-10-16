@@ -1145,11 +1145,95 @@ Context & Purpose:
   the KDE Plasma application menu caches.
 
 ===============================================================================
-END OF FILE: unix_issues_cmds.txt
+22. STORAGE & FILESYSTEM AUTOMOUNT: SANDISK EXFAT SD CARD FSTAB & UDEV SETUP
 ===============================================================================
 
+-------------------------------------------------------------------------------
+22.1 Block Device Probing, Filesystem Inspection & UUID Extraction
+-------------------------------------------------------------------------------
+Commands:
+  lsblk -f
+  lsblk -o NAME,FSTYPE,LABEL,UUID,FSAVAIL,FSUSE%,MOUNTPOINTS,MODEL,TRAN,RM,HOTPLUG
+  udisksctl info -b /dev/sdb1
 
+Context & Purpose:
+  Discovers attached block storage devices, identifies the removable SD card
+  partition (/dev/sdb1), determines its filesystem format (exfat), extracts
+  the unique persistent filesystem UUID (9C33-6BBD), and checks existing active
+  mount points.
 
+Command Breakdown:
+  lsblk -f                 : Lists block devices along with filesystems, labels, and UUIDs.
+  lsblk -o ...             : Outputs detailed column attributes including transport bus and hotplug flags.
+  udisksctl info -b ...    : Queries the UDisks2 daemon for detailed D-Bus device metadata.
 
+-------------------------------------------------------------------------------
+22.2 Active File Handle & Process Inspection on Removable Media
+-------------------------------------------------------------------------------
+Commands:
+  lsof /run/media/tthhongs/SanDiskSD
+  fuser -v /run/media/tthhongs/SanDiskSD
 
+Context & Purpose:
+  Checks whether active user applications (e.g., media players like Elisa,
+  file indexers, or file managers) currently hold open file descriptors on the
+  mounted SD card partition before performing unmount or remount actions.
 
+Command Breakdown:
+  lsof <path>              : Lists open files and corresponding process IDs and names.
+  fuser -v <path>          : Interrogates the kernel for processes accessing the filesystem tree.
+
+-------------------------------------------------------------------------------
+22.3 Systemd Generator Validation & Dry-Run Simulation
+-------------------------------------------------------------------------------
+Commands:
+  SYSTEMD_FSTAB=/tmp/test_fstab /usr/lib/systemd/system-generators/systemd-fstab-generator /tmp/test-gen /tmp/test-early /tmp/test-late
+  ls -la /tmp/test-gen/local-fs.target.wants/
+  cat /tmp/test-gen/mnt-SanDiskSD.automount
+
+Context & Purpose:
+  Performs an offline syntax and dependency validation of the proposed /etc/fstab
+  entry against systemd's binary fstab generator. Confirms that nofail creates a
+  soft dependency under local-fs.target.wants, that x-systemd.automount produces
+  a functional .automount unit, and that x-systemd.device-timeout sets JobRunningTimeoutSec=5s.
+
+Command Breakdown:
+  SYSTEMD_FSTAB=<path>     : Directs the fstab generator to parse a specified configuration file.
+  systemd-fstab-generator  : Native systemd binary that converts /etc/fstab lines into mount units.
+
+-------------------------------------------------------------------------------
+22.4 Automated Fix Script Execution
+-------------------------------------------------------------------------------
+Commands:
+  chmod +x issues/fix_sdcard_automount.sh
+  sudo issues/fix_sdcard_automount.sh
+
+Context & Purpose:
+  Executes the automated setup script to back up /etc/fstab, clean previous or
+  malformed lines, append the fail-safe automount entry, install udev rules for
+  hotplug detection and lazy unmounting, reload systemd, and activate the automount unit.
+
+Command Breakdown:
+  chmod +x <script>        : Sets executable bits on the helper script.
+  sudo <script>            : Runs the script with elevated administrative permissions.
+
+-------------------------------------------------------------------------------
+22.5 Mount Verification & Automount Unit Inspection
+-------------------------------------------------------------------------------
+Commands:
+  systemctl status mnt-SanDiskSD.automount
+  systemctl status mnt-SanDiskSD.mount
+  findmnt /mnt/SanDiskSD
+  findmnt -S "UUID=9C33-6BBD"
+
+Context & Purpose:
+  Verifies that the systemd automount unit is loaded and active, verifies active
+  mount points for the given filesystem UUID, and confirms read/write permissions.
+
+Command Breakdown:
+  systemctl status <unit>  : Displays current runtime state and unit properties.
+  findmnt <path>           : Queries kernel VFS mount table for active mount points.
+
+===============================================================================
+END OF FILE: unix_issues_cmds.txt
+===============================================================================
