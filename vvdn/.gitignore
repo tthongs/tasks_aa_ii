@@ -1,5 +1,0 @@
-# Python virtual environment & cache
-.venv/
-tools/.venv/
-__pycache__/
-*.pyc
