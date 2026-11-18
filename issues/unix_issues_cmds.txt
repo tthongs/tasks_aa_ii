@@ -1235,5 +1235,43 @@ Command Breakdown:
   findmnt <path>           : Queries kernel VFS mount table for active mount points.
 
 ===============================================================================
+23. OS NTFS DRIVE READ/WRITE PERMISSIONS DIAGNOSTICS & FIX
+===============================================================================
+
+-------------------------------------------------------------------------------
+23.1 Mount State & Write Capability Inspection
+-------------------------------------------------------------------------------
+Commands:
+  findmnt /mnt/OS
+  cat /proc/mounts | grep /mnt/OS
+  touch /mnt/OS/test_write.tmp && rm /mnt/OS/test_write.tmp
+
+Context & Purpose:
+  Verifies that the target OS partition (/dev/nvme1n1p3) is actively mounted
+  with read-write flags (rw) under ntfs3, and checks if root-level write access
+  is permitted for UID 1000.
+
+Command Breakdown:
+  findmnt <path>           : Queries the VFS mount table for active mount options.
+  touch <path> && rm <path>: Atomically tests inode creation and unlinking.
+
+-------------------------------------------------------------------------------
+23.2 Directory Mode & ACL Permission Adjustments
+-------------------------------------------------------------------------------
+Commands:
+  ls -ld /mnt/OS/Games /mnt/OS/Users '/mnt/OS/Program Files'
+  chmod 755 /mnt/OS/Games /mnt/OS/Users '/mnt/OS/Program Files' '/mnt/OS/Program Files (x86)'
+  chmod 777 /mnt/OS/Games
+
+Context & Purpose:
+  Under ntfs3 with POSIX ACLs enabled, certain Windows-inherited directories
+  defaulted to mode 555 (dr-xr-xr-x), blocking write and file modification
+  operations. Applying chmod 755/777 restores write capabilities for the user.
+
+Command Breakdown:
+  chmod 755 <paths>        : Grants rwxr-xr-x mode bits to directories.
+  chmod 777 <paths>        : Grants full read/write/execute permissions across all users.
+
+===============================================================================
 END OF FILE: unix_issues_cmds.txt
 ===============================================================================

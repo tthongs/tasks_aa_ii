@@ -43,6 +43,7 @@ The broader repository contains several specialized sub-projects:
 *   **ISSUE_023**: Disable Automatic EFI BootNext Entries in GRUB Menu. [RESOLVED]
 *   **ISSUE_024**: Install and Configure LibreOffice Suite on CachyOS / KDE Plasma. [RESOLVED]
 *   **ISSUE_025**: Configure /etc/fstab and Udev for SanDisk SD Card Automount. [RESOLVED]
+*   **ISSUE_026**: Verify and Fix OS Drive Read/Write Permissions. [RESOLVED]
 
 
 
