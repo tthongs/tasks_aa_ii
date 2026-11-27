@@ -1304,8 +1304,10 @@ Commands:
   zrok2 enable <ZROK_ENABLE_TOKEN>
   zrok2 create share --backend-mode tcpTunnel
   zrok2 share private --headless --force-local --backend-mode tcpTunnel --share-token <SHARE_TOKEN> localhost:22
+  loginctl enable-linger "$USER"
   systemctl --user daemon-reload
-  systemctl --user enable --now zrok2-ssh.service
+  systemctl --user enable zrok2-ssh.service
+  systemctl --user enable --now zrok2-ssh-auto.path
   # On remote client machine:
   zrok2 access private <SHARE_TOKEN>
   ssh -p 9191 tthhongs@127.0.0.1
