@@ -1,6 +1,6 @@
 # [TASK] Install and Configure zrok CLI (v2.0.11) for Remote SSH
 
-**Status**: In Progress  
+**Status**: Resolved  
 **Priority**: High  
 **Affected Directory**: `~/.local/bin/`, `~/.config/systemd/user/`, `~/.zrok2/`
 
@@ -32,7 +32,8 @@ Install and configure the `zrok` CLI (`zrok2` v2.0.11) on CachyOS (`aspire79g`) 
 - [x] Create and enable boot-persistent systemd user units (`zrok2-ssh.service`, `zrok2-ssh-auto.path`) and `~/.local/bin/zrok2-ssh-run`.
 - [x] Create `setup_zrok_ssh.sh` and `~/.local/bin/get-zrok-ssh`.
 - [x] Document Unix commands in [`unix_issues_cmds.txt`](file:///home/tthhongs/build_tthhongs/tasks_aa_ii/issues/unix_issues_cmds.txt) and update [`GEMINI.md`](file:///home/tthhongs/build_tthhongs/tasks_aa_ii/issues/GEMINI.md).
-- [ ] Run `zrok2 enable <ZROK_ENABLE_TOKEN>` (or `./setup_zrok_ssh.sh <ZROK_ENABLE_TOKEN>`) using your account token from `https://myzrok.io` or `zrok2 invite` to activate the live tunnel.
+- [x] Run `zrok2 enable <ZROK_ENABLE_TOKEN>` (or `./setup_zrok_ssh.sh <ZROK_ENABLE_TOKEN>`) using your account token from `https://myzrok.io` or `zrok2 invite` to activate the live tunnel.
+- [x] Fix `~/.local/bin/zrok2-ssh-run` (`jq` `.shares[]?` selector for `zrok2 list shares --json`, and omit `--backend-mode` when `--share-token` is passed to `zrok2 share private`) and verify live `zrok2-ssh.service` execution.
 
 ## Verification
 - `zrok2 version` and `zrok version` both return `v2.0.11 [d8e5316d]`.
@@ -41,3 +42,4 @@ Install and configure the `zrok` CLI (`zrok2` v2.0.11) on CachyOS (`aspire79g`) 
 - `systemctl --user is-enabled zrok2-ssh.service zrok2-ssh-auto.path` returned `enabled` for both units.
 - `systemctl --user status zrok2-ssh-auto.path` shows `active (waiting)` ready to trigger `zrok2-ssh.service`.
 - `bash -n setup_zrok_ssh.sh ~/.local/bin/get-zrok-ssh ~/.local/bin/zrok2-ssh-run` passed.
+- `zrok2 enable` succeeded (`~/.zrok2/environment.json` created), `zrok2-ssh-auto.path` triggered `zrok2-ssh.service`, and after fixing `~/.local/bin/zrok2-ssh-run`, `systemctl --user status zrok2-ssh.service` shows `active (running)` with `get-zrok-ssh` reporting `zrok2 Remote SSH Tunnel Status: active` (share token `fibj1ru0dyjv`).

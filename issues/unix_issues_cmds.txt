@@ -1303,11 +1303,14 @@ Command Breakdown:
 Commands:
   zrok2 enable <ZROK_ENABLE_TOKEN>
   zrok2 create share --backend-mode tcpTunnel
-  zrok2 share private --headless --force-local --backend-mode tcpTunnel --share-token <SHARE_TOKEN> localhost:22
+  zrok2 share private --headless --force-local --share-token <SHARE_TOKEN> localhost:22
+  zrok2 list shares --json | jq -r '.shares[]? | select(.shareMode=="private" and .backendMode=="tcpTunnel") | .shareToken // empty'
   loginctl enable-linger "$USER"
   systemctl --user daemon-reload
   systemctl --user enable zrok2-ssh.service
   systemctl --user enable --now zrok2-ssh-auto.path
+  systemctl --user restart zrok2-ssh.service
+  get-zrok-ssh
   # On remote client machine:
   zrok2 access private <SHARE_TOKEN>
   ssh -p 9191 tthhongs@127.0.0.1
@@ -1316,6 +1319,8 @@ Context & Purpose:
   Binds the machine to the user zrok2 account (~/.zrok2/environment.json),
   allocates a persistent private tcpTunnel share token, and runs a lingering
   systemd user service forwarding remote zero-trust traffic to localhost:22.
+  Note: `zrok2 share private` rejects `--backend-mode` when `--share-token` is
+  supplied (the backend mode is already bound on `zrok2 create share`).
 
 Command Breakdown:
   zrok2 enable <token>     : Authenticates and initializes ~/.zrok2 environment.

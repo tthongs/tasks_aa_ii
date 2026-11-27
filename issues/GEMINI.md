@@ -44,7 +44,7 @@ The broader repository contains several specialized sub-projects:
 *   **ISSUE_024**: Install and Configure LibreOffice Suite on CachyOS / KDE Plasma. [RESOLVED]
 *   **ISSUE_025**: Configure /etc/fstab and Udev for SanDisk SD Card Automount. [RESOLVED]
 *   **ISSUE_026**: Verify and Fix OS Drive Read/Write Permissions. [RESOLVED]
-*   **ISSUE_027**: Install and Configure zrok CLI (v2.0.11) for Remote SSH. [IN PROGRESS]
+*   **ISSUE_027**: Install and Configure zrok CLI (v2.0.11) for Remote SSH. [RESOLVED]
 
 
 
